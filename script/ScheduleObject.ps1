@@ -1,6 +1,6 @@
 <#
 .EXAMPLE
-cat .\sched\*.md | Get-Schedule | Write-Schedule
+cat .\sched\*.md | Get-Schedule -StartDate 2022_10_11 | Write-Schedule
 #>
 function Write-Schedule {
     Param(
@@ -55,7 +55,6 @@ function Write-Schedule {
             When = "$(Get-Date $when -f HH:mm)"
             Type = $icon
             What = $ActionItem.what
-            # 'Where' = $ActionItem.'where'
         }
 
         $str = $displayItem `
@@ -82,7 +81,10 @@ function Get-Schedule {
     Param(
         [Parameter(ValueFromPipeline = $true)]
         [String]
-        $Line
+        $Line,
+
+        [String]
+        $StartDate = $(Get-Date -f 'yyyy_MM_dd')
     )
 
     Begin {
@@ -94,17 +96,22 @@ function Get-Schedule {
     }
 
     End {
-        $now = Get-Date
+        $date = [DateTime]::ParseExact( `
+            $StartDate, `
+            'yyyy_MM_dd', `
+            $null `
+        )
 
         $what = $content `
             | Get-MarkdownTable
 
         return $what.sched `
             | Get-Schedule_FromTable `
+                -StartDate $date `
             | Sort-Object `
                 -Property when `
             | Where-Object {
-                $now -lt $_.when
+                $date -lt $_.when
             }
     }
 }
@@ -315,7 +322,10 @@ function Get-Schedule_FromTable {
     Param(
         [Parameter(ValueFromPipeline = $true)]
         [PsCustomObject]
-        $InputObject
+        $InputObject,
+
+        [DateTime]
+        $StartDate = $(Get-Date)
     )
 
     Begin {
@@ -355,8 +365,6 @@ function Get-Schedule_FromTable {
 
             return $what
         }
-
-        $now = Get-Date
     }
 
     Process {
@@ -385,9 +393,9 @@ function Get-Schedule_FromTable {
                 $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
 
                 $dateTime = Get-Date `
-                    -Year $now.Year `
-                    -Month $now.Month `
-                    -Day $now.Day `
+                    -Year $StartDate.Year `
+                    -Month $StartDate.Month `
+                    -Day $StartDate.Day `
                     -Hour $time.Hour `
                     -Minute $time.Minute `
                     -Second 0
@@ -408,7 +416,7 @@ function Get-Schedule_FromTable {
                     return
                 }
 
-                $date = $now
+                $date = $StartDate
 
                 while ($schedDay.ToLower() -ne (Get-WeekDayCode -Date $date)) {
                     $date = $date.AddDays(1)
