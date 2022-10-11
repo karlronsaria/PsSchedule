@@ -1,5 +1,81 @@
 <#
 .EXAMPLE
+cat .\sched\*.md | Get-Schedule | Write-Schedule
+#>
+function Write-Schedule {
+    Param(
+        [Parameter(ValueFromPipeline = $true)]
+        [PsCustomObject]
+        $ActionItem
+    )
+
+    Begin {
+        $day = $null
+        $month = $null
+        $year = $null
+        $hostForeground =
+            (Get-Host).Ui.RawUi.ForegroundColor
+    }
+
+    Process {
+        $when = $ActionItem.when
+        $newDay =
+                 $day -ne $when.Day `
+            -or $month -ne $when.Month `
+            -or $year -ne $when.Year
+
+        if ($newDay) {
+            $day = $when.Day
+            $month = $when.Month
+            $year = $when.Year
+
+            $heading = "$($when.DayOfWeek) ($(Get-Date $when -f yyyy_MM_dd))"
+
+            Write-Host
+            Write-Host $heading -Foreground DarkGray
+            Write-Host "$("-" * $heading.Length)" -Foreground DarkGray
+        }
+
+        $icon = $null
+        $foreground = $null
+
+        switch ($ActionItem.type) {
+            'deadline' {
+                $icon = '[!]'
+                $foreground = 'Red'
+            }
+
+            default {
+                $icon = '   '
+                $foreground = $hostForeground
+            }
+        }
+
+        $displayItem = [PsCustomObject]@{
+            When = "$(Get-Date $when -f HH:mm)"
+            Type = $icon
+            What = $ActionItem.what
+            # 'Where' = $ActionItem.'where'
+        }
+
+        $str = $displayItem `
+            | Format-Table -HideTableHeaders `
+            | Out-String
+
+        $str = $str.Trim()
+
+        if (-not [String]::IsNullOrWhiteSpace($str)) {
+            Write-Host $str -Foreground $foreground
+        }
+    }
+
+    End {
+        Write-Host
+    }
+}
+
+<#
+.EXAMPLE
 cat .\sched\*.md | Get-Schedule
 #>
 function Get-Schedule {
@@ -308,24 +384,19 @@ function Get-Schedule_FromTable {
 
                 $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
 
-                for ($i = 1; $i -le 7; ++$i) {
-                    $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
+                $dateTime = Get-Date `
+                    -Year $now.Year `
+                    -Month $now.Month `
+                    -Day $now.Day `
+                    -Hour $time.Hour `
+                    -Minute $time.Minute `
+                    -Second 0
 
-                    $dateTime = Get-Date `
-                        -Year $date.Year `
-                        -Month $date.Month `
-                        -Day $date.Day `
-                        -Hour $time.Hour `
-                        -Minute $time.Minute `
-                        -Second 0
+                $what = Get-NewActionItem `
+                    -ActionItem $InputObject `
+                    -Date $dateTime
 
-                    $what = Get-NewActionItem `
-                        -ActionItem $InputObject `
-                        -Date $dateTime
-
-                    $list += @($what)
-                    $date = $date.AddDays(1)
-                }
+                $list += @($what)
             }
 
             'week' {
@@ -364,13 +435,4 @@ function Get-Schedule_FromTable {
         return $list
     }
 }
-
-
-
-
-
-
-
-
-
 
