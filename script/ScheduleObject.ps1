@@ -482,9 +482,8 @@ function Get-Schedule_FromTable {
         }
 
         $todayOnlyEvent =
-                 'todayonly' -eq $schedType `
-            -or  'today only' -eq $schedType `
-            -and ($schedEvery -eq 'none' `
+            @('todayonly', 'today-only', 'today only') -contains $schedType 
+            -and ('none' -eq $schedEvery `
                 -or [String]::IsNullOrWhiteSpace($schedEvery))
 
         if ($todayOnlyEvent) {
