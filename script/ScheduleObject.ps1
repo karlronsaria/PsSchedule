@@ -19,8 +19,7 @@ function Write-Schedule {
 
     Process {
         $when = $ActionItem.when
-        $newDay =
-                 $day -ne $when.Day `
+        $newDay = $day -ne $when.Day `
             -or $month -ne $when.Month `
             -or $year -ne $when.Year
 
@@ -133,10 +132,14 @@ function Get-Schedule {
                     return $what
                 }
 
+                $subtables = dir $jsonFiles `
+                    | foreach {
+                        cat $_ | ConvertFrom-Json
+                    }
+
                 return $what `
                     | Add-Schedule `
-                        -Table (cat $jsonFiles `
-                            | ConvertFrom-Json)
+                        -Table $subtables `
                         -StartDate:$StartDate
             }
 
@@ -195,7 +198,10 @@ function Add-Schedule {
             $null `
         )
 
-        return $list + @($Table) `
+        return $list `
+            + @($Table | Get-Schedule_FromTable `
+                -StartDate $date
+            ) `
             | Sort-Object `
                 -Property when `
             | Where-Object {
@@ -453,51 +459,74 @@ function Get-Schedule_FromTable {
 
             return $what
         }
+
+        function Test-ActionItemIsOneDayEvent {
+            Param(
+                [PsCustomObject]
+                $ActionItem
+            )
+
+            return 'event' -eq $ActionItem.type `
+                -and $ActionItem.when -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
+                -and ('every' -notin $ActionItem.PsObject.Properties.Name `
+                    -or $ActionItem.every -eq 'none' `
+                    -or [String]::IsNullOrWhiteSpace($schedEvery))
+        }
+
+        function Test-ActionItemIsTodayOnly {
+            Param(
+                [PsCustomObject]
+                $ActionItem
+            )
+
+            return @('todayonly', 'today-only', 'today only') `
+                    -contains $ActionItem.type.ToLower() `
+                -and ('every' -notin $ActionItem.PsObject.Properties.Name `
+                    -or 'none' -eq $ActionItem.every `
+                    -or [String]::IsNullOrWhiteSpace($ActionItem.every))
+        }
+
+        function Get-DateParseVaryingLength {
+            Param(
+                [String]
+                $DateString
+            )
+
+            $pattern = switch -Regex ($DateString.Trim()) {
+                '\d{4}_\d{2}_\d{2}_\d{6}' { 'yyyy_MM_dd_HHmmss'; break }
+                '\d{4}_\d{2}_\d{2}_\d{4}' { 'yyyy_MM_dd_HHmm'; break }
+                '\d{4}_\d{2}_\d{2}_\d{2}' { 'yyyy_MM_dd_HH'; break }
+                '\d{4}_\d{2}_\d{2}' { 'yyyy_MM_dd'; break }
+                default { ''; break }
+            }
+
+            if ([String]::IsNullOrEmpty($pattern)) {
+                return $null
+            }
+
+            return [DateTime]::ParseExact( `
+                $DateString, `
+                $pattern, `
+                $null `
+            )
+        }
     }
 
     Process {
+        $list = @()
         $schedWhen = $InputObject.when.ToLower()
-        $schedEvery = $InputObject.every.ToLower()
         $schedType = $InputObject.type.ToLower()
 
-        $oneDayEvent =
-                 'event' -eq $schedType `
-            -and $schedWhen -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
-            -and ($schedEvery -eq 'none' `
-                -or [String]::IsNullOrWhiteSpace($schedEvery))
-
-        if ($oneDayEvent) {
-            $dateTime = [DateTime]::ParseExact( `
-                $schedWhen, `
-                'yyyy_MM_dd_HHmmss', `
-                $null `
-            )
-
-            $what = Get-NewActionItem `
-                -ActionItem $InputObject `
-                -Date $dateTime
-
-            $list += @($what)
-            return $list
-        }
-
-        $todayOnlyEvent =
-            @('todayonly', 'today-only', 'today only') `
-                -contains $schedType `
-            -and ('none' -eq $schedEvery `
-                -or [String]::IsNullOrWhiteSpace($schedEvery))
+        $todayOnlyEvent = Test-ActionItemIsTodayOnly `
+            -ActionItem $InputObject
 
         if ($todayOnlyEvent) {
-            $dateTime = [DateTime]::ParseExact( `
-                $schedWhen, `
-                'yyyy_MM_dd_HHmmss', `
-                $null `
-            )
+            $dateTime = Get-DateParseVaryingLength `
+                -DateString $schedWhen
 
             $now = Get-Date
 
-            $isToday =
-                     $now.Year -eq $dateTime.Year `
+            $isToday = $now.Year -eq $dateTime.Year `
                 -and $now.Month -eq $dateTime.Month `
                 -and $now.Day -eq $dateTime.Day
 
@@ -512,6 +541,23 @@ function Get-Schedule_FromTable {
             return $list
         }
 
+        $oneDayEvent = Test-ActionItemIsOneDayEvent `
+            -ActionItem $InputObject
+
+        if ($oneDayEvent) {
+            $dateTime = Get-DateParseVaryingLength `
+                -DateString $schedWhen
+
+            $what = Get-NewActionItem `
+                -ActionItem $InputObject `
+                -Date $dateTime
+
+            $list += @($what)
+            return $list
+        }
+
+        $schedEvery = $InputObject.every.ToLower()
+
         $capture = [Regex]::Match( `
             $schedWhen, `
             "((?<day>\w{3})-)?(?<time>\d{4})?" `
@@ -519,7 +565,6 @@ function Get-Schedule_FromTable {
 
         $schedDay = $capture.Groups['day'].Value
         $schedTime = $capture.Groups['time'].Value
-        $list = @()
 
         switch ($schedEvery) {
             'day' {
