@@ -38,11 +38,17 @@ function Write-Schedule {
 
         $icon = $null
         $foreground = $null
+        $what = $ActionItem.what
 
         switch ($ActionItem.type) {
             'deadline' {
                 $icon = '[!]'
                 $foreground = 'Red'
+            }
+
+            'event' {
+                $what = "event: $what"
+                $foreground = 'Green'
             }
 
             default {
@@ -54,7 +60,7 @@ function Write-Schedule {
         $displayItem = [PsCustomObject]@{
             When = "$(Get-Date $when -f HH:mm)"
             Type = $icon
-            What = $ActionItem.what
+            What = $what
         }
 
         $str = $displayItem `
@@ -78,10 +84,20 @@ function Write-Schedule {
 cat .\sched\*.md | Get-Schedule
 #>
 function Get-Schedule {
+    [CmdletBinding(DefaultParameterSetName = 'ByLine')]
     Param(
-        [Parameter(ValueFromPipeline = $true)]
+        [Parameter(
+            ParameterSetName = 'ByLine',
+            ValueFromPipeline = $true
+        )]
         [String]
         $Line,
+
+        [Parameter(
+            ParameterSetName = 'ByDirectory'
+        )]
+        [String]
+        $DirectoryPath,
 
         [String]
         $StartDate = $(Get-Date -f 'yyyy_MM_dd')
@@ -92,7 +108,84 @@ function Get-Schedule {
     }
 
     Process {
-        $content += @($Line)
+        if ($PsCmdlet.ParameterSetName -eq 'ByLine') {
+            $content += @($Line)
+        }
+    }
+
+    End {
+        switch ($PsCmdlet.ParameterSetName) {
+            'ByDirectory' {
+                $what = @()
+                $mdFiles = Join-Path $DirectoryPath "*.md"
+
+                if (-not (Test-Path $mdFiles)) {
+                    return $what
+                }
+
+                $what = cat ($mdFiles) `
+                    | Get-Schedule `
+                        -StartDate:$StartDate `
+
+                $jsonFiles = Join-Path $DirectoryPath "*.json"
+
+                if (-not (Test-Path $jsonFiles)) {
+                    return $what
+                }
+
+                return $what `
+                    | Add-Schedule `
+                        -Table (cat $jsonFiles `
+                            | ConvertFrom-Json)
+                        -StartDate:$StartDate
+            }
+
+            'ByLine' {
+                $date = [DateTime]::ParseExact( `
+                    $StartDate, `
+                    'yyyy_MM_dd', `
+                    $null `
+                )
+
+                $what = $content `
+                    | Get-MarkdownTable
+
+                return $what.sched `
+                    | Get-Schedule_FromTable `
+                        -StartDate $date `
+                    | Sort-Object `
+                        -Property when `
+                    | Where-Object {
+                        $date -lt $_.when
+                    }
+            }
+        }
+    }
+}
+
+<#
+.EXAMPLE
+cat .\sched\*.md | Get-Schedule | Add-Schedule -Table (ConvertFrom-Json .\sched\*.json)
+#>
+function Add-Schedule {
+    Param(
+        [Parameter(ValueFromPipeline = $true)]
+        [PsCustomObject[]]
+        $InputObject,
+
+        [PsCustomObject[]]
+        $Table,
+
+        [String]
+        $StartDate = $(Get-Date -f 'yyyy_MM_dd')
+    )
+
+    Begin {
+        $list = @()
+    }
+
+    Process {
+        $list += @($InputObject)
     }
 
     End {
@@ -102,12 +195,7 @@ function Get-Schedule {
             $null `
         )
 
-        $what = $content `
-            | Get-MarkdownTable
-
-        return $what.sched `
-            | Get-Schedule_FromTable `
-                -StartDate $date `
+        return $list + @($Table) `
             | Sort-Object `
                 -Property when `
             | Where-Object {
@@ -369,6 +457,27 @@ function Get-Schedule_FromTable {
 
     Process {
         $schedWhen = $InputObject.when.ToLower()
+        $schedEvery = $InputObject.every.ToLower()
+
+        $oneDayEvent = 'even' -eq $InputObject.type.ToLower() `
+            -and $schedWhen -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
+            -and ($schedEvery -eq 'none' `
+                -or [String]::IsNullOrWhiteSpace($schedEvery))
+
+        if ($oneDayEvent) {
+            $dateTime = [DateTime]::ParseExact( `
+                $schedWhen, `
+                'yyyy_MM_dd_HHmmss', `
+                $null `
+            )
+
+            $what = Get-NewActionItem `
+                -ActionItem $InputObject `
+                -Date $dateTime
+
+            $list += @($what)
+            return $list
+        }
 
         $capture = [Regex]::Match( `
             $schedWhen, `
@@ -377,8 +486,6 @@ function Get-Schedule_FromTable {
 
         $schedDay = $capture.Groups['day'].Value
         $schedTime = $capture.Groups['time'].Value
-        $schedEvery = $InputObject.every.ToLower()
-
         $list = @()
 
         switch ($schedEvery) {
@@ -389,22 +496,6 @@ function Get-Schedule_FromTable {
                 if ($invalid) {
                     return
                 }
-
-                $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
-
-                $dateTime = Get-Date `
-                    -Year $StartDate.Year `
-                    -Month $StartDate.Month `
-                    -Day $StartDate.Day `
-                    -Hour $time.Hour `
-                    -Minute $time.Minute `
-                    -Second 0
-
-                $what = Get-NewActionItem `
-                    -ActionItem $InputObject `
-                    -Date $dateTime
-
-                $list += @($what)
             }
 
             'week' {
@@ -421,24 +512,24 @@ function Get-Schedule_FromTable {
                 while ($schedDay.ToLower() -ne (Get-WeekDayCode -Date $date)) {
                     $date = $date.AddDays(1)
                 }
-
-                $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
-
-                $dateTime = Get-Date `
-                    -Year $date.Year `
-                    -Month $date.Month `
-                    -Day $date.Day `
-                    -Hour $time.Hour `
-                    -Minute $time.Minute `
-                    -Second 0
-
-                $what = Get-NewActionItem `
-                    -ActionItem $InputObject `
-                    -Date $dateTime
-
-                $list += @($what)
             }
         }
+
+        $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
+
+        $dateTime = Get-Date `
+            -Year $date.Year `
+            -Month $date.Month `
+            -Day $date.Day `
+            -Hour $time.Hour `
+            -Minute $time.Minute `
+            -Second 0
+
+        $what = Get-NewActionItem `
+            -ActionItem $InputObject `
+            -Date $dateTime
+
+        $list += @($what)
 
         return $list
     }
