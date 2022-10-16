@@ -458,8 +458,10 @@ function Get-Schedule_FromTable {
     Process {
         $schedWhen = $InputObject.when.ToLower()
         $schedEvery = $InputObject.every.ToLower()
+        $schedType = $InputObject.type.ToLower()
 
-        $oneDayEvent = 'even' -eq $InputObject.type.ToLower() `
+        $oneDayEvent =
+                 'event' -eq $schedType `
             -and $schedWhen -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
             -and ($schedEvery -eq 'none' `
                 -or [String]::IsNullOrWhiteSpace($schedEvery))
@@ -476,6 +478,37 @@ function Get-Schedule_FromTable {
                 -Date $dateTime
 
             $list += @($what)
+            return $list
+        }
+
+        $todayOnlyEvent =
+                 'todayonly' -eq $schedType `
+            -or  'today only' -eq $schedType `
+            -and ($schedEvery -eq 'none' `
+                -or [String]::IsNullOrWhiteSpace($schedEvery))
+
+        if ($todayOnlyEvent) {
+            $dateTime = [DateTime]::ParseExact( `
+                $schedWhen, `
+                'yyyy_MM_dd_HHmmss', `
+                $null `
+            )
+
+            $now = Get-Date
+
+            $isToday =
+                     $now.Year -eq $dateTime.Year `
+                -and $now.Month -eq $dateTime.Month `
+                -and $now.Day -eq $dateTime.Day
+
+            if ($isToday) {
+                $what = Get-NewActionItem `
+                    -ActionItem $InputObject `
+                    -Date $dateTime
+
+                $list += @($what)
+            }
+
             return $list
         }
 
