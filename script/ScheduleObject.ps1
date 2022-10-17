@@ -15,6 +15,30 @@ function Write-Schedule {
         $year = $null
         $hostForeground =
             (Get-Host).Ui.RawUi.ForegroundColor
+
+        function Write-OutputColored {
+            Param(
+                [Parameter(ValueFromPipeline)]
+                $InputObject,
+
+                $Foreground
+            )
+
+            $hf = $host.Ui.RawUi.ForegroundColor
+
+            if ($null -ne $Foreground) {
+                $host.Ui.RawUi.ForegroundColor = $Foreground
+            }
+
+            if ($InputObject) {
+                Write-Output $InputObject
+            }
+            else {
+                Write-Output ''
+            }
+
+            $host.Ui.RawUi.ForegroundColor = $hf
+        }
     }
 
     Process {
@@ -30,9 +54,11 @@ function Write-Schedule {
 
             $heading = "$($when.DayOfWeek) ($(Get-Date $when -f yyyy_MM_dd))"
 
-            Write-Host
-            Write-Host $heading -Foreground DarkGray
-            Write-Host "$("-" * $heading.Length)" -Foreground DarkGray
+            Write-OutputColored
+            Write-OutputColored $heading `
+                -Foreground DarkGray
+            Write-OutputColored "$("-" * $heading.Length)" `
+                -Foreground DarkGray
         }
 
         $icon = $null
@@ -69,12 +95,12 @@ function Write-Schedule {
         $str = $str.Trim()
 
         if (-not [String]::IsNullOrWhiteSpace($str)) {
-            Write-Host $str -Foreground $foreground
+            Write-OutputColored $str -Foreground $foreground
         }
     }
 
     End {
-        Write-Host
+        Write-OutputColored
     }
 }
 
