@@ -611,6 +611,8 @@ function Get-Schedule_FromTable {
                 $invalid =
                     [String]::IsNullOrWhiteSpace($schedTime)
 
+                $date = Get-Date
+
                 if ($invalid) {
                     return
                 }
