@@ -280,7 +280,7 @@ function Get-MarkdownTable_FromCat {
     }
 
     Process {
-        $capture = [Regex]::Match($Line, '^(?<indent>\s*)((?<header>#+)|(?<list_item_delim>\-)\s)\s*(?<content>.+)$')
+        $capture = [Regex]::Match($Line, '^(?<indent>\s*)((?<header>#+)|(?<list_item_delim>\-|\*|\d+\.)\s)\s*(?<content>.+)$')
         $header = $capture.Groups['header']
         $indent = $capture.Groups['indent']
 
