@@ -124,6 +124,12 @@ function Get-Schedule {
         [String]
         $DirectoryPath,
 
+        [Parameter(
+            ParameterSetName = 'ByDirectory'
+        )]
+        [Switch]
+        $Recurse,
+
         [String]
         $StartDate = $(Get-Date -f 'yyyy_MM_dd')
     )
@@ -148,7 +154,11 @@ function Get-Schedule {
                     return $what
                 }
 
-                $what = cat ($mdFiles) `
+                $what =
+                    Get-ChildItem `
+                        -Path $mdFiles `
+                        -Recurse:$Recurse `
+                    | Get-Content `
                     | Get-Schedule `
                         -StartDate:$StartDate `
 
@@ -158,7 +168,10 @@ function Get-Schedule {
                     return $what
                 }
 
-                $subtables = dir $jsonFiles `
+                $subtables =
+                    Get-ChildItem `
+                        -Path $jsonFiles `
+                        -Recurse:$Recurse `
                     | foreach {
                         cat $_ | ConvertFrom-Json
                     }
@@ -492,7 +505,8 @@ function Get-Schedule_FromTable {
                 $ActionItem
             )
 
-            return 'event' -eq $ActionItem.type `
+            return @('event', 'errand') `
+                    -contains $ActionItem.type `
                 -and $ActionItem.when -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
                 -and ('every' -notin $ActionItem.PsObject.Properties.Name `
                     -or $ActionItem.every -eq 'none' `
