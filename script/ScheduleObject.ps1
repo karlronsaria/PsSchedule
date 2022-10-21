@@ -415,7 +415,7 @@ function Get-MarkdownTree_FromTable {
 
         $capture = [Regex]::Match( `
             $content, `
-            "^\s*(?<key>[^:`"]+)\s*:\s*(?<value>.*)\s*$" `
+            "^\s*(?<key>[^:`"]+)\s*:\s+(?<value>.*)\s*$" `
         )
 
         $key = $capture.Groups['key']
