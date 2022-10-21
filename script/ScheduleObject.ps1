@@ -10,6 +10,9 @@ function Write-Schedule {
     )
 
     Begin {
+        $EPOCH_YEAR = 1970
+        $LONG_TIME_DAYS_THRESHOLD = 10
+
         $day = $null
         $month = $null
         $year = $null
@@ -39,15 +42,28 @@ function Write-Schedule {
 
             $host.Ui.RawUi.ForegroundColor = $hf
         }
+
+        $prevDate = Get-Date -Year $EPOCH_YEAR -Month 1 -Day 1
     }
 
     Process {
         $when = $ActionItem.when
-        $newDay = $day -ne $when.Day `
+        $isNewDay = $day -ne $when.Day `
             -or $month -ne $when.Month `
             -or $year -ne $when.Year
 
-        if ($newDay) {
+        if ($isNewDay) {
+            $isLongComing = $EPOCH_YEAR -ne $prevDate.Year `
+                -and $LONG_TIME_DAYS_THRESHOLD -le ($when - $prevDate).Days
+
+            $prevDate = $when
+
+            if ($isLongComing) {
+                Write-OutputColored `
+                    -InputObject "`r`n     . . .`r`n" `
+                    -Foreground DarkGray
+            }
+
             $day = $when.Day
             $month = $when.Month
             $year = $when.Year
