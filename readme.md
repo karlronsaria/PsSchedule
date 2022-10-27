@@ -14,6 +14,36 @@ I wish
           every = 2^7
           every = 2^(Mon + Tue + Wed + ... + Sun)
       ```
+    - example
+
+      ```
+      # sched
+      - what: college development course
+      - when: 1000
+      - every: Mon, Wed, Fri
+      - type: routine
+      ```
+      - above is equivalent to
+
+      ```
+      # sched
+      - what: college development course
+      - when: mon-1000
+      - every: week
+      - type: routine
+
+      # sched
+      - what: college development course
+      - when: wed-1000
+      - every: week
+      - type: routine
+
+      # sched
+      - what: college development course
+      - when: fri-1000
+      - every: week
+      - type: routine
+      ```
 - [x] I wish I could access an action item's file by selecting from a numbered list
   - karlr: Why not just use 'sls' or 'grep'?
   - solution: C:\shortcut\bin\schedsearch.bat
