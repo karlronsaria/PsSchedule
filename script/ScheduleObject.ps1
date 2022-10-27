@@ -208,14 +208,21 @@ function Get-Schedule {
                 $what = $content `
                     | Get-MarkdownTable
 
-                return $what.sched `
-                    | Get-Schedule_FromTable `
-                        -StartDate $date `
-                    | Sort-Object `
-                        -Property when `
-                    | Where-Object {
-                        $date -lt $_.when
+                return $what | foreach {
+                    switch ($_) {
+                        'Error' { $null }
+                        default {
+                            $_.sched `
+                            | Get-Schedule_FromTable `
+                                -StartDate $date `
+                            | Sort-Object `
+                                -Property when `
+                            | Where-Object {
+                                $date -lt $_.when
+                            }
+                        }
                     }
+                }
             }
         }
     }
@@ -444,7 +451,7 @@ function Get-MarkdownTree_FromTable {
         }
 
         $property = $parent.PsObject.Properties | where {
-            $_.Name -eq $TableRow.Content
+            $_.Name -eq $content
         }
 
         if ($null -ne $property) {
