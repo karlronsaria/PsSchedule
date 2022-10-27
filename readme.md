@@ -2,6 +2,18 @@
 I wish
 - [ ] I could see expired action items from earlier today
 - [ ] I could see high-priority deadlines within a week or month's notice but low-priority deadlines within a day's notice
+- [x] I could schedule an action item for the same time every monday, friday, and saturday
+  - solution
+    - refactor: ``every' = every union 2^(Mon + Tue + Wed + ... + Sun)``
+      ```
+      example
+          every: Mon, Tue, Wed, Fri
+      thus
+          every = (Mon: (0|1), Tue: (0|1), ... Sun: (0|1))
+          every = (2, 2, 2, 2, 2, 2, 2)
+          every = 2^7
+          every = 2^(Mon + Tue + Wed + ... + Sun)
+      ```
 - [x] I wish I could access an action item's file by selecting from a numbered list
   - karlr: Why not just use 'sls' or 'grep'?
   - solution: C:\shortcut\bin\schedsearch.bat

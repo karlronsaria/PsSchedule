@@ -619,8 +619,6 @@ function Get-Schedule_FromTable {
             return $list
         }
 
-        $schedEvery = $InputObject.every.ToLower()
-
         $capture = [Regex]::Match( `
             $schedWhen, `
             "((?<day>\w{3})-)?(?<time>\d{4})?" `
@@ -628,8 +626,35 @@ function Get-Schedule_FromTable {
 
         $schedDay = $capture.Groups['day'].Value
         $schedTime = $capture.Groups['time'].Value
+        $schedEvery = $InputObject.every.ToLower()
 
-        switch ($schedEvery) {
+        switch -Regex ($schedEvery) {
+            '\w+(\s*,\s*\w+)+' {
+                $invalid =
+                    [String]::IsNullOrWhiteSpace($schedTime)
+
+                $days = $schedEvery -Split '\s*,\s*'
+
+                $days = $days | where {
+                    @('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun') `
+                        -contains $_
+                } | select -Unique
+
+                foreach ($day in $days) {
+                    $obj = $InputObject.PsObject.Copy()
+                    $obj.every = 'week'
+                    $obj.when = "$day-$schedTime"
+
+                    $what = Get-Schedule_FromTable `
+                        -InputObject $obj `
+                        -StartDate:$StartDate
+
+                    $list += @($what)
+                }
+
+                return $list
+            }
+
             'day' {
                 $invalid =
                     [String]::IsNullOrWhiteSpace($schedTime)
