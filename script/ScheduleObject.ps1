@@ -47,6 +47,13 @@ function Write-Schedule {
     }
 
     Process {
+        if ($null -eq $ActionItem) {
+            Write-OutputColored `
+                -InPutObject '[Error: action item was found to be null]'
+
+            return
+        }
+
         $when = $ActionItem.when
         $isNewDay = $day -ne $when.Day `
             -or $month -ne $when.Month `
