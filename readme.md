@@ -51,6 +51,9 @@ I wish
 - [x] I could see today's work schedule
 
 # issue
+- [ ] 2022_10_27_180542
+  - actual
+    - action items with header levels other than 3 are ignored
 - [x] 2022_10_26_170128
   - process
     ``C:\shortcut\bin\sched.bat``

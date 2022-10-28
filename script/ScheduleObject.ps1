@@ -143,6 +143,18 @@ function Get-Schedule {
         [Parameter(
             ParameterSetName = 'ByDirectory'
         )]
+        [String]
+        $Subdirectory,
+
+        [Parameter(
+            ParameterSetName = 'ByDirectory'
+        )]
+        [String]
+        $DefaultSubdirectory,
+
+        [Parameter(
+            ParameterSetName = 'ByDirectory'
+        )]
         [Switch]
         $Recurse,
 
@@ -164,6 +176,14 @@ function Get-Schedule {
         switch ($PsCmdlet.ParameterSetName) {
             'ByDirectory' {
                 $what = @()
+
+                if (-not [String]::IsNullOrWhiteSpace($Subdirectory)) {
+                    $DirectoryPath = Join-Path $DirectoryPath $Subdirectory
+                }
+                elseif (-not [String]::IsNullOrWhiteSpace($DefaultSubdirectory)) {
+                    $DirectoryPath = Join-Path $DirectoryPath $DefaultSubdirectory
+                }
+
                 $mdFiles = Join-Path $DirectoryPath "*.md"
 
                 if (-not (Test-Path $mdFiles)) {
