@@ -142,6 +142,12 @@ function Get-Schedule {
         $Line,
 
         [Parameter(
+            ParameterSetName = 'ByLine'
+        )]
+        [PsCustomObject]
+        $Default,
+
+        [Parameter(
             ParameterSetName = 'ByDirectory'
         )]
         [String]
@@ -197,6 +203,15 @@ function Get-Schedule {
                     return $what
                 }
 
+                $defaultsPath =
+                    Join-Path $DirectoryPath 'default.json' `
+
+                $defaults = if ((Test-Path $defaultsPath)) {
+                    cat $defaultsPath | ConvertFrom-Json
+                } else {
+                    $null
+                }
+
                 $what =
                     Get-ChildItem `
                         -Path $mdFiles `
@@ -204,6 +219,7 @@ function Get-Schedule {
                     | Get-Content `
                     | Get-Schedule `
                         -StartDate:$StartDate `
+                        -Default:$defaults
 
                 $jsonFiles = Join-Path $DirectoryPath "*.json"
 
@@ -215,7 +231,9 @@ function Get-Schedule {
                     Get-ChildItem `
                         -Path $jsonFiles `
                         -Recurse:$Recurse `
-                    | foreach {
+                    | where {
+                        'default.json' -ne $_.Name.ToLower()
+                    } | foreach {
                         cat $_ | ConvertFrom-Json
                     }
 
@@ -239,9 +257,24 @@ function Get-Schedule {
                     switch ($_) {
                         'Error' { $null }
                         default {
-                            $_.sched `
-                            | Get-Schedule_FromTable `
-                                -StartDate $date `
+                            $temp =
+                                $_.sched `
+                                | where {
+                                    -not [String]::IsNullOrWhiteSpace($_)
+                                }
+
+                            $temp = if ($null -eq $Default) {
+                                $temp `
+                                | Get-Schedule_FromTable `
+                                    -StartDate $date
+                            } else {
+                                $temp `
+                                | Get-Schedule_FromTable `
+                                    -StartDate $date `
+                                    -Default $Default
+                            }
+
+                            $temp `
                             | Sort-Object `
                                 -Property when `
                             | Where-Object {
@@ -508,7 +541,14 @@ function Get-Schedule_FromTable {
         $InputObject,
 
         [DateTime]
-        $StartDate = $(Get-Date)
+        $StartDate = $(Get-Date),
+
+        [PsCustomObject]
+        $Default = ([PsCustomObject]@{
+            when = (Get-Date -f HHmm)
+            type = 'todayonly'
+            every = 'none'
+        })
     )
 
     Begin {
@@ -552,28 +592,41 @@ function Get-Schedule_FromTable {
         function Test-ActionItemIsOneDayEvent {
             Param(
                 [PsCustomObject]
-                $ActionItem
+                $ActionItem,
+
+                [PsCustomObject]
+                $Default
             )
 
+            $every = $ActionItem.every.ToLower()
+            $when = $ActionItem.when.ToLower()
+            $type = $ActionItem.type.ToLower()
+
             return @('event', 'errand') `
-                    -contains $ActionItem.type `
-                -and $ActionItem.when -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
+                    -contains $type `
+                -and $when -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
                 -and ('every' -notin $ActionItem.PsObject.Properties.Name `
-                    -or $ActionItem.every -eq 'none' `
-                    -or [String]::IsNullOrWhiteSpace($schedEvery))
+                    -or $every -eq 'none' `
+                    -or [String]::IsNullOrWhiteSpace($every))
         }
 
         function Test-ActionItemIsTodayOnly {
             Param(
                 [PsCustomObject]
-                $ActionItem
+                $ActionItem,
+
+                [PsCustomObject]
+                $Default
             )
 
+            $every = $ActionItem.every.ToLower()
+            $type = $ActionItem.type.ToLower()
+
             return @('todayonly', 'today-only', 'today only') `
-                    -contains $ActionItem.type.ToLower() `
+                    -contains $type `
                 -and ('every' -notin $ActionItem.PsObject.Properties.Name `
-                    -or 'none' -eq $ActionItem.every `
-                    -or [String]::IsNullOrWhiteSpace($ActionItem.every))
+                    -or 'none' -eq $every `
+                    -or [String]::IsNullOrWhiteSpace($every))
         }
 
         function Get-DateParseVaryingLength {
@@ -587,6 +640,7 @@ function Get-Schedule_FromTable {
                 '\d{4}_\d{2}_\d{2}_\d{4}' { 'yyyy_MM_dd_HHmm'; break }
                 '\d{4}_\d{2}_\d{2}_\d{2}' { 'yyyy_MM_dd_HH'; break }
                 '\d{4}_\d{2}_\d{2}' { 'yyyy_MM_dd'; break }
+                '\d{4}' { 'HHmm'; break }
                 default { ''; break }
             }
 
@@ -600,15 +654,96 @@ function Get-Schedule_FromTable {
                 $null `
             )
         }
+
+        function Get-NoteProperty {
+            Param(
+                [PsCustomObject]
+                $InputObject,
+
+                [String]
+                $PropertyName,
+
+                $Default
+            )
+
+            $properties = $InputObject.PsObject.Properties `
+                | where { 'NoteProperty' -eq $_.MemberType }
+
+            if ([String]::IsNullOrEmpty($PropertyName)) {
+                return $properties
+            }
+
+            $result = if ($PropertyName -in $properties.Name) {
+                [PsCustomObject]@{
+                    Success = $true
+                    Name = $PropertyName
+                    Value = $InputObject.$PropertyName
+                }
+            } else {
+                [PsCustomObject]@{
+                    Success = $false
+                    Name = $PropertyName
+                    Value = $Default.$PropertyName
+                }
+            }
+
+            return $result
+        }
+
+        function Add-NoteProperty {
+            Param(
+                [PsCustomObject]
+                $InputObject,
+
+                [String]
+                $PropertyName,
+
+                $Default
+            )
+
+            $result = Get-NoteProperty `
+                -InputObject $InputObject `
+                -PropertyName $PropertyName `
+                -Default $Default
+
+            if ($result.Success) {
+                return $result.Value
+            }
+
+            $InputObject | Add-Member `
+                -MemberType 'NoteProperty' `
+                -Name $result.Name `
+                -Value $result.Value `
+
+            return $result.Value
+        }
     }
 
     Process {
         $list = @()
-        $schedWhen = $InputObject.when.ToLower()
-        $schedType = $InputObject.type.ToLower()
+
+        if ($null -eq $InputObject) {
+            return $list
+        }
+
+        $schedWhen = (Add-NoteProperty `
+            -InputObject $InputObject `
+            -PropertyName 'when' `
+            -Default $Default).ToLower()
+
+        $schedType = (Add-NoteProperty `
+            -InputObject $InputObject `
+            -PropertyName 'type' `
+            -Default $Default).ToLower()
+
+        $schedEvery = (Add-NoteProperty `
+            -InputObject $InputObject `
+            -PropertyName 'every' `
+            -Default $Default).ToLower()
 
         $todayOnlyEvent = Test-ActionItemIsTodayOnly `
-            -ActionItem $InputObject
+            -ActionItem $InputObject `
+            -Default $Default
 
         if ($todayOnlyEvent) {
             $dateTime = Get-DateParseVaryingLength `
@@ -632,7 +767,8 @@ function Get-Schedule_FromTable {
         }
 
         $oneDayEvent = Test-ActionItemIsOneDayEvent `
-            -ActionItem $InputObject
+            -ActionItem $InputObject `
+            -Default $Default
 
         if ($oneDayEvent) {
             $dateTime = Get-DateParseVaryingLength `
@@ -653,7 +789,6 @@ function Get-Schedule_FromTable {
 
         $schedDay = $capture.Groups['day'].Value
         $schedTime = $capture.Groups['time'].Value
-        $schedEvery = $InputObject.every.ToLower()
 
         switch -Regex ($schedEvery) {
             '\w+(\s*,\s*\w+)+' {
