@@ -21,7 +21,7 @@ function Write-Schedule {
 
         function Write-OutputColored {
             Param(
-                [Parameter(ValueFromPipeline)]
+                [Parameter(ValueFromPipeline = $true)]
                 $InputObject,
 
                 $Foreground
@@ -190,11 +190,17 @@ function Get-Schedule {
             'ByDirectory' {
                 $what = @()
 
-                if (-not [String]::IsNullOrWhiteSpace($Subdirectory)) {
-                    $DirectoryPath = Join-Path $DirectoryPath $Subdirectory
+                if ( `
+                    -not [String]::IsNullOrWhiteSpace($Subdirectory))
+                {
+                    $DirectoryPath =
+                        Join-Path $DirectoryPath $Subdirectory
                 }
-                elseif (-not [String]::IsNullOrWhiteSpace($DefaultSubdirectory)) {
-                    $DirectoryPath = Join-Path $DirectoryPath $DefaultSubdirectory
+                elseif ( `
+                    -not [String]::IsNullOrWhiteSpace($DefaultSubdirectory))
+                {
+                    $DirectoryPath =
+                        Join-Path $DirectoryPath $DefaultSubdirectory
                 }
 
                 $mdFiles = Join-Path $DirectoryPath "*.md"
@@ -329,6 +335,93 @@ function Add-Schedule {
             | Where-Object {
                 $date -lt $_.when
             }
+    }
+}
+
+function Write-MarkdownTree {
+    Param(
+        [Parameter(ValueFromPipeline = $true)]
+        $InputObject,
+
+        [Int]
+        $Level = 0
+    )
+
+    Process {
+        if ($null -eq $InputObject) {
+            return
+        }
+
+        switch -Regex ($InputObject.GetType().Name) {
+            '.*\[\]$' {
+                foreach ($subitem in $InputObject) {
+                    Write-MarkdownTree $subitem $Level
+                }
+            }
+
+            'PsCustomObject' {
+                $properties = $InputObject.PsObject.Properties `
+                    | where {
+                        'NoteProperty' -eq $_.MemberType
+                    }
+
+                foreach ($property in $properties) {
+                    Write-Output "$('  ' * $Level)- $($property.Name)"
+                    Write-MarkdownTree $property.Value ($Level + 1)
+                }
+            }
+
+            default {
+                Write-Output "$('  ' * $Level)- $InputObject"
+            }
+        }
+    }
+}
+
+function Find-Subtree {
+    Param(
+        [Parameter(ValueFromPipeline = $true)]
+        $InputObject,
+
+        [String]
+        $Name
+    )
+
+    Process {
+        if ($null -eq $InputObject) {
+            return @()
+        }
+
+        $subresults = @()
+
+        switch -Regex ($InputObject.GetType().Name) {
+            '.*\[\]$' {
+                $i = 0
+
+                while ($i -lt $InputObject.Count) {
+                    $subresults += @((Find-Subtree $InputObject[$i] $Name))
+                    $i = $i + 1
+                }
+            }
+
+            'PsCustomObject' {
+                $properties = $InputObject.PsObject.Properties `
+                    | where {
+                        'NoteProperty' -eq $_.MemberType
+                    }
+
+                if ($Name -in $properties.Name) {
+                    $subresults += @($InputObject)
+                }
+                else {
+                    foreach ($property in $properties) {
+                        $subresults += @((Find-Subtree $property.Value $Name))
+                    }
+                }
+            }
+        }
+
+        return $subresults
     }
 }
 
