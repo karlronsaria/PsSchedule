@@ -819,10 +819,29 @@ function Get-Schedule_FromTable {
             return $list
         }
 
-        $schedWhen = (Add-NoteProperty `
+        $schedWhen = Add-NoteProperty `
             -InputObject $InputObject `
             -PropertyName 'when' `
-            -Default $Default).ToLower()
+            -Default $Default
+
+        if ($schedWhen -is [String]) {
+            $schedWhen = $schedWhen.ToLower()
+        }
+        else {
+            foreach ($property in (Get-NoteProperty $schedWhen)) {
+                $obj = $InputObject.PsObject.Copy()
+                $obj.when = "$($property.Name)"
+
+                $what = Get-Schedule_FromTable `
+                    -InputObject $obj `
+                    -StartDate:$StartDate `
+                    -Default:$Default
+
+                $list += @($what)
+            }
+
+            return $list
+        }
 
         $schedType = (Add-NoteProperty `
             -InputObject $InputObject `
@@ -902,7 +921,8 @@ function Get-Schedule_FromTable {
 
                     $what = Get-Schedule_FromTable `
                         -InputObject $obj `
-                        -StartDate:$StartDate
+                        -StartDate:$StartDate `
+                        -Default:$Default
 
                     $list += @($what)
                 }
