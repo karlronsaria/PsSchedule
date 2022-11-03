@@ -917,6 +917,37 @@ function Get-Schedule_FromTable {
         $schedTime = $dateTimeResult.Time
 
         switch -Regex ($schedEvery) {
+            'day' {
+                $invalid =
+                    [String]::IsNullOrWhiteSpace($schedTime)
+
+                $date = Get-Date
+
+                if ($invalid) {
+                    return
+                }
+
+                break
+            }
+
+            'week' {
+                $invalid =
+                        [String]::IsNullOrWhiteSpace($schedDay) `
+                    -or [String]::IsNullOrWhiteSpace($schedTime)
+
+                if ($invalid) {
+                    return
+                }
+
+                $date = $StartDate
+
+                while ($schedDay.ToLower() -ne (Get-WeekDayCode -Date $date)) {
+                    $date = $date.AddDays(1)
+                }
+
+                break
+            }
+
             '\w+(\s*,\s*\w+)*' {
                 $invalid =
                     [String]::IsNullOrWhiteSpace($schedTime)
@@ -942,33 +973,6 @@ function Get-Schedule_FromTable {
                 }
 
                 return $list
-            }
-
-            'day' {
-                $invalid =
-                    [String]::IsNullOrWhiteSpace($schedTime)
-
-                $date = Get-Date
-
-                if ($invalid) {
-                    return
-                }
-            }
-
-            'week' {
-                $invalid =
-                        [String]::IsNullOrWhiteSpace($schedDay) `
-                    -or [String]::IsNullOrWhiteSpace($schedTime)
-
-                if ($invalid) {
-                    return
-                }
-
-                $date = $StartDate
-
-                while ($schedDay.ToLower() -ne (Get-WeekDayCode -Date $date)) {
-                    $date = $date.AddDays(1)
-                }
             }
         }
 
