@@ -51,6 +51,22 @@ I wish
 - [x] I could see today's work schedule
 
 # issue
+- [ ] 2022_11_03_150245
+  - actual
+    ```
+    C:\Users\karlr> sched.bat -subdir request
+
+    Thursday (2022_11_03)
+    ---------------------
+    22:00      friend
+    22:00      workplace
+    22:00      cbcmbs
+    22:00      self
+    22:00      church
+    22:00      team evangelism
+    22:00      coworkers
+    22:00      leaders
+    ```
 - [ ] 2022_10_27_180542
   - actual
     - action items with header levels other than 3 are ignored

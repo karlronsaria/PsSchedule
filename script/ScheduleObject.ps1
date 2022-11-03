@@ -728,24 +728,43 @@ function Get-Schedule_FromTable {
                 $DateString
             )
 
+            $capture = [Regex]::Match( `
+                $DateString, `
+                "((?<day>\w{3})-)?(?<time>\d{4})?" `
+            )
+
+            $result = [PsCustomObject]@{
+                Day = ''
+                Time = ''
+                DateTime = $null
+            }
+
+            if ($capture.Success) {
+                $result.Day = $capture.Groups['day'].Value
+                $result.Time = $capture.Groups['time'].Value
+                $result.DateTime = $null
+            }
+
             $pattern = switch -Regex ($DateString.Trim()) {
-                '\d{4}_\d{2}_\d{2}_\d{6}' { 'yyyy_MM_dd_HHmmss'; break }
-                '\d{4}_\d{2}_\d{2}_\d{4}' { 'yyyy_MM_dd_HHmm'; break }
-                '\d{4}_\d{2}_\d{2}_\d{2}' { 'yyyy_MM_dd_HH'; break }
-                '\d{4}_\d{2}_\d{2}' { 'yyyy_MM_dd'; break }
-                '\d{4}' { 'HHmm'; break }
+                '^\d{4}_\d{2}_\d{2}_\d{6}$' { 'yyyy_MM_dd_HHmmss'; break }
+                '^\d{4}_\d{2}_\d{2}_\d{4}$' { 'yyyy_MM_dd_HHmm'; break }
+                '^\d{4}_\d{2}_\d{2}_\d{2}$' { 'yyyy_MM_dd_HH'; break }
+                '^\d{4}_\d{2}_\d{2}$' { 'yyyy_MM_dd'; break }
+                '^\d{4}$' { 'HHmm'; break }
                 default { ''; break }
             }
 
             if ([String]::IsNullOrEmpty($pattern)) {
-                return $null
+                return $result
             }
 
-            return [DateTime]::ParseExact( `
+            $result.DateTime = [DateTime]::ParseExact( `
                 $DateString, `
                 $pattern, `
                 $null `
             )
+
+            return $result
         }
 
         function Get-NoteProperty {
@@ -857,10 +876,11 @@ function Get-Schedule_FromTable {
             -ActionItem $InputObject `
             -Default $Default
 
-        if ($todayOnlyEvent) {
-            $dateTime = Get-DateParseVaryingLength `
-                -DateString $schedWhen
+        $dateTimeResult = Get-DateParseVaryingLength `
+            -DateString $schedWhen
 
+        if ($todayOnlyEvent) {
+            $dateTime = $dateTimeResult.DateTime
             $now = Get-Date
 
             $isToday = $now.Year -eq $dateTime.Year `
@@ -883,8 +903,7 @@ function Get-Schedule_FromTable {
             -Default $Default
 
         if ($oneDayEvent) {
-            $dateTime = Get-DateParseVaryingLength `
-                -DateString $schedWhen
+            $dateTime = $dateTimeResult.DateTime
 
             $what = Get-NewActionItem `
                 -ActionItem $InputObject `
@@ -894,13 +913,8 @@ function Get-Schedule_FromTable {
             return $list
         }
 
-        $capture = [Regex]::Match( `
-            $schedWhen, `
-            "((?<day>\w{3})-)?(?<time>\d{4})?" `
-        )
-
-        $schedDay = $capture.Groups['day'].Value
-        $schedTime = $capture.Groups['time'].Value
+        $schedDay = $dateTimeResult.Day
+        $schedTime = $dateTimeResult.Time
 
         switch -Regex ($schedEvery) {
             '\w+(\s*,\s*\w+)+' {
