@@ -71,7 +71,7 @@ I wish
   - actual
     - action items with header levels other than 3 are ignored
 - [x] 2022_10_26_170128
-  - process
+  - howto
     ``C:\shortcut\bin\sched.bat``
   - actual
     ```
@@ -101,7 +101,7 @@ I wish
     2. Line 211: failure to account for failable return value from ``Get-MarkdownTable``
 
 - [x] 2022_10_21_121845
-  - process
+  - howto
     ``C:\shortcut\bin\sched.bat``
   - actual
     ```
