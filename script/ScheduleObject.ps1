@@ -706,20 +706,11 @@ function Get-Schedule_FromTable {
         function Test-ActionItemIsTodayOnly {
             Param(
                 [PsCustomObject]
-                $ActionItem,
-
-                [PsCustomObject]
-                $Default
+                $ActionItem
             )
 
-            $every = $ActionItem.every.ToLower()
-            $type = $ActionItem.type.ToLower()
-
             return @('todayonly', 'today-only', 'today only') `
-                    -contains $type `
-                -and ('every' -notin $ActionItem.PsObject.Properties.Name `
-                    -or 'none' -eq $every `
-                    -or [String]::IsNullOrWhiteSpace($every))
+                    -contains $ActionItem.type.ToLower()
         }
 
         function Get-DateParseVaryingLength {
@@ -829,6 +820,21 @@ function Get-Schedule_FromTable {
 
             return $result.Value
         }
+
+        function Test-DateIsToday {
+            Param(
+                [DateTime]
+                $Date
+            )
+
+            $now = Get-Date
+
+            return $now.Year -eq $Date.Year `
+                -and $now.Month -eq $Date.Month `
+                -and $now.Day -eq $Date.Day
+
+            return $list
+        }
     }
 
     Process {
@@ -873,21 +879,15 @@ function Get-Schedule_FromTable {
             -Default $Default).ToLower()
 
         $todayOnlyEvent = Test-ActionItemIsTodayOnly `
-            -ActionItem $InputObject `
-            -Default $Default
+            -ActionItem $InputObject
 
         $dateTimeResult = Get-DateParseVaryingLength `
             -DateString $schedWhen
 
-        if ($todayOnlyEvent) {
+        if ($todayOnlyEvent -and 'none' -eq $schedEvery) {
             $dateTime = $dateTimeResult.DateTime
-            $now = Get-Date
 
-            $isToday = $now.Year -eq $dateTime.Year `
-                -and $now.Month -eq $dateTime.Month `
-                -and $now.Day -eq $dateTime.Day
-
-            if ($isToday) {
+            if ((Test-DateIsToday -Date $dateTime)) {
                 $what = Get-NewActionItem `
                     -ActionItem $InputObject `
                     -Date $dateTime
@@ -917,7 +917,7 @@ function Get-Schedule_FromTable {
         $schedTime = $dateTimeResult.Time
 
         switch -Regex ($schedEvery) {
-            '\w+(\s*,\s*\w+)+' {
+            '\w+(\s*,\s*\w+)*' {
                 $invalid =
                     [String]::IsNullOrWhiteSpace($schedTime)
 
@@ -982,11 +982,13 @@ function Get-Schedule_FromTable {
             -Minute $time.Minute `
             -Second 0
 
-        $what = Get-NewActionItem `
-            -ActionItem $InputObject `
-            -Date $dateTime
+        if (-not $todayOnlyEvent -or (Test-DateIsToday -Date $dateTime)) {
+            $what = Get-NewActionItem `
+                -ActionItem $InputObject `
+                -Date $dateTime
 
-        $list += @($what)
+            $list += @($what)
+        }
 
         return $list
     }

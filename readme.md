@@ -51,7 +51,10 @@ I wish
 - [x] I could see today's work schedule
 
 # issue
-- [ ] 2022_11_03_150245
+- [ ] 2022_10_27_180542
+  - actual
+    - action items with header levels other than 3 are ignored
+- [x] 2022_11_03_150245
   - actual
     ```
     C:\Users\karlr> sched.bat -subdir request
@@ -67,9 +70,17 @@ I wish
     22:00      coworkers
     22:00      leaders
     ```
-- [ ] 2022_10_27_180542
-  - actual
-    - action items with header levels other than 3 are ignored
+  - cause
+    - ``script\ScheduleObject.ps1:919-920``
+      ```powershell
+      switch -Regex ($schedEvery) {
+          '\w+(\s*,\s*\w+)+' {
+      ```
+  - solution
+    ```powershell
+    switch -Regex ($schedEvery) {
+        '\w+(\s*,\s*\w+)*' {
+    ```
 - [x] 2022_10_26_170128
   - howto
     ``C:\shortcut\bin\sched.bat``
