@@ -697,10 +697,7 @@ function Get-Schedule_FromTable {
 
             return @('event', 'errand', 'deadline') `
                     -contains $type `
-                -and $when -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
-                -and ('every' -notin $ActionItem.PsObject.Properties.Name `
-                    -or $every -eq 'none' `
-                    -or [String]::IsNullOrWhiteSpace($every))
+                -and $when -match '\d{4}_\d{2}_\d{2}(_\{4})?'
         }
 
         function Test-ActionItemIsTodayOnly {
@@ -881,42 +878,44 @@ function Get-Schedule_FromTable {
         $todayOnlyEvent = Test-ActionItemIsTodayOnly `
             -ActionItem $InputObject
 
-        $dateTimeResult = Get-DateParseVaryingLength `
-            -DateString $schedWhen
-
-        if ($todayOnlyEvent -and 'none' -eq $schedEvery) {
-            $dateTime = $dateTimeResult.DateTime
-
-            if ((Test-DateIsToday -Date $dateTime)) {
-                $what = Get-NewActionItem `
-                    -ActionItem $InputObject `
-                    -Date $dateTime
-
-                $list += @($what)
-            }
-
-            return $list
-        }
-
         $oneDayEvent = Test-ActionItemIsOneDayEvent `
             -ActionItem $InputObject `
             -Default $Default
 
-        if ($oneDayEvent) {
-            $dateTime = $dateTimeResult.DateTime
-
-            $what = Get-NewActionItem `
-                -ActionItem $InputObject `
-                -Date $dateTime
-
-            $list += @($what)
-            return $list
-        }
+        $dateTimeResult = Get-DateParseVaryingLength `
+            -DateString $schedWhen
 
         $schedDay = $dateTimeResult.Day
         $schedTime = $dateTimeResult.Time
 
         switch -Regex ($schedEvery) {
+            'none' {
+                $dateTime = $dateTimeResult.DateTime
+
+                if ($todayOnlyEvent) {
+                    if ((Test-DateIsToday -Date $dateTime)) {
+                        $what = Get-NewActionItem `
+                            -ActionItem $InputObject `
+                            -Date $dateTime
+
+                        $list += @($what)
+                    }
+
+                    return $list
+                }
+
+                if ($oneDayEvent) {
+                    $what = Get-NewActionItem `
+                        -ActionItem $InputObject `
+                        -Date $dateTime
+
+                    $list += @($what)
+                    return $list
+                }
+
+                break
+            }
+
             'day' {
                 $invalid =
                     [String]::IsNullOrWhiteSpace($schedTime)
