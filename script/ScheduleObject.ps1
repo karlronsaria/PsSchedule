@@ -695,7 +695,7 @@ function Get-Schedule_FromTable {
             $when = $ActionItem.when.ToLower()
             $type = $ActionItem.type.ToLower()
 
-            return @('event', 'errand') `
+            return @('event', 'errand', 'deadline') `
                     -contains $type `
                 -and $when -match '\d{4}_\d{2}_\d{2}(_\{4})?' `
                 -and ('every' -notin $ActionItem.PsObject.Properties.Name `
