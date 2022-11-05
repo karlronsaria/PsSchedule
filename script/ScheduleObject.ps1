@@ -695,7 +695,7 @@ function Get-Schedule_FromTable {
             $when = $ActionItem.when.ToLower()
             $type = $ActionItem.type.ToLower()
 
-            return @('event', 'errand', 'deadline') `
+            return @('event', 'errand', 'deadline', 'todo') `
                     -contains $type `
                 -and $when -match '\d{4}_\d{2}_\d{2}(_\{4})?'
         }
@@ -869,6 +869,17 @@ function Get-Schedule_FromTable {
             -InputObject $InputObject `
             -PropertyName 'type' `
             -Default $Default).ToLower()
+
+        if ('todo' -eq $schedType) {
+            $capture =
+                [Regex]::Match($schedWhen, '\s*\[ \]\s+(?<datetime>.*)$')
+
+            if (-not $capture.Success) {
+                return $list
+            }
+
+            $schedWhen = $capture.Groups['datetime'].Value
+        }
 
         $schedEvery = (Add-NoteProperty `
             -InputObject $InputObject `
