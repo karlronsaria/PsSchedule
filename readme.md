@@ -54,6 +54,26 @@ I wish
 - [ ] 2022_10_27_180542
   - actual
     - action items with header levels other than 3 are ignored
+- [x] 2022_11_06_114157
+  - howto
+    ``Get-MarkdownTable``
+  - actual
+    ```
+    ...
+    @{when=11/10/2022 18:30:00; what=Homegroup Bible Study; who:=; where=; type=event}
+    ...
+    ```
+  - expected
+    ```
+    ...
+    @{when=11/10/2022 18:30:00; what=Homegroup Bible Study; who=; where=; type=event}
+    ...
+    ```
+- [x] 2022_11_05_140003
+  - actual
+    - ``todo`` items are treated as one-day events
+  - expected
+    - ``todo`` items are treated as action items to be completed, starting at ``when``
 - [x] 2022_11_03_150245
   - actual
     ```

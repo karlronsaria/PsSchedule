@@ -263,18 +263,12 @@ function Get-Schedule {
                     switch ($_) {
                         'Error' { $null }
                         default {
-                            $temp =
-                                $_.sched `
-                                | where {
-                                    -not [String]::IsNullOrWhiteSpace($_)
-                                }
-
                             $temp = if ($null -eq $Default) {
-                                $temp `
+                                $_.sched `
                                 | Get-Schedule_FromTable `
                                     -StartDate $date
                             } else {
-                                $temp `
+                                $_.sched `
                                 | Get-Schedule_FromTable `
                                     -StartDate $date `
                                     -Default $Default
@@ -591,7 +585,7 @@ function Get-MarkdownTree_FromTable {
 
         $capture = [Regex]::Match( `
             $content, `
-            "^\s*(?<key>[^:`"]+)\s*:\s+(?<value>.*)\s*$" `
+            "^\s*(?<key>[^:`"]+)\s*:(\s+(?<value>.*))?\s*$" `
         )
 
         $key = $capture.Groups['key']
@@ -695,7 +689,7 @@ function Get-Schedule_FromTable {
             $when = $ActionItem.when.ToLower()
             $type = $ActionItem.type.ToLower()
 
-            return @('event', 'errand', 'deadline', 'todo') `
+            return @('event', 'errand', 'deadline') `
                     -contains $type `
                 -and $when -match '\d{4}_\d{2}_\d{2}(_\{4})?'
         }
@@ -879,6 +873,11 @@ function Get-Schedule_FromTable {
             }
 
             $schedWhen = $capture.Groups['datetime'].Value
+
+            $InputObject | Add-Member `
+                -MemberType NoteProperty `
+                -Name complete `
+                -Value $false
         }
 
         $schedEvery = (Add-NoteProperty `
@@ -898,16 +897,17 @@ function Get-Schedule_FromTable {
 
         $schedDay = $dateTimeResult.Day
         $schedTime = $dateTimeResult.Time
+        $date = Get-Date
 
         switch -Regex ($schedEvery) {
             'none' {
-                $dateTime = $dateTimeResult.DateTime
+                $date = $dateTimeResult.DateTime
 
                 if ($todayOnlyEvent) {
-                    if ((Test-DateIsToday -Date $dateTime)) {
+                    if ((Test-DateIsToday -Date $date)) {
                         $what = Get-NewActionItem `
                             -ActionItem $InputObject `
-                            -Date $dateTime
+                            -Date $date
 
                         $list += @($what)
                     }
@@ -918,7 +918,7 @@ function Get-Schedule_FromTable {
                 if ($oneDayEvent) {
                     $what = Get-NewActionItem `
                         -ActionItem $InputObject `
-                        -Date $dateTime
+                        -Date $date
 
                     $list += @($what)
                     return $list
@@ -930,8 +930,6 @@ function Get-Schedule_FromTable {
             'day' {
                 $invalid =
                     [String]::IsNullOrWhiteSpace($schedTime)
-
-                $date = Get-Date
 
                 if ($invalid) {
                     return
@@ -996,7 +994,28 @@ function Get-Schedule_FromTable {
             -Minute $time.Minute `
             -Second 0
 
-        if (-not $todayOnlyEvent -or (Test-DateIsToday -Date $dateTime)) {
+        $isToday =
+            Test-DateIsToday -Date $dateTime
+
+        $addTodo =
+            'todo' -eq $InputObject.type `
+                -and -not $InputObject.complete `
+                -and $StartDate -gt $dateTime
+
+        $addToday =
+            ($todayOnlyEvent `
+                -and $isToday) `
+            -or `
+                $addTodo `
+            -or `
+            (-not $todayOnlyEvent `
+                -and 'todo' -ne $InputObject.type)
+
+        if ($addTodo) {
+            $dateTime = $StartDate.AddMinutes(1)
+        }
+
+        if ($addToday) {
             $what = Get-NewActionItem `
                 -ActionItem $InputObject `
                 -Date $dateTime
