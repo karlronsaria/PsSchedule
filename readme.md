@@ -51,6 +51,33 @@ I wish
 - [x] I could see today's work schedule
 
 # issue
+- [ ] 2022_11_08_125240
+  - howto
+    - in ``sched.md``
+      ```
+      # sched
+      - what: Amazon delivery
+      - when
+        - [ ] 2022_11_02_1000
+      - type: todo
+      - every: none
+      ```
+    - cmd
+      ```
+      \shortcut\bin\sched.bat
+      ```
+  - actual
+    ```
+    Tuesday (2022_11_08)
+    --------------------
+    00:01      Amazon delivery
+    ```
+  - expected
+    ```
+    Tuesday (2022_11_08)
+    --------------------
+    10:00      Amazon delivery
+    ```
 - [ ] 2022_10_27_180542
   - actual
     - action items with header levels other than 3 are ignored
