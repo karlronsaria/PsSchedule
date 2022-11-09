@@ -51,7 +51,11 @@ I wish
 - [x] I could see today's work schedule
 
 # issue
-- [ ] 2022_11_08_125240
+- [ ] 2022_10_27_180542
+  - actual
+    - action items with header levels other than 3 are ignored
+- [x] 2022_11_08_125240
+  - solution: non-issue
   - howto
     - in ``sched.md``
       ```
@@ -78,9 +82,6 @@ I wish
     --------------------
     10:00      Amazon delivery
     ```
-- [ ] 2022_10_27_180542
-  - actual
-    - action items with header levels other than 3 are ignored
 - [x] 2022_11_06_114157
   - howto
     ``Get-MarkdownTable``

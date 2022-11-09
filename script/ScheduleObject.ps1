@@ -278,7 +278,7 @@ function Get-Schedule {
                             | Sort-Object `
                                 -Property when `
                             | Where-Object {
-                                $date -lt $_.when
+                                $date -le $_.when
                             }
                         }
                     }
@@ -327,7 +327,7 @@ function Add-Schedule {
             | Sort-Object `
                 -Property when `
             | Where-Object {
-                $date -lt $_.when
+                $date -le $_.when
             }
     }
 }
@@ -1012,7 +1012,7 @@ function Get-Schedule_FromTable {
                 -and 'todo' -ne $InputObject.type)
 
         if ($addTodo) {
-            $dateTime = $StartDate.AddMinutes(1)
+            $dateTime = $StartDate
         }
 
         if ($addToday) {
