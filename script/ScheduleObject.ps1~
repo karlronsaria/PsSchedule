@@ -559,15 +559,6 @@ function Get-TableTrim {
     }
 }
 
-function Test-EmptyObject {
-    Param(
-        [PsCustomObject]
-        $InputObject
-    )
-
-    return 0 -eq @($InputObject.PsObject.Properties).Count
-}
-
 function Get-MarkdownTree_FromTable {
     Param(
         [Parameter(ValueFromPipeline = $true)]
@@ -579,43 +570,7 @@ function Get-MarkdownTree_FromTable {
     )
 
     Begin {
-        function Add-Property {
-            Param(
-                $InputObject,
-
-                [String]
-                $Name,
-
-                $Value
-            )
-
-            $property = $InputObject.PsObject.Properties | where {
-                $_.Name -eq $Name
-            }
-
-            if ($null -eq $property) {
-                $InputObject | Add-Member `
-                    -MemberType NoteProperty `
-                    -Name $Name `
-                    -Value $Value
-
-                return
-            }
-
-            if (1 -eq @($property.Value).Count) {
-                $property.Value = @($property.Value)
-            }
-
-            if ((Test-EmptyObject $property.Value[-1])) {
-                $property.Value[-1] = @($Value)
-            }
-            else {
-                $property.Value += @($Value)
-            }
-        }
-
         $stack = @($null) * ($HighestLevel + 1)
-        $keys = @($null) * ($HighestLevel + 1)
         $stack[0] = [PsCustomObject]@{}
     }
 
@@ -638,25 +593,31 @@ function Get-MarkdownTree_FromTable {
         if ($key.Success) {
             $content = $key.Value
             $stack[$level] = $capture.Groups['value'].Value
-        } elseif (2 -eq $level -and (Test-EmptyObject $parent)) {
-            $stack[$level] = [PsCustomObject]@{ what = $content }
-
-            Add-Property `
-                -InputObject $stack[0] `
-                -Name $keys[1] `
-                -Value $stack[$level]
-
-            return
+        } elseif (2 -eq $level) {
+            $stack[$level] = $content
+            $content = 'what'
         } else {
             $stack[$level] = [PsCustomObject]@{}
         }
 
-        Add-Property `
-            -InputObject $parent `
-            -Name $content `
-            -Value $stack[$level]
+        $property = $parent.PsObject.Properties | where {
+            $_.Name -eq $content
+        }
 
-        $keys[$level] = $content
+        if ($null -eq $property) {
+            $parent | Add-Member `
+                -MemberType NoteProperty `
+                -Name $content `
+                -Value $stack[$level]
+
+            return
+        }
+
+        if (1 -eq @($property.Value).Count) {
+            $property.Value = @($property.Value)
+        }
+
+        $property.Value += @($stack[$level])
     }
 
     End {
