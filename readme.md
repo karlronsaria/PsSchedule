@@ -1,7 +1,7 @@
 # I wish
 - [ ] I could see expired action items from earlier today
 - [ ] I could see high-priority deadlines within a week or month's notice but low-priority deadlines within a day's notice
-- [x] 2022_11_09_175458
+- [ ] 2022_11_09_175458
   - I could write action items in list form under a single ``sched`` heading, using the ``what`` field as the title
     - example
       - typical form
@@ -82,6 +82,72 @@
 - [ ] 2022_10_27_180542
   - actual
     - action items with header levels other than 3 are ignored
+- [x] 2022_11_10_003045
+  - howto
+    ```
+    \shortcut\bin\tagsearch.bat request self
+    ```
+  - actual
+    ```
+    The property 'Name' cannot be found on this object. Verify that the
+    property exists.
+    At C:\Users\karlr\OneDrive\Documents\devlib\powershell\PsSchedule\script
+    \ScheduleObject.ps1:407 char:21
+    +                 if ($Name -in $properties.Name) {
+    +                     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundExc
+       eption
+        + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+    The property 'Name' cannot be found on this object. Verify that the
+    property exists.
+    At C:\Users\karlr\OneDrive\Documents\devlib\powershell\PsSchedule\script
+    \ScheduleObject.ps1:407 char:21
+    +                 if ($Name -in $properties.Name) {
+    +                     ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundExc
+       eption
+        + FullyQualifiedErrorId : PropertyNotFoundStrict
+
+    - tag
+      - self
+    - what
+      - a safe means to use a device in the vicinity of a high-bandwidth ISP
+    - tag
+      - self, team evangelism
+    - what
+      - excitement for the gospel
+      - boldness to speak
+      - right words to say
+    - what
+      - request
+      - that I can learn how to evangelize
+      - that I can learn how to learn how to evangelize
+    - tag
+      - self
+    ```
+  - expected
+    ```
+    - tag
+      - self
+    - what
+      - a safe means to use a device in the vicinity of a high-bandwidth ISP
+    - tag
+      - self, team evangelism
+    - what
+      - excitement for the gospel
+      - boldness to speak
+      - right words to say
+    - tag
+      - self
+    - what
+      - that I can learn how to evangelize
+      - that I can learn how to learn how to evangelize
+    ```
+  - cause
+    - the latest refactor to accomodate the new tree form
+      - as in ``"I wish" 2022_11_09_175458``
+      - messes up trees at Level 2 that don't have inline branches
 - [x] 2022_11_08_125240
   - solution: non-issue
   - howto

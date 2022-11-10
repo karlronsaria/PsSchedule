@@ -404,6 +404,10 @@ function Find-Subtree {
                         'NoteProperty' -eq $_.MemberType
                     }
 
+                if ($null -eq $properties) {
+                    return $subresults
+                }
+
                 if ($Name -in $properties.Name) {
                     $subresults += @($InputObject)
                 }
@@ -615,7 +619,7 @@ function Get-MarkdownTree_FromTable {
         }
 
         $stack = @($null) * ($HighestLevel + 1)
-        $keys = @($null) * ($HighestLevel + 1)
+        # $keys = @($null) * ($HighestLevel + 1)
         $stack[0] = [PsCustomObject]@{}
     }
 
@@ -638,15 +642,18 @@ function Get-MarkdownTree_FromTable {
         if ($key.Success) {
             $content = $key.Value
             $stack[$level] = $capture.Groups['value'].Value
-        } elseif (2 -eq $level -and (Test-EmptyObject $parent)) {
-            $stack[$level] = [PsCustomObject]@{ what = $content }
 
-            Add-Property `
-                -InputObject $stack[0] `
-                -Name $keys[1] `
-                -Value $stack[$level]
+        # # DRAWINGBOARD
+        # } elseif (2 -eq $level -and (Test-EmptyObject $parent)) {
+        #     $stack[$level] = [PsCustomObject]@{ what = $content }
 
-            return
+        #     Add-Property `
+        #         -InputObject $stack[0] `
+        #         -Name $keys[1] `
+        #         -Value $stack[$level]
+
+        #     return
+
         } else {
             $stack[$level] = [PsCustomObject]@{}
         }
@@ -656,7 +663,7 @@ function Get-MarkdownTree_FromTable {
             -Name $content `
             -Value $stack[$level]
 
-        $keys[$level] = $content
+        # $keys[$level] = $content
     }
 
     End {
