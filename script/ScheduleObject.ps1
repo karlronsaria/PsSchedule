@@ -865,16 +865,15 @@ function Get-Schedule_FromTable {
         function Test-DateIsToday {
             Param(
                 [DateTime]
-                $Date
+                $Date,
+
+                [DateTime]
+                $Today = (Get-Date)
             )
 
-            $now = Get-Date
-
-            return $now.Year -eq $Date.Year `
-                -and $now.Month -eq $Date.Month `
-                -and $now.Day -eq $Date.Day
-
-            return $list
+            return $Today.Year -eq $Date.Year `
+                -and $Today.Month -eq $Date.Month `
+                -and $Today.Day -eq $Date.Day
         }
     }
 
@@ -947,14 +946,18 @@ function Get-Schedule_FromTable {
 
         $schedDay = $dateTimeResult.Day
         $schedTime = $dateTimeResult.Time
-        $date = Get-Date
+        $date = $StartDate
 
         switch -Regex ($schedEvery) {
             'none' {
                 $date = $dateTimeResult.DateTime
 
                 if ($todayOnlyEvent) {
-                    if ((Test-DateIsToday -Date $date)) {
+                    $isToday = Test-DateIsToday `
+                        -Date $date `
+                        -Today $StartDate
+
+                    if ($isToday) {
                         $what = Get-NewActionItem `
                             -ActionItem $InputObject `
                             -Date $date
@@ -1045,7 +1048,9 @@ function Get-Schedule_FromTable {
             -Second 0
 
         $isToday =
-            Test-DateIsToday -Date $dateTime
+            Test-DateIsToday `
+                -Date $dateTime `
+                -Today $StartDate
 
         $addTodo =
             'todo' -eq $InputObject.type `
