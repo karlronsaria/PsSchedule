@@ -88,7 +88,16 @@ function Write-Schedule {
         $foreground = $null
         $what = $ActionItem.what
 
+        # # frivolous
+        # $emoji = $([System.Char]::ConvertFromUtf32([System.Convert]::ToInt32("1F600", 16))]
+
         switch ($ActionItem.type) {
+            'todo' {
+                $what = "todo: $what"
+                $icon = "[ ]"
+                $foreground = 'Yellow'
+            }
+
             'deadline' {
                 $icon = '[!]'
                 $foreground = 'Red'
@@ -112,7 +121,16 @@ function Write-Schedule {
         }
 
         $str = $displayItem `
-            | Format-Table -HideTableHeaders `
+            | Format-Table `
+                -Property `
+                    When, `
+                    @{
+                        Name = 'Type'
+                        Expression = { $_.Type }
+                        Align = 'Right'
+                    }, `
+                    What `
+                -HideTableHeaders `
             | Out-String
 
         $str = $str.Trim()
@@ -1037,7 +1055,26 @@ function Get-Schedule_FromTable {
             }
         }
 
-        $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
+        if ($null -eq $date) {
+            $date = $StartDate
+        }
+
+        $time = $StartDate
+
+        if ([String]::IsNullOrWhiteSpace($schedTime)) {
+            $InputObject.type = 'todo'
+            $InputObject.what = "reappoint: $($InputObject.what)"
+
+            $InputObject | Add-Member `
+                -MemberType NoteProperty `
+                -Name complete `
+                -Value $false
+
+            $date = $date.AddDays(-1)
+        }
+        else {
+            $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
+        }
 
         $dateTime = Get-Date `
             -Year $date.Year `
@@ -1055,7 +1092,7 @@ function Get-Schedule_FromTable {
         $addTodo =
             'todo' -eq $InputObject.type `
                 -and -not $InputObject.complete `
-                -and $StartDate -gt $dateTime
+                -and $StartDate -ge $dateTime
 
         $addToday =
             ($todayOnlyEvent `
