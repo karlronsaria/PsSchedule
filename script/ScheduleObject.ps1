@@ -378,8 +378,22 @@ function Write-MarkdownTree {
                     }
 
                 foreach ($property in $properties) {
+                    $list = Write-MarkdownTree `
+                        $property.Value `
+                        ($Level + 1)
+
+                    $inline =
+                        [String]::IsNullOrWhiteSpace($property.Name) `
+                        -and @($list).Count -gt 0
+
+                    if ($inline) {
+                        Write-Output "- $($list[0].Trim())"
+                        Write-Output $list[1 .. ($list.Count - 1)]
+                        continue
+                    }
+
                     Write-Output "$('  ' * $Level)- $($property.Name)"
-                    Write-MarkdownTree $property.Value ($Level + 1)
+                    $list
                 }
             }
 
