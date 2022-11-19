@@ -455,11 +455,18 @@ function Find-Subtree {
     }
 }
 
+<#
+.PARAMETER DepthLimit
+Note: Inline or folded trees can escape the depth limit
+#>
 function Get-MarkdownTable {
     Param(
         [Parameter(ValueFromPipeline = $true)]
         [String]
-        $Line
+        $Line,
+
+        [Int]
+        $DepthLimit = -1
     )
 
     Begin {
@@ -479,9 +486,16 @@ function Get-MarkdownTable {
             | Get-TableTrim `
                 -StartLevel $what.StartLevel
 
+        if (-1 -ne $DepthLimit) {
+            $table = $table | where {
+                $_.Level -le $DepthLimit
+            }
+        }
+
         return $table `
             | Get-MarkdownTree_FromTable `
-                -HighestLevel $what.HighestLevel
+                -HighestLevel $what.HighestLevel `
+            | where { -not (Test-EmptyObject $_) }
     }
 }
 
