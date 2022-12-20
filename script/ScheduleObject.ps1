@@ -49,7 +49,7 @@ function Write-Schedule {
     Process {
         if ($null -eq $ActionItem) {
             Write-OutputColored `
-                -InPutObject '[Error: action item was found to be null]'
+                -InputObject '[Error: action item was found to be null]'
 
             return
         }
@@ -492,10 +492,12 @@ function Get-MarkdownTable {
             }
         }
 
-        return $table `
+        $table = $table `
             | Get-MarkdownTree_FromTable `
                 -HighestLevel $what.HighestLevel `
             | where { -not (Test-EmptyObject $_) }
+
+        return $table
     }
 }
 
@@ -808,7 +810,7 @@ function Get-Schedule_FromTable {
 
             $capture = [Regex]::Match( `
                 $DateString, `
-                "((?<day>\w{3})-)?(?<time>\d{4})?" `
+                "^((?<day>\w{3})-)?(?<time>\d{4})?$" `
             )
 
             $result = [PsCustomObject]@{
@@ -1089,7 +1091,7 @@ function Get-Schedule_FromTable {
 
         $time = $StartDate
 
-        if ([String]::IsNullOrWhiteSpace($schedTime)) {
+        if ([String]::IsNullOrWhiteSpace($schedWhen)) {
             $InputObject.type = 'todo'
             $InputObject.what = "reappoint: $($InputObject.what)"
 
@@ -1100,7 +1102,8 @@ function Get-Schedule_FromTable {
 
             $date = $date.AddDays(-1)
         }
-        else {
+
+        if (-not [String]::IsNullOrWhiteSpace($schedTime)) {
             $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
         }
 
@@ -1110,7 +1113,8 @@ function Get-Schedule_FromTable {
             -Day $date.Day `
             -Hour $time.Hour `
             -Minute $time.Minute `
-            -Second 0
+            -Second 0 `
+            -Millisecond 0
 
         $isToday =
             Test-DateIsToday `
@@ -1126,7 +1130,7 @@ function Get-Schedule_FromTable {
             ($todayOnlyEvent `
                 -and $isToday) `
             -or `
-                $addTodo `
+            $addTodo `
             -or `
             (-not $todayOnlyEvent `
                 -and 'todo' -ne $InputObject.type)
