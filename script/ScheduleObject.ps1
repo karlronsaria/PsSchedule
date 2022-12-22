@@ -414,7 +414,7 @@ function Find-Subtree {
         $InputObject,
 
         [String]
-        $Name
+        $PropertyName
     )
 
     Process {
@@ -429,7 +429,10 @@ function Find-Subtree {
                 $i = 0
 
                 while ($i -lt $InputObject.Count) {
-                    $subresults += @((Find-Subtree $InputObject[$i] $Name))
+                    $subresults += @((Find-Subtree `
+                        $InputObject[$i] `
+                        $PropertyName))
+
                     $i = $i + 1
                 }
             }
@@ -449,7 +452,9 @@ function Find-Subtree {
                 }
                 else {
                     foreach ($property in $properties) {
-                        $subresults += @((Find-Subtree $property.Value $Name))
+                        $subresults += @((Find-Subtree `
+                            $property.Value `
+                            $PropertyName))
                     }
                 }
             }
