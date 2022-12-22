@@ -190,11 +190,15 @@ function Get-Schedule {
         $Recurse,
 
         [String]
-        $StartDate = $(Get-Date -f 'yyyy_MM_dd')
+        $StartDate
     )
 
     Begin {
         $content = @()
+
+        if (-not $StartDate) {
+            $StartDate = $(Get-Date -f 'yyyy_MM_dd')
+        }
     }
 
     Process {
