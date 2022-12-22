@@ -455,6 +455,59 @@ function Find-Subtree {
     }
 }
 
+function Get-FoldedSubtree {
+    Param(
+        [Parameter(ValueFromPipeline = $true)]
+        $InputObject,
+
+        [String[]]
+        $FoldOnProperty
+    )
+
+    Begin {
+        $tree = [PsCustomObject]@{}
+    }
+
+    Process {
+        if ([String]::IsNullOrEmpty($FoldOnProperty)) {
+            return
+        }
+
+        $properties = $InputObject.PsObject.Properties
+        $subtree = [PsCustomObject]@{}
+
+        $foldOn = $properties | where {
+            $_.Name -in $FoldOnProperty
+        }
+
+        foreach ($attempt in $foldOn) {
+            $properties | where {
+                $_.Name -ne $FoldOnProperty
+            } | foreach {
+                $subtree | Add-Member `
+                    -MemberType NoteProperty `
+                    -Name $_.Name `
+                    -Value $_.Value
+            }
+
+            $tree | Add-Member `
+                -MemberType NoteProperty `
+                -Name $attempt.Value `
+                -Value $subtree
+
+            break
+        }
+    }
+
+    End {
+        if ([String]::IsNullOrEmpty($FoldOnProperty)) {
+            return $InputObject
+        }
+
+        return $tree
+    }
+}
+
 <#
 .PARAMETER DepthLimit
 Note: Inline or folded trees can escape the depth limit
