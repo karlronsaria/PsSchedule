@@ -221,11 +221,11 @@ function Get-Schedule {
                         Join-Path $DirectoryPath $DefaultSubdirectory
                 }
 
-                $mdFiles = Join-Path $DirectoryPath "*.md"
-
-                if (-not (Test-Path $mdFiles)) {
+                if (-not (Test-Path $DirectoryPath)) {
                     return $what
                 }
+
+                $mdFiles = Join-Path $DirectoryPath "*.md"
 
                 $defaultsPath =
                     Join-Path $DirectoryPath 'default.json' `
