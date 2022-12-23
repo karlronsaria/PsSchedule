@@ -495,7 +495,7 @@ function Get-FoldedSubtree {
 
         foreach ($attempt in $foldOn) {
             $properties | where {
-                $_.Name -ne $FoldOnProperty
+                $_.Name -notin $FoldOnProperty
             } | foreach {
                 $subtree | Add-Member `
                     -MemberType NoteProperty `
