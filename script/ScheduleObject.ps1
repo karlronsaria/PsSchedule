@@ -324,11 +324,15 @@ function Add-Schedule {
         $Table,
 
         [String]
-        $StartDate = $(Get-Date -f 'yyyy_MM_dd')
+        $StartDate
     )
 
     Begin {
         $list = @()
+
+        if (-not $StartDate) {
+            $StartDate = $(Get-Date -f 'yyyy_MM_dd')
+        }
     }
 
     Process {
