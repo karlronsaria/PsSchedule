@@ -39,7 +39,7 @@ function Find-MyTree {
         | Get-MarkdownTable `
             -DepthLimit $DepthLimit
 
-    if ($Tags.Count -gt 0) {
+    if ($null -ne $Tag -and $Tag.Count -gt 0) {
         $tree =
             $tree `
             | Find-Subtree `
@@ -210,7 +210,7 @@ function Get-MySchedule {
 
     $jsonFiles = Join-Path $path "*.json"
 
-    if ($Pattern.Count -gt 0) {
+    if ($null -ne $Pattern -and $Pattern.Count -gt 0) {
         $files = $Pattern | foreach {
             dir $files `
                 -Recurse `
@@ -261,7 +261,7 @@ function Get-MySchedule {
         -File:$files `
         -JsonFile:$jsonFiles `
         -StartDate:$StartDate `
-        -Default:$defaults
+        -Default:$defaults `
         -DefaultsFileName:$DefaultsFileName
 
     switch ($Mode) {
