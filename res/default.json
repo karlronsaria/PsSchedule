@@ -1,0 +1,12 @@
+{
+    "OpenCommand": "nvim",
+    "ScheduleDirectory": "/note/sched",
+    "ScheduleExtension": "*.md",
+    "ScheduleDefaultSubdirectory": "general",
+    "ScheduleDefaultsFile": "default.json",
+    "SearchDirectory": "/note",
+    "FoldSubtreeOnProperties": [
+        "what",
+        "who"
+    ]
+}
