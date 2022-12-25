@@ -87,7 +87,7 @@ function Get-MySchedule {
         $Extension = $( `
             (cat $PsScriptRoot\..\res\default.json `
                 | ConvertFrom-Json).ScheduleExtension `
-        ),
+        )
 
         # todo
         # - [ ] WhatIf
