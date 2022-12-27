@@ -3,7 +3,8 @@
 function Find-MyTree {
     Param(
         [ArgumentCompleter({
-            $default = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
+            $default
+                = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
             $path = $default.SearchDirectory
             return (dir $path -Directory).Name
         })]
@@ -60,7 +61,8 @@ function Find-MyTree {
 function Get-MySchedule {
     Param(
         [ArgumentCompleter({
-            $default = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
+            $default
+                = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
             $path = $default.ScheduleDirectory
             return (dir $path -Directory).Name
         })]
@@ -187,7 +189,7 @@ function Get-MySchedule {
         'Cat' { '' }
         'Open' { '' }
         'Tree' { '' }
-        'Style' { $DefaultSubdirectory }
+        'Schedule' { $DefaultSubdirectory }
     }
 
     $path = Get-NewDirectoryPath `
