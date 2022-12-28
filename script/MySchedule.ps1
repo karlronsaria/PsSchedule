@@ -3,8 +3,9 @@
 function Find-MyTree {
     Param(
         [ArgumentCompleter({
-            $default
-                = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
+            $default =
+                cat $PsScriptRoot\..\res\default.json `
+                | ConvertFrom-Json
             $path = $default.SearchDirectory
             return (dir $path -Directory).Name
         })]
@@ -76,6 +77,12 @@ function Get-MySchedule {
         [String[]]
         $Pattern,
 
+        [ArgumentCompleter({
+            $date = Get-Date
+            0..62 | foreach {
+                Get-Date ($date.AddDays($_)) -Format 'yyyy_MM_dd'
+            }
+        })]
         [String]
         $StartDate,
 
