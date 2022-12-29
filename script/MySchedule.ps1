@@ -62,8 +62,9 @@ function Find-MyTree {
 function Get-MySchedule {
     Param(
         [ArgumentCompleter({
-            $default
-                = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
+            $default =
+                cat $PsScriptRoot\..\res\default.json `
+                | ConvertFrom-Json
             $path = $default.ScheduleDirectory
             return (dir $path -Directory).Name
         })]
