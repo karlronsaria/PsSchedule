@@ -1,6 +1,6 @@
 {
     "OpenCommand": "nvim",
-    "ScheduleDirectory": "/note/sched",
+    "ScheduleDirectory": "/note/sched/notebook",
     "ScheduleExtension": "*.md",
     "ScheduleDefaultSubdirectory": "general",
     "ScheduleDefaultsFile": "default.json",
