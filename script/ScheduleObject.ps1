@@ -451,7 +451,7 @@ function Find-Subtree {
                     return $subresults
                 }
 
-                if ($Name -in $properties.Name) {
+                if ($PropertyName -in $properties.Name) {
                     $subresults += @($InputObject)
                 }
                 else {
