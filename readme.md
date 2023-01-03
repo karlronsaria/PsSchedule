@@ -83,6 +83,37 @@
 - [x] I could see today's work schedule
 
 # issue
+- [ ] 2023_01_02_224101
+  - howto
+    ```powershell
+    Find-MyTree -Subdirectory request -Tag coworker
+    ```
+  - actual
+    ```
+    - @{sus=; ihr=; oth=}
+      - when
+        - never
+      - tag
+        - susihroth
+    ```
+  - expected
+    ```
+    - sus
+      - when
+        - never
+      - tag
+        - susihroth
+    - ihr
+      - when
+        - never
+      - tag
+        - susihroth
+    - othe
+      - when
+        - never
+      - tag
+        - susihroth
+    ```
 - [ ] 2022_10_27_180542
   - actual
     - action items with header levels other than 3 are ignored
