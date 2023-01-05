@@ -78,6 +78,7 @@ function Get-MySchedule {
         [String[]]
         $Pattern,
 
+        [Alias('Date')]
         [ArgumentCompleter({
             $date = Get-Date
             0..62 | foreach {
