@@ -237,8 +237,8 @@ function Get-MySchedule {
 
         if ($Mode -eq 'Open') {
             foreach ($sls in (@($files) + @($jsonFiles))) {
-                start "$OpenCommand" `
-                    -ArgumentList "$($sls.Path)", "+$($sls.LineNumber)"
+                Invoke-Expression `
+                    "$OpenCommand $($sls.Path) +$($sls.LineNumber)"
             }
 
             Write-Output $files
@@ -252,8 +252,8 @@ function Get-MySchedule {
 
     if ($Mode -eq 'Open') {
         foreach ($sls in (@($files) + @($jsonFiles))) {
-            start "$OpenCommand" `
-                -ArgumentList "$($sls.Path)"
+            Invoke-Expression `
+                "$OpenCommand $($sls.Path)"
         }
 
         Write-Output $files
