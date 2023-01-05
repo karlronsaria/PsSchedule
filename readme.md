@@ -105,34 +105,6 @@
 
 # issue
 
-- [ ] 2023_01_04_232154
-  
-  - howto
-    
-    ```powershell
-    Get-MySchedule -StartDate 2023_01_05
-    ```
-  
-  - actual
-    
-    ```
-    Monday (2023_01_09)
-    -------------------
-    16:00  [!] General Offering
-    ```
-  
-  - expected
-    
-    ```
-    Thursday (2023_01_05)
-    ---------------------
-    00:00  [ ] Amazon Delivery
-    
-    Monday (2023_01_09)
-    -------------------
-    16:00  [!] General Offering
-    ```
-
 - [ ] 2023_01_02_224101
   
   - howto
