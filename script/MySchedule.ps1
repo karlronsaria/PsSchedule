@@ -183,10 +183,7 @@ function Get-MySchedule {
         return $schedule
     }
 
-    $getScripts =
-        "$env:OneDrive\Documents\devlib\powershell\PsSchedule\Get-Scripts.ps1"
-
-    & $getScripts | % { . $_ }
+    . "$PsScriptRoot\ScheduleObject.ps1"
 
     $settings = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
     $DefaultsFileName = $settings.ScheduleDefaultsFile
