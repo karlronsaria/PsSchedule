@@ -1,34 +1,3 @@
-function Invoke-FileEdit {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        $InputObject,
-
-        [String]
-        $OpenCommand,
-
-        [Switch]
-        $PassThru
-    )
-
-    Process {
-        $cmd = switch ($MatchInfo.GetType()) {
-            [Microsoft.PowerShell.Commands.MatchInfo] {
-                "$OpenCommand $($InputObject.Path) +$($InputObject.LineNumber)"
-            }
-
-            [System.IO.FileSystemInfo] {
-                "$OpenCommand $($InputObject.Path)"
-            }
-        }
-
-        Invoke-Expression $cmd
-
-        if ($PassThru) {
-            Write-Output $InputObject
-        }
-    }
-}
-
 # # todo
 # - [ ] test
 function Find-MyTree {
@@ -268,9 +237,14 @@ function Get-MySchedule {
         }
 
         if ($Mode -eq 'Open') {
-            return (@($files) + @($jsonFiles)) | Invoke-FileEdit `
-                -OpenCommand $OpenCommand `
-                -PassThru
+            foreach ($sls in (@($files) + @($jsonFiles))) {
+                Invoke-Expression `
+                    "$OpenCommand $($sls.Path) +$($sls.LineNumber)"
+            }
+
+            Write-Output $files
+            Write-Output $jsonFiles
+            return
         }
 
         $files = $files.Path
@@ -278,9 +252,14 @@ function Get-MySchedule {
     }
 
     if ($Mode -eq 'Open') {
-        return (@($files) + @($jsonFiles)) | Invoke-FileEdit `
-            -OpenCommand $OpenCommand `
-            -PassThru
+        foreach ($sls in (@($files) + @($jsonFiles))) {
+            Invoke-Expression `
+                "$OpenCommand $($sls.Path)"
+        }
+
+        Write-Output $files
+        Write-Output $jsonFiles
+        return
     }
 
     if ($Mode -eq 'Cat') {
