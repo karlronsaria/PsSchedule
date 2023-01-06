@@ -11,17 +11,13 @@ function Invoke-FileEdit {
     )
 
     Process {
-        $cmd = switch ($InputObject.GetType()) {
+        $cmd = switch ($MatchInfo.GetType()) {
             [Microsoft.PowerShell.Commands.MatchInfo] {
                 "$OpenCommand $($InputObject.Path) +$($InputObject.LineNumber)"
             }
 
             [System.IO.FileSystemInfo] {
                 "$OpenCommand $($InputObject.Path)"
-            }
-
-            default {
-                "$OpenCommand $InputObject"
             }
         }
 
