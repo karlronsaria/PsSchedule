@@ -31,12 +31,16 @@ function Find-MyTree {
 
     $settings = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
     $FoldOnProperties = $settings.FoldSubtreeOnProperties
+    $IgnoreSubdirectory = $settings.IgnoreSubdirectory
     $path = Join-Path (Join-Path $Directory $Subdirectory) '*.md'
 
     $tree =
         $path `
         | Get-ChildItem `
             -Recurse `
+        | where {
+            $_.FullName -notlike "*$IgnoreSubdirectory*"
+        } `
         | Get-Content `
         | Get-MarkdownTable `
             -DepthLimit $DepthLimit
@@ -154,10 +158,16 @@ function Get-MySchedule {
             $DefaultsFileName
         )
 
+        $IgnoreSubdirectory = (cat "$PsScriptRoot\..\res\default.json" `
+            | ConvertFrom-Json).IgnoreSubdirectory
+
         $schedule =
             Get-ChildItem `
                 -Path $File `
                 -Recurse `
+            | where {
+                $_.FullName -notlike "*$IgnoreSubdirectory*"
+            } `
             | Get-Content `
             | Get-Schedule `
                 -StartDate:$StartDate `
@@ -169,6 +179,8 @@ function Get-MySchedule {
                     -Path $JsonFile `
                     -Recurse `
                 | where {
+                    $_.FullName -notlike "*$IgnoreSubdirectory*" `
+                    -and `
                     $DefaultsFileName -ne $_.Name.ToLower()
                 } | foreach {
                     cat $_ | ConvertFrom-Json
@@ -189,6 +201,8 @@ function Get-MySchedule {
     $DefaultsFileName = $settings.ScheduleDefaultsFile
     $OpenCommand = $settings.OpenCommand
     $FoldOnProperties = $settings.FoldSubtreeOnProperties
+    $IgnoreSubdirectory = $settings.IgnoreSubdirectory
+
     $DefaultSubdirectory = $settings.ScheduleDefaultSubdirectory
 
     $DefaultSubdirectory = switch ($Mode) {
@@ -222,6 +236,9 @@ function Get-MySchedule {
         $files = $Pattern | foreach {
             dir $files `
                 -Recurse `
+            | where {
+                $_.FullName -notlike "*$IgnoreSubdirectory*"
+            } `
             | Select-String $_ `
             | sort -Property Path -Unique
         }
@@ -229,6 +246,9 @@ function Get-MySchedule {
         $jsonFiles = $Pattern | foreach {
             dir $jsonFiles `
                 -Recurse `
+            | where {
+                $_.FullName -notlike "*$IgnoreSubdirectory*"
+            } `
             | Select-String $_ `
             | sort -Property Path -Unique
         }
