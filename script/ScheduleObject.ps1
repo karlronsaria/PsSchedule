@@ -581,12 +581,16 @@ function Get-MarkdownTable_FromCat {
     }
 
     Process {
-        $capture = [Regex]::Match($Line, '^(?<indent>\s*)((?<header>#+)|(?<list_item_delim>\-|\*|\d+\.)\s)\s*(?<content>.+)$')
+        $capture = [Regex]::Match($Line, '^(?<indent>\s*)((?<header>#+)|(?<list_item_delim>\-|\*|\d+\.)\s)\s*(?<content>.+)?$')
         $header = $capture.Groups['header']
         $indent = $capture.Groups['indent']
 
         $type = if ($capture.Groups['list_item_delim'].Success) {
-            'ListItem'
+            if ($capture.Groups['content'].Success) {
+                'ListItem'
+            } else {
+                'UnnamedRow'
+            }
         } elseif ($header.Success) {
             'Header'
         } else {
@@ -596,15 +600,11 @@ function Get-MarkdownTable_FromCat {
         if ('Header' -eq $type) {
             $level = $header.Length
         }
-
-        if ('ListItem' -eq $type) {
-            if ('Header' -eq $prevType) {
-                $level = $level + 1
-            }
-
-            if ('ListItem' -eq $prevType -and $indent.Length -ne $indentLength) {
-                $level += ($indent.Length - $indentLength) / 2
-            }
+        elseif ('Header' -eq $prevType) {
+            $level = $level + 1
+        }
+        elseif ($indent.Length -ne $indentLength) {
+            $level += ($indent.Length - $indentLength) / 2
         }
 
         $indentLength = $indent.Length
@@ -772,6 +772,10 @@ function Get-MarkdownTree_FromTable {
             $stack[$level] = [PsCustomObject]@{}
         }
 
+        if ([String]::IsNullOrWhiteSpace($content)) {
+            $content = "list_subitem"
+        }
+
         Add-Property `
             -InputObject $parent `
             -Name $content `
@@ -813,21 +817,47 @@ function Get-Schedule_FromTable {
         }
 
         function Get-NewActionItem {
+            [CmdletBinding(DefaultParameterSetName = 'ByProperty')]
             Param(
+                [Parameter(ValueFromPipeline = $true)]
                 [PsCustomObject]
                 $ActionItem,
 
+                [Parameter(ParameterSetName = 'ByDate')]
                 [DateTime]
-                $Date
+                $Date,
+
+                [Parameter(ParameterSetName = 'ByProperty')]
+                [String]
+                $ExcludeProperty,
+
+                [Parameter(ParameterSetName = 'ByProperty')]
+                [Object[]]
+                $AddProperty
             )
 
-            $what = [PsCustomObject]@{
-                when = $Date
-            }
+            switch ($PsCmdlet.ParameterSetName) {
+                'ByDate' {
+                    $what = [PsCustomObject]@{
+                        when = $Date
+                    }
 
-            $properties = $ActionItem.PsObject.Properties | where {
-                'NoteProperty' -eq $_.MemberType -and `
-                @('when', 'every') -notcontains $_.Name.ToLower()
+                    $properties = $ActionItem.PsObject.Properties | where {
+                        'NoteProperty' -eq $_.MemberType -and `
+                        @('when', 'every') -notcontains $_.Name.ToLower()
+                    }
+                }
+
+                'ByProperty' {
+                    $what = [PsCustomObject]@{}
+
+                    $properties = $ActionItem.PsObject.Properties | where {
+                        'NoteProperty' -eq $_.MemberType -and `
+                        $_.Name.ToLower() -ne $ExcludeProperty.ToLower()
+                    }
+
+                    $properties = @($properties) + @($AddProperty)
+                }
             }
 
             foreach ($property in $properties) {
@@ -915,6 +945,7 @@ function Get-Schedule_FromTable {
 
         function Get-NoteProperty {
             Param(
+                [Parameter(ValueFromPipeline = $true)]
                 [PsCustomObject]
                 $InputObject,
 
@@ -937,11 +968,17 @@ function Get-Schedule_FromTable {
                     Name = $PropertyName
                     Value = $InputObject.$PropertyName
                 }
-            } else {
+            } elseif ($null -ne $Default) {
                 [PsCustomObject]@{
                     Success = $false
                     Name = $PropertyName
                     Value = $Default.$PropertyName
+                }
+            } else {
+                [PsCustomObject]@{
+                    Success = $false
+                    Name = $PropertyName
+                    Value = $null
                 }
             }
 
@@ -995,6 +1032,24 @@ function Get-Schedule_FromTable {
         $list = @()
 
         if ($null -eq $InputObject) {
+            return $list
+        }
+
+        $getList = $InputObject | Get-NoteProperty -PropertyName 'list'
+
+        if ($getList.Success) {
+            foreach ($subitem in $getList.Value.list_subitem) {
+                $newItem = $InputObject | Get-NewActionItem `
+                    -ExcludeProperty 'list' `
+                    -AddProperty ($subitem.PsObject.Properties)
+
+                $newItem = $newItem | Get-Schedule_FromTable `
+                    -StartDate:$StartDate `
+                    -Default:$Default
+
+                $list += @($newItem)
+            }
+
             return $list
         }
 
