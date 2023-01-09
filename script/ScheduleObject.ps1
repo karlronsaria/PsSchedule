@@ -758,14 +758,15 @@ function Get-MarkdownTree_FromTable {
             $stack[$level] = $capture.Groups['value'].Value
 
         # # DRAWINGBOARD
+        # # ------------
         # } elseif (2 -eq $level -and (Test-EmptyObject $parent)) {
         #     $stack[$level] = [PsCustomObject]@{ what = $content }
-
+        #
         #     Add-Property `
         #         -InputObject $stack[0] `
         #         -Name $keys[1] `
         #         -Value $stack[$level]
-
+        #
         #     return
 
         } else {
@@ -774,6 +775,15 @@ function Get-MarkdownTree_FromTable {
 
         if ([String]::IsNullOrWhiteSpace($content)) {
             $content = "list_subitem"
+
+            # DRAWINGBOARD
+            # ------------
+            # Add-Property `
+            #     -InputObject $stack[$level - 2] `
+            #     -Name 'list' `
+            #     -Value $stack[$level]
+            # 
+            # return
         }
 
         Add-Property `
@@ -836,6 +846,8 @@ function Get-Schedule_FromTable {
                 $AddProperty
             )
 
+            $what = [PsCustomObject]@{}
+
             switch ($PsCmdlet.ParameterSetName) {
                 'ByDate' {
                     $what = [PsCustomObject]@{
@@ -849,8 +861,6 @@ function Get-Schedule_FromTable {
                 }
 
                 'ByProperty' {
-                    $what = [PsCustomObject]@{}
-
                     $properties = $ActionItem.PsObject.Properties | where {
                         'NoteProperty' -eq $_.MemberType -and `
                         $_.Name.ToLower() -ne $ExcludeProperty.ToLower()
