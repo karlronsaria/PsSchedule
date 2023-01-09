@@ -1,5 +1,27 @@
 # I wish
 
+- [ ] ``Get-MarkdownTable``
+  - actual
+    ```powershell
+    > (cat example.md | Get-MarkdownTable).list.list_subitem
+
+    when       what
+    ----       ----
+    2023_01_05 sus
+    2023_01_06 ihr
+    2023_01_07 oth
+    ```
+  - expected
+    ```powershell
+    > cat example.md | Get-MarkdownTable
+
+    when       what
+    ----       ----
+    2023_01_05 sus
+    2023_01_06 ihr
+    2023_01_07 oth
+    ```
+
 - [ ] I could identify expired action items
   
   - and have the option
