@@ -1,5 +1,7 @@
 # I wish
 
+- [ ] I could identify and interact with the checkboxes that appear in markdown action items
+
 - [ ] ``Get-MarkdownTable``
   - actual
     ```powershell
@@ -126,6 +128,74 @@
 - [x] I could see today's work schedule
 
 # issue
+
+- [ ] 2023_01_10_230005
+  - howto
+    - in powershell
+      ```powershell
+      $tree = cat .\todo_-_2022_12_16.md | Get-MarkdownTable
+      $tree.lookup | Write-MarkdownTree
+      ```
+    - in ``todo_-_2022_12_16.md``
+      ```
+      # lookup
+      - howto: tie shoes efficiently
+        - [ ] learn
+        - [x] find
+          - link
+            - search
+              - How To Tie Your Shoes Insanely Fast!
+              - SharpshooterJD
+              - YouTube
+            - retrieved: 2023_01_10
+      - howto: remove windshield glare
+        - [ ] learn
+        - [x] find
+          - link
+            - search
+              - STOP Auto Glass GLARE & WATER SPOTS....FOREVER!!!!!
+              - Sweet Project Cars
+              - YouTube
+            - retrieved: 2023_01_10
+      - [ ] learn: webassembly
+        - [ ] link video in listen-later playlist
+      - [ ] learn: Hindley-Milner type system
+      ```
+  - actual
+    ```
+    - howto
+      - tie shoes efficiently
+      - remove windshield glare
+    - [ ] learn
+      - webassembly
+      - Hindley-Milner type system
+    ```
+  - expected
+    ```
+    - howto
+      - tie shoes efficiently
+        - [ ] learn
+        - [x] find
+          - link
+            - search
+              - How To Tie Your Shoes Insanely Fast!
+              - SharpshooterJD
+              - YouTube
+            - retrieved: 2023_01_10
+      - remove windshield glare
+        - [ ] learn
+        - [x] find
+          - link
+            - search
+              - STOP Auto Glass GLARE & WATER SPOTS....FOREVER!!!!!
+              - Sweet Project Cars
+              - YouTube
+            - retrieved: 2023_01_10
+    - learn
+      - [ ] webassembly
+        - [ ] link video in listen-later playlist
+      - [ ] Hindley-Milner type system
+    ```
 
 - [ ] 2022_10_27_180542
   - actual
