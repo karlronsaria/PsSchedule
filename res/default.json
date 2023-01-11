@@ -6,7 +6,7 @@
     "ScheduleDefaultsFile": "default.json",
     "SearchDirectory": "/note",
     "IgnoreSubdirectory": "__OLD",
-    "FoldSubtreeOnProperties": [
+    "RotateSubtreeOnProperties": [
         "what",
         "who"
     ]

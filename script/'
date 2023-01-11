@@ -468,13 +468,13 @@ function Find-Subtree {
     }
 }
 
-function Get-SubtreeRotation {
+function Get-FoldedSubtree {
     Param(
         [Parameter(ValueFromPipeline = $true)]
         $InputObject,
 
         [String[]]
-        $RotateProperty
+        $FoldOnProperty
     )
 
     Begin {
@@ -482,25 +482,25 @@ function Get-SubtreeRotation {
     }
 
     Process {
-        if ([String]::IsNullOrEmpty($RotateProperty)) {
+        if ([String]::IsNullOrEmpty($FoldOnProperty)) {
             return
         }
 
         $properties = $InputObject.PsObject.Properties
         $subtree = [PsCustomObject]@{}
 
-        $rotate = $properties | where {
-            $_.Name -in $RotateProperty
+        $foldOn = $properties | where {
+            $_.Name -in $FoldOnProperty
         }
 
         # For every property name submitted, make an attempt to create a
-        # new object with rotated properties, but return on first successful
+        # new object with folded properties, but return on first successful
         # occurrence
-        foreach ($attempt in $rotate) {
+        foreach ($attempt in $foldOn) {
             # Create an object identical to the input object sans the
-            # properties to be rotated
+            # properties to be folded
             $properties | where {
-                $_.Name -notin $RotateProperty
+                $_.Name -notin $FoldOnProperty
             } | foreach {
                 $subtree | Add-Member `
                     -MemberType NoteProperty `
@@ -511,7 +511,7 @@ function Get-SubtreeRotation {
             switch ($attempt.Value) {
                 { $_ -is [String] } {
                     # Graft the newly created object as subtree to the new
-                    # tree, with the rotated property as the parent
+                    # tree, with the folded property as the parent
                     $tree | Add-Member `
                         -MemberType NoteProperty `
                         -Name $_ `
@@ -526,6 +526,9 @@ function Get-SubtreeRotation {
                     foreach ($subproperty in $subproperties) {
                         $subtreeCopy = $subtree.PsObject.Copy()
 
+                        Write-Host "Subproperty name: $($subproperty.Name)"
+
+<#
                         $subtreeCopy | Add-Member `
                             -MemberType NoteProperty `
                             -Name $attempt.Name `
@@ -535,6 +538,7 @@ function Get-SubtreeRotation {
                             -MemberType NoteProperty `
                             -Name $subproperty.Name `
                             -Value $subtreeCopy
+#>
                     }
                 }
             }
@@ -545,7 +549,7 @@ function Get-SubtreeRotation {
     }
 
     End {
-        if ([String]::IsNullOrEmpty($RotateProperty)) {
+        if ([String]::IsNullOrEmpty($FoldOnProperty)) {
             return $InputObject
         }
 

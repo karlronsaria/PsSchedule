@@ -30,7 +30,7 @@ function Find-MyTree {
     )
 
     $settings = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
-    $FoldOnProperties = $settings.FoldSubtreeOnProperties
+    $RotateProperties = $settings.RotateSubtreeOnProperties
     $IgnoreSubdirectory = $settings.IgnoreSubdirectory
     $path = Join-Path (Join-Path $Directory $Subdirectory) '*.md'
 
@@ -56,8 +56,8 @@ function Find-MyTree {
     }
 
     return $tree `
-        | Get-FoldedSubtree `
-            -FoldOnProperty $FoldOnProperties `
+        | Get-SubtreeRotation `
+            -RotateProperty $RotateProperties `
         | Write-MarkdownTree
 }
 
@@ -200,7 +200,7 @@ function Get-MySchedule {
     $settings = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
     $DefaultsFileName = $settings.ScheduleDefaultsFile
     $OpenCommand = $settings.OpenCommand
-    $FoldOnProperties = $settings.FoldSubtreeOnProperties
+    $RotateProperties = $settings.RotateSubtreeOnProperties
     $IgnoreSubdirectory = $settings.IgnoreSubdirectory
 
     $DefaultSubdirectory = $settings.ScheduleDefaultSubdirectory
@@ -299,8 +299,8 @@ function Get-MySchedule {
 
         'Tree' {
             return $schedule `
-                | Get-FoldedSubtree `
-                    -FoldOnProperty $FoldOnProperties `
+                | Get-SubtreeRotation `
+                    -RotateProperty $RotateProperties `
                 | Write-MarkdownTree
         }
     }
