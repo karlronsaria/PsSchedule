@@ -127,15 +127,16 @@
 
 # issue
 
-- [ ] 2023_01_02_224101
-  
+- [ ] 2022_10_27_180542
+  - actual
+    - action items with header levels other than 3 are ignored
+
+- [x] 2023_01_02_224101
   - howto
-    
     ```powershell
     Find-MyTree -Subdirectory request -Tag coworker
     ```
   - actual
-    
     ```
     - @{sus=; ihr=; oth=}
       - when
@@ -144,7 +145,6 @@
         - susihroth
     ```
   - expected
-    
     ```
     - sus
       - when
@@ -163,21 +163,12 @@
         - susihroth
     ```
 
-- [ ] 2022_10_27_180542
-  
-  - actual
-    - action items with header levels other than 3 are ignored
-
 - [x] 2022_11_10_003045
-  
   - howto
-    
     ```
     \shortcut\bin\tagsearch.bat request self
     ```
-  
   - actual
-    
     ```
     The property 'Name' cannot be found on this object. Verify that the
     property exists.
