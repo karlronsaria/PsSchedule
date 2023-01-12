@@ -15,9 +15,9 @@ function Find-MyTree {
         [String[]]
         $Tag,
 
-        [ValidateSet('Open', 'Cat', 'Tree')]
+        [ValidateSet('Print', 'Tree')]
         [String]
-        $Mode = 'Tree',
+        $Mode = 'Print',
 
         [String]
         $Directory = $( `
@@ -55,10 +55,20 @@ function Find-MyTree {
             }
     }
 
-    return $tree `
-        | Get-SubtreeRotation `
-            -RotateProperty $RotateProperties `
-        | Write-MarkdownTree
+    $tree = $tree | Get-SubtreeRotation `
+        -RotateProperty $RotateProperties `
+
+    $tree = switch ($Mode) {
+        'Tree' {
+            $tree
+        }
+
+        'Print' {
+            $tree | Write-MarkdownTree
+        }
+    }
+
+    return $tree
 }
 
 # # todo
