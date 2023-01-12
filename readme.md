@@ -131,6 +131,26 @@
 
 # issue
 
+- [ ] 2023_01_11_170506
+
+  - actual
+    - ``todo.md`` in neovim
+      ```
+      - [ ] Domino's Pizza jacket
+        - link
+          - retrieved: 2023_01_07
+          - list
+            - 
+              - what: tracking
+              - url: https://www.htgdominos.com/myaccount.asp
+            - 
+              - what: invoice
+              - url: \doc\My\invoice_-_2023_01_07_HtgDominos.pdf
+      ```
+    - ``todo.md`` in MarkText
+  ![Capture_2023_01_11_163152](./res/Screenshot_2023-01-11_163152.png)
+
+
 - [ ] 2023_01_10_230005
   - howto
     - in powershell
