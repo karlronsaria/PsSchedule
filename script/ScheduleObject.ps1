@@ -483,7 +483,7 @@ function Get-SubtreeRotation {
 
     Process {
         if ([String]::IsNullOrEmpty($RotateProperty)) {
-            return
+            return $InputObject
         }
 
         $properties = $InputObject.PsObject.Properties
@@ -491,6 +491,10 @@ function Get-SubtreeRotation {
 
         $rotate = $properties | where {
             $_.Name -in $RotateProperty
+        }
+
+        if ($null -eq $rotate) {
+            return $InputObject
         }
 
         # For every property name submitted, make an attempt to create a

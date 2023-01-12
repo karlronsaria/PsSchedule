@@ -26,7 +26,7 @@ function Find-MyTree {
         ),
 
         [Int]
-        $DepthLimit = 4
+        $DepthLimit = -1
     )
 
     $settings = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json

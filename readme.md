@@ -131,6 +131,35 @@
 
 # issue
 
+- [ ] 2023_01_11_173519
+  - howto
+    - in powershell
+      ```powershell
+      Get-MySchedule -Subdirectory homework -StartDate 2023_01_09
+      ```
+    - in ``sched.md``
+      ```
+      # sched
+      - what
+        - recite Philippians
+      - every: mon
+      - type: todayonly
+      ```
+  - actual
+    ```
+    Monday (2023_01_09)
+    -------------------
+    23:00      Change and Growth Plan
+    23:00      @{recite Philippians=}
+    ```
+  - expected
+    ```
+    Monday (2023_01_09)
+    -------------------
+    23:00      Change and Growth Plan
+    23:00      recite Philippians
+    ```
+
 - [ ] 2023_01_11_170506
 
   - actual
