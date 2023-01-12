@@ -1262,10 +1262,10 @@ function Get-Schedule_FromTable {
             $InputObject.type = 'todo'
             $InputObject.what = "reappoint: $($InputObject.what)"
 
-            $InputObject | Add-Member `
-                -MemberType NoteProperty `
-                -Name complete `
-                -Value $false
+            $complete = Add-NoteProperty `
+                -InputObject $InputObject `
+                -PropertyName 'complete' `
+                -Default $false
 
             $date = $date.AddDays(-1)
         }
