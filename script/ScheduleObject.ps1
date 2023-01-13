@@ -787,16 +787,18 @@ function Get-MarkdownTree_FromTable {
             "^\s*(?<key>[^:`"]+)\s*:(\s+(?<value>.*))?\s*$" `
         )
 
-        $key = $capture.Groups['key']
+        $keyCapture = $capture.Groups['key']
 
-        if ($key.Success) {
-            $content = $key.Value
-            $stack[$level] = $capture.Groups['value'].Value
+        if ($keyCapture.Success) {
+            $key = $keyCapture.Value
+            $value = $capture.Groups['value'].Value
+            $stack[$level] = $value
+            $content = $key
 
         # # DRAWINGBOARD
         # # ------------
         # } elseif (2 -eq $level -and (Test-EmptyObject $parent)) {
-        #     $stack[$level] = [PsCustomObject]@{ what = $content }
+        #     $stack[$level] = [PsCustomObject]@{ what = $key }
         #
         #     Add-Property `
         #         -InputObject $stack[0] `

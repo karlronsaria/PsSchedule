@@ -98,16 +98,43 @@ function Find-MyTree {
         }
     }
 
-    $tree = $cat `
+    $tree = $dir `
+        | Get-Content `
         | Get-MarkdownTable `
             -DepthLimit $DepthLimit
+
+    function Find-Tag {
+        Param(
+            [String[]]
+            $Haystack,
+
+            [String[]]
+            $Needle
+        )
+
+        $found = $false
+
+        foreach ($subneedle in $Needle) {
+            $found = $found -or $subneedle -in $Haystack
+
+            if ($found) {
+                break
+            }
+        }
+
+        $found
+    }
 
     if ($null -ne $Tag -and $Tag.Count -gt 0) {
         $tree = $tree `
             | Find-Subtree `
                 -PropertyName tag `
             | where {
-                $_.tag.ToLower() -in $Tag.ToLower()
+                $subtreeTags = $_.tag.ToLower().Split(',').Trim()
+
+                Find-Tag `
+                    -Haystack $Tag.ToLower() `
+                    -Needle $subtreeTags
             }
     }
 
