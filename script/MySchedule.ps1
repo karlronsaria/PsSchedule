@@ -15,7 +15,7 @@ function Find-MyTree {
         [String[]]
         $Tag,
 
-        [ValidateSet('Print', 'Tree')]
+        [ValidateSet('Print', 'Tree', 'Cat', 'Open')]
         [String]
         $Mode = 'Print',
 
@@ -34,20 +34,76 @@ function Find-MyTree {
     $IgnoreSubdirectory = $settings.IgnoreSubdirectory
     $path = Join-Path (Join-Path $Directory $Subdirectory) '*.md'
 
-    $tree =
-        $path `
+    $dir = $path `
         | Get-ChildItem `
             -Recurse `
         | where {
             $_.FullName -notlike "*$IgnoreSubdirectory*"
-        } `
-        | Get-Content `
+        }
+
+    if ($Mode -in @('Cat', 'Open')) {
+        if ($null -eq $Tag) {
+            switch ($Mode) {
+                'Cat' {
+                    return $dir | cat
+                }
+
+                'Open' {
+                    return "Cannot run command indiscriminately on all files"
+                }
+            }
+        }
+
+        $sls = @()
+
+        foreach ($subtag in $Tag) {
+            $sls = @(
+                $dir `
+                    | Select-String "- tag\:.*$subtag"
+            )
+
+            $sls += @(
+                $dir `
+                    | Select-String "- tag\:\s*$" -Context 0, 99 `
+                    | where {
+                        $_.Context.PostContext `
+                            -match "^\s*-\s*[^:]*$subtag[^:]*$"
+                    }
+            )
+        }
+
+        if ($sls.Count -eq 0) {
+            return "No files found"
+        }
+
+        switch ($Mode) {
+            'Cat' {
+                return dir $sls.Path | cat
+            }
+
+            'Open' {
+                $settings =
+                    cat "$PsScriptRoot\..\res\default.json" `
+                        | ConvertFrom-Json
+
+                $OpenCommand = $settings.OpenCommand
+
+                foreach ($item in $sls) {
+                    Invoke-Expression `
+                        "$OpenCommand $($item.Path) +$($item.LineNumber)"
+                }
+
+                return $sls
+            }
+        }
+    }
+
+    $tree = $cat `
         | Get-MarkdownTable `
             -DepthLimit $DepthLimit
 
     if ($null -ne $Tag -and $Tag.Count -gt 0) {
-        $tree =
-            $tree `
+        $tree = $tree `
             | Find-Subtree `
                 -PropertyName tag `
             | where {
@@ -212,7 +268,6 @@ function Get-MySchedule {
     $OpenCommand = $settings.OpenCommand
     $RotateProperties = $settings.RotateSubtreeOnProperties
     $IgnoreSubdirectory = $settings.IgnoreSubdirectory
-
     $DefaultSubdirectory = $settings.ScheduleDefaultSubdirectory
 
     $DefaultSubdirectory = switch ($Mode) {
