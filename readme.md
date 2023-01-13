@@ -7,20 +7,24 @@
 - [ ] I could identify and interact with the checkboxes that appear in markdown action items
 
 - [ ] ``Get-MarkdownTable``
+  
   - actual
+    
     ```powershell
     > (cat example.md | Get-MarkdownTable).list.list_subitem
-
+    
     when       what
     ----       ----
     2023_01_05 sus
     2023_01_06 ihr
     2023_01_07 oth
     ```
+  
   - expected
+    
     ```powershell
     > cat example.md | Get-MarkdownTable
-
+    
     when       what
     ----       ----
     2023_01_05 sus
@@ -134,12 +138,15 @@
 # issue
 
 - [ ] 2023_01_11_173519
+  
   - howto
     - in powershell
+      
       ```powershell
       Get-MySchedule -Subdirectory homework -StartDate 2023_01_09
       ```
     - in ``sched.md``
+      
       ```
       # sched
       - what
@@ -148,6 +155,7 @@
       - type: todayonly
       ```
   - actual
+    
     ```
     Monday (2023_01_09)
     -------------------
@@ -155,6 +163,7 @@
     23:00      @{recite Philippians=}
     ```
   - expected
+    
     ```
     Monday (2023_01_09)
     -------------------
@@ -163,9 +172,10 @@
     ```
 
 - [ ] 2023_01_11_170506
-
+  
   - actual
     - ``todo.md`` in neovim
+      
       ```
       - [ ] Domino's Pizza jacket
         - link
@@ -179,17 +189,19 @@
               - url: \doc\My\invoice_-_2023_01_07_HtgDominos.pdf
       ```
     - ``todo.md`` in MarkText
-  ![Capture_2023_01_11_163152](./res/Screenshot_2023-01-11_163152.png)
-
+      ![Capture_2023_01_11_163152](./res/Screenshot_2023-01-11_163152.png)
 
 - [ ] 2023_01_10_230005
+  
   - howto
     - in powershell
+      
       ```powershell
       $tree = cat .\todo_-_2022_12_16.md | Get-MarkdownTable
       $tree.lookup | Write-MarkdownTree
       ```
     - in ``todo_-_2022_12_16.md``
+      
       ```
       # lookup
       - howto: tie shoes efficiently
@@ -215,6 +227,7 @@
       - [ ] learn: Hindley-Milner type system
       ```
   - actual
+    
     ```
     - howto
       - tie shoes efficiently
@@ -224,6 +237,7 @@
       - Hindley-Milner type system
     ```
   - expected
+    
     ```
     - howto
       - tie shoes efficiently
@@ -251,15 +265,86 @@
     ```
 
 - [ ] 2022_10_27_180542
+  
   - actual
     - action items with header levels other than 3 are ignored
 
+- [x] 2023_01_13_010203
+  
+  - actual
+    
+    ```
+    C:\Users\karlr> Get-MySchedule -Subdirectory request -Pattern Partners -Mode Schedule
+    The property 'Path' cannot be found on this object. Verify that the property exists.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:360 char:9
+    +         $jsonFiles = $jsonFiles.Path
+    +         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+        + FullyQualifiedErrorId : PropertyNotFoundStrict
+    
+    Test-Path : Cannot bind argument to parameter 'Path' because it is null.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:269 char:24
+    +         if ((Test-Path $JsonFile)) {
+    +                        ~~~~~~~~~
+        + CategoryInfo          : InvalidData: (:) [Test-Path], ParameterBindingValidationException
+        + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.TestPathCommand
+    
+    Friday (2023_01_13)
+    -------------------
+    11:00      evangelism
+    11:00      ChangeAndGrowthPlan
+    11:00      Partners
+    23:00      Partners
+    
+    C:\Users\karlr> Get-MySchedule -Subdirectory request -Pattern Partners -Mode Tree
+    The property 'Path' cannot be found on this object. Verify that the property exists.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:360 char:9
+    +         $jsonFiles = $jsonFiles.Path
+    +         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+        + FullyQualifiedErrorId : PropertyNotFoundStrict
+    
+    Test-Path : Cannot bind argument to parameter 'Path' because it is null.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:269 char:24
+    +         if ((Test-Path $JsonFile)) {
+    +                        ~~~~~~~~~
+        + CategoryInfo          : InvalidData: (:) [Test-Path], ParameterBindingValidationException
+        + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.TestPathCommand
+    
+    Add-Member : Cannot add a member with the name "Partners" because a member with that name already exists. To overwrite the member anyway, add the Force parameter to
+    your command.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\ScheduleObject.ps1:530 char:29
+    +                     $tree | Add-Member `
+    +                             ~~~~~~~~~~~~
+        + CategoryInfo          : InvalidOperation: (@{evangelism=; ...an=; Partners=}:PSObject) [Add-Member], InvalidOperationException
+        + FullyQualifiedErrorId : MemberAlreadyExists,Microsoft.PowerShell.Commands.AddMemberCommand
+    
+    - evangelism
+      - when
+        - 01/13/2023 11:00:00
+      - type
+        - todayonly
+    - ChangeAndGrowthPlan
+      - when
+        - 01/13/2023 11:00:00
+      - type
+        - todayonly
+    - Partners
+      - when
+        - 01/13/2023 11:00:00
+      - type
+        - todayonly
+    ```
+
 - [x] 2023_01_02_224101
+  
   - howto
+    
     ```powershell
     Find-MyTree -Subdirectory request -Tag coworker
     ```
   - actual
+    
     ```
     - @{sus=; ihr=; oth=}
       - when
@@ -268,6 +353,7 @@
         - susihroth
     ```
   - expected
+    
     ```
     - sus
       - when
@@ -287,11 +373,15 @@
     ```
 
 - [x] 2022_11_10_003045
+  
   - howto
+    
     ```
     \shortcut\bin\tagsearch.bat request self
     ```
+  
   - actual
+    
     ```
     The property 'Name' cannot be found on this object. Verify that the
     property exists.
@@ -360,7 +450,9 @@
 - [x] 2022_11_08_125240
   
   - solution: non-issue
+  
   - howto
+    
     - in ``sched.md``
       
       ```
@@ -371,11 +463,13 @@
       - type: todo
       - every: none
       ```
+    
     - cmd
       
       ```
       \shortcut\bin\sched.bat
       ```
+  
   - actual
     
     ```
@@ -383,6 +477,7 @@
     --------------------
     00:01      Amazon delivery
     ```
+  
   - expected
     
     ```
@@ -395,6 +490,7 @@
   
   - howto
     ``Get-MarkdownTable``
+  
   - actual
     
     ```
@@ -402,6 +498,7 @@
     @{when=11/10/2022 18:30:00; what=Homegroup Bible Study; who:=; where=; type=event}
     ...
     ```
+  
   - expected
     
     ```
@@ -491,6 +588,7 @@
   
   - howto
     ``C:\shortcut\bin\sched.bat``
+  
   - actual
     
     ```
@@ -506,6 +604,7 @@
         + FullyQualifiedErrorId : MemberAlreadyExists,Microsoft.PowerShell.Commands.Ad
        dMemberCommand
     ```
+  
   - cause
     In a schedule file:
     
@@ -516,7 +615,9 @@
     ```
     
     Web links are being parsed like node names.
+  
   - solution
+    
     - require inline branches to be spaced:
       - accepted
         ``- what: daily todo``

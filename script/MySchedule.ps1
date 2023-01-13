@@ -266,7 +266,7 @@ function Get-MySchedule {
                 -StartDate:$StartDate `
                 -Default:$Default
 
-        if ((Test-Path $JsonFile)) {
+        if ($null -ne $JsonFile -and (Test-Path $JsonFile)) {
             $subtables =
                 Get-ChildItem `
                     -Path $JsonFile `
@@ -356,8 +356,13 @@ function Get-MySchedule {
             return
         }
 
-        $files = $files.Path
-        $jsonFiles = $jsonFiles.Path
+        if ($null -ne $files) {
+            $files = $files.Path
+        }
+
+        if ($null -ne $jsonFiles) {
+            $jsonFiles = $jsonFiles.Path
+        }
     }
 
     if ($Mode -eq 'Open') {
@@ -372,8 +377,14 @@ function Get-MySchedule {
     }
 
     if ($Mode -eq 'Cat') {
-        $files | cat
-        $jsonFiles | cat
+        if ($null -ne $files) {
+            dir $files | cat
+        }
+
+        if ($null -ne $jsonFiles) {
+            dir $jsonFiles | cat
+        }
+
         return
     }
 
