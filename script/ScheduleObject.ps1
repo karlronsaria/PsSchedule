@@ -372,10 +372,13 @@ function Write-MarkdownTree {
             return
         }
 
+        # karlr (2023_01_12):
+        # I strongly believe I shouldn't have to do this.
         switch -Regex ($InputObject.GetType().Name) {
             '.*\[\]$' {
                 foreach ($subitem in $InputObject) {
-                    Write-MarkdownTree $subitem $Level
+                    Write-MarkdownTree " " $Level
+                    Write-MarkdownTree $subitem ($Level + 1)
                 }
             }
 
@@ -386,6 +389,14 @@ function Write-MarkdownTree {
                     }
 
                 foreach ($property in $properties) {
+                    if ($property.Name -eq 'list_subitem') {
+                        Write-MarkdownTree `
+                            $property.Value `
+                            $Level
+
+                        continue
+                    }
+
                     $list = Write-MarkdownTree `
                         $property.Value `
                         ($Level + 1)
