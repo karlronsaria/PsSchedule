@@ -195,7 +195,10 @@ function Get-MySchedule {
         $Extension = $( `
             (cat $PsScriptRoot\..\res\default.json `
                 | ConvertFrom-Json).ScheduleExtension `
-        )
+        ),
+
+        [Switch]
+        $NoConfirm
 
         # todo
         # - [ ] WhatIf
@@ -366,13 +369,33 @@ function Get-MySchedule {
     }
 
     if ($Mode -eq 'Open') {
-        foreach ($sls in (@($files) + @($jsonFiles))) {
-            Invoke-Expression `
-                "$OpenCommand $($sls.Path)"
+        if ($NoConfirm) {
+            Write-Output "Opening all files in"
+            Write-Output "  $files"
+            Write-Output "  $jsonFiles"
+        }
+        else {
+            Write-Output "This will open all files in"
+            Write-Output "  $files"
+            Write-Output "  $jsonFiles"
+            Write-Output ""
+            $confirm = 'n'
+
+            do {
+                $confirm = Read-Host "Continue? (y/n)"
+            }
+            while ($confirm -notin @('n', 'y'))
+
+            if ($confirm -eq 'n') {
+                return
+            }
         }
 
-        Write-Output $files
-        Write-Output $jsonFiles
+        foreach ($file in (dir (@($files) + @($jsonFiles)))) {
+            Invoke-Expression `
+                "$OpenCommand $file"
+        }
+
         return
     }
 
