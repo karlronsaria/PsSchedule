@@ -55,6 +55,7 @@ function Write-Schedule {
         }
 
         $when = $ActionItem.when
+
         $isNewDay = $day -ne $when.Day `
             -or $month -ne $when.Month `
             -or $year -ne $when.Year
@@ -109,8 +110,18 @@ function Write-Schedule {
             }
 
             default {
-                $icon = '   '
-                $foreground = $hostForeground
+# todo
+<#
+                if (($ActionItem | Get-NoteProperty -PropertyName 'Complete').Success) {
+                    $icon = "[$((if ($ActionItem.Complete) { 'x' } else { ' ' }))]"
+                    $what = "todo: $what"
+                    $foreground = 'Yellow'
+                }
+                else {
+#>
+                    $icon = '   '
+                    $foreground = $hostForeground
+#               }
             }
         }
 
@@ -644,6 +655,10 @@ function Get-MarkdownTable_FromCat {
             'None'
         }
 
+        if ('None' -eq $type) {
+            return
+        }
+
         if ('Header' -eq $type) {
             $level = $header.Length
         }
@@ -655,10 +670,7 @@ function Get-MarkdownTable_FromCat {
         }
 
         $indentLength = $indent.Length
-
-        if ('None' -ne $type) {
-            $prevType = $type
-        }
+        $prevType = $type
 
         [PsCustomObject]@{
             Level = $level
@@ -822,19 +834,6 @@ function Get-MarkdownTree_FromTable {
             $stack[$level] = [PsCustomObject]@{}
         }
 
-        if ([String]::IsNullOrWhiteSpace($content)) {
-            $content = "list_subitem"
-
-            # DRAWINGBOARD
-            # ------------
-            # Add-Property `
-            #     -InputObject $stack[$level - 2] `
-            #     -Name 'list' `
-            #     -Value $stack[$level]
-            # 
-            # return
-        }
-
         $checkBoxCapture = [Regex]::Match( `
             $content, `
             "\[(?<check>x| )\]\s*(?<content>.*)" `
@@ -849,6 +848,19 @@ function Get-MarkdownTree_FromTable {
                 -Value ($checkBoxCapture.Groups['check'].Value -eq 'x')
         }
 
+        if ([String]::IsNullOrWhiteSpace($content)) {
+            $content = "list_subitem"
+
+            # DRAWINGBOARD
+            # ------------
+            # Add-Property `
+            #     -InputObject $stack[$level - 2] `
+            #     -Name 'list' `
+            #     -Value $stack[$level]
+            # 
+            # return
+        }
+
         Add-Property `
             -InputObject $parent `
             -Name $content `
@@ -860,6 +872,48 @@ function Get-MarkdownTree_FromTable {
     End {
         return $stack[0]
     }
+}
+
+function Get-NoteProperty {
+    Param(
+        [Parameter(ValueFromPipeline = $true)]
+        [PsCustomObject]
+        $InputObject,
+
+        [String]
+        $PropertyName,
+
+        $Default
+    )
+
+    $properties = $InputObject.PsObject.Properties `
+        | where { 'NoteProperty' -eq $_.MemberType }
+
+    if ([String]::IsNullOrEmpty($PropertyName)) {
+        return $properties
+    }
+
+    $result = if ($PropertyName -in $properties.Name) {
+        [PsCustomObject]@{
+            Success = $true
+            Name = $PropertyName
+            Value = $InputObject.$PropertyName
+        }
+    } elseif ($null -ne $Default) {
+        [PsCustomObject]@{
+            Success = $false
+            Name = $PropertyName
+            Value = $Default.$PropertyName
+        }
+    } else {
+        [PsCustomObject]@{
+            Success = $false
+            Name = $PropertyName
+            Value = $null
+        }
+    }
+
+    return $result
 }
 
 function Get-Schedule_FromTable {
@@ -1012,48 +1066,6 @@ function Get-Schedule_FromTable {
                 $pattern, `
                 $null `
             )
-
-            return $result
-        }
-
-        function Get-NoteProperty {
-            Param(
-                [Parameter(ValueFromPipeline = $true)]
-                [PsCustomObject]
-                $InputObject,
-
-                [String]
-                $PropertyName,
-
-                $Default
-            )
-
-            $properties = $InputObject.PsObject.Properties `
-                | where { 'NoteProperty' -eq $_.MemberType }
-
-            if ([String]::IsNullOrEmpty($PropertyName)) {
-                return $properties
-            }
-
-            $result = if ($PropertyName -in $properties.Name) {
-                [PsCustomObject]@{
-                    Success = $true
-                    Name = $PropertyName
-                    Value = $InputObject.$PropertyName
-                }
-            } elseif ($null -ne $Default) {
-                [PsCustomObject]@{
-                    Success = $false
-                    Name = $PropertyName
-                    Value = $Default.$PropertyName
-                }
-            } else {
-                [PsCustomObject]@{
-                    Success = $false
-                    Name = $PropertyName
-                    Value = $null
-                }
-            }
 
             return $result
         }
