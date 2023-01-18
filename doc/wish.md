@@ -6,7 +6,7 @@
 
 - [ ] an action item could tell me in schedule view whether or not it has an unfinished todo-list
 
-- [ ] I could identify and interact with the checkboxes that appear in markdown action items
+- [x] I could identify and interact with the checkboxes that appear in markdown action items
 
 - [ ] ``Get-MarkdownTable``
   
@@ -137,3 +137,6 @@
 
 - [x] I could see today's work schedule
 
+---
+
+[Back to Readme](../readme.md)

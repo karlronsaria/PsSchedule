@@ -835,6 +835,20 @@ function Get-MarkdownTree_FromTable {
             # return
         }
 
+        $checkBoxCapture = [Regex]::Match( `
+            $content, `
+            "\[(?<check>x| )\]\s*(?<content>.*)" `
+        )
+
+        if ($checkBoxCapture.Success) {
+            $content = $checkBoxCapture.Groups['content'].Value
+
+            Add-Property `
+                -InputObject $stack[$level] `
+                -Name 'Complete' `
+                -Value ($checkBoxCapture.Groups['check'].Value -eq 'x')
+        }
+
         Add-Property `
             -InputObject $parent `
             -Name $content `
