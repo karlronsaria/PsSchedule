@@ -198,7 +198,10 @@ function Get-MySchedule {
         ),
 
         [Switch]
-        $NoConfirm
+        $NoConfirm,
+
+        [Switch]
+        $Verbose
 
         # todo
         # - [ ] WhatIf
@@ -420,7 +423,8 @@ function Get-MySchedule {
 
     switch ($Mode) {
         'Schedule' {
-            return $schedule | Write-Schedule
+            return $schedule | Write-Schedule `
+                -Verbose:$Verbose
         }
 
         'Tree' {

@@ -4,7 +4,7 @@
 
 - [ ] the node delimiter ':' would have an escape sequence
 
-- [ ] an action item could tell me in schedule view whether or not it has an unfinished todo-list
+- [x] an action item could tell me in schedule view whether or not it has an unfinished todo-list
 
 - [x] I could identify and interact with the checkboxes that appear in markdown action items
 

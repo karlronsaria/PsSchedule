@@ -19,6 +19,75 @@ function Write-Schedule {
         $hostForeground =
             (Get-Host).Ui.RawUi.ForegroundColor
 
+        function Write-ActionItem {
+            Param(
+                [Parameter(ValueFromPipeline = $true)]
+                $ActionItem
+            )
+
+            $icon = $null
+            $foreground = $null
+            $what = $ActionItem.what
+
+            # # frivolous
+            # $emoji = $([System.Char]::ConvertFromUtf32([System.Convert]::ToInt32("1F600", 16))]
+
+            switch ($ActionItem.type) {
+                'todo' {
+                    $what = "todo: $what"
+                    $icon = "[ ]"
+                    $foreground = 'Yellow'
+                }
+
+                'deadline' {
+                    $icon = '[!]'
+                    $foreground = 'Red'
+                }
+
+                'event' {
+                    $what = "event: $what"
+                    $foreground = 'Green'
+                }
+
+                default {
+                    if (($ActionItem | Get-NoteProperty -PropertyName 'complete').Success) {
+                        $icon = "[$((if ($ActionItem.complete) { 'x' } else { ' ' }))]"
+                        $what = "todo: $what"
+                        $foreground = 'Yellow'
+                    }
+                    else {
+                        $icon = '   '
+                        $foreground = $hostForeground
+                    }
+                }
+            }
+
+            $displayItem = [PsCustomObject]@{
+                When = "$(Get-Date $ActionItem.when -f HH:mm)"
+                Type = $icon
+                What = $what
+            }
+
+            $str = $displayItem `
+                | Format-Table `
+                    -Property `
+                        When, `
+                        @{
+                            Name = 'Type'
+                            Expression = { $_.Type }
+                            Align = 'Right'
+                        }, `
+                        What `
+                    -HideTableHeaders `
+                | Out-String
+
+            $str = $str.Trim()
+
+            if (-not [String]::IsNullOrWhiteSpace($str)) {
+                Write-OutputColored $str -Foreground $foreground
+            }
+        }
+
         function Write-OutputColored {
             Param(
                 [Parameter(ValueFromPipeline = $true)]
@@ -85,69 +154,23 @@ function Write-Schedule {
                 -Foreground DarkGray
         }
 
-        $icon = $null
-        $foreground = $null
-        $what = $ActionItem.what
+        $ActionItem | Write-ActionItem
 
-        # # frivolous
-        # $emoji = $([System.Char]::ConvertFromUtf32([System.Convert]::ToInt32("1F600", 16))]
+        $subtree = $ActionItem | Find-Subtree `
+            -PropertyName 'complete' `
+            -Parent $ActionItem.what
 
-        switch ($ActionItem.type) {
-            'todo' {
-                $what = "todo: $what"
-                $icon = "[ ]"
-                $foreground = 'Yellow'
-            }
+        if ($Verbose -and $null -ne $subtree) {
+            Write-OutputColored
 
-            'deadline' {
-                $icon = '[!]'
-                $foreground = 'Red'
-            }
-
-            'event' {
-                $what = "event: $what"
-                $foreground = 'Green'
-            }
-
-            default {
-# todo
-<#
-                if (($ActionItem | Get-NoteProperty -PropertyName 'Complete').Success) {
-                    $icon = "[$((if ($ActionItem.Complete) { 'x' } else { ' ' }))]"
-                    $what = "todo: $what"
-                    $foreground = 'Yellow'
+            $subtree | foreach {
+                if (-not $_.child.complete) {
+                    [PsCustomObject]@{ $_.parent = $_.child } `
+                        | Write-MarkdownTree
                 }
-                else {
-#>
-                    $icon = '   '
-                    $foreground = $hostForeground
-#               }
             }
-        }
 
-        $displayItem = [PsCustomObject]@{
-            When = "$(Get-Date $when -f HH:mm)"
-            Type = $icon
-            What = $what
-        }
-
-        $str = $displayItem `
-            | Format-Table `
-                -Property `
-                    When, `
-                    @{
-                        Name = 'Type'
-                        Expression = { $_.Type }
-                        Align = 'Right'
-                    }, `
-                    What `
-                -HideTableHeaders `
-            | Out-String
-
-        $str = $str.Trim()
-
-        if (-not [String]::IsNullOrWhiteSpace($str)) {
-            Write-OutputColored $str -Foreground $foreground
+            Write-OutputColored
         }
     }
 
@@ -375,7 +398,10 @@ function Write-MarkdownTree {
         $InputObject,
 
         [Int]
-        $Level = 0
+        $Level = 0,
+
+        [Switch]
+        $AsTree
     )
 
     Process {
@@ -400,6 +426,13 @@ function Write-MarkdownTree {
                     }
 
                 foreach ($property in $properties) {
+                    if (-not $AsTree `
+                        -and $property.Name -eq 'complete' `
+                        -and $property.Value -is [Boolean])
+                    {
+                        continue
+                    }
+
                     if ($property.Name -eq 'list_subitem') {
                         Write-MarkdownTree `
                             $property.Value `
@@ -422,7 +455,27 @@ function Write-MarkdownTree {
                         continue
                     }
 
-                    Write-Output "$('  ' * $Level)- $($property.Name)"
+                    $actionItemCapture = [PsCustomObject]@{
+                        Success = $false
+                    }
+
+                    $token = ''
+
+                    if (-not $AsTree) {
+                        $actionItemCapture = $property.Value `
+                            | Get-NoteProperty `
+                                -PropertyName 'complete'
+
+                        $token = if ($actionItemCapture.Value) { 'x' } else { ' ' }
+                    }
+
+                    $content = if ($actionItemCapture.Success) {
+                        "[$token] $($property.Name)"
+                    } else {
+                        $property.Name
+                    }
+
+                    Write-Output "$('  ' * $Level)- $content"
                     $list
                 }
             }
@@ -440,7 +493,10 @@ function Find-Subtree {
         $InputObject,
 
         [String]
-        $PropertyName
+        $PropertyName,
+
+        [String]
+        $Parent
     )
 
     Process {
@@ -456,8 +512,9 @@ function Find-Subtree {
 
                 while ($i -lt $InputObject.Count) {
                     $subresults += @((Find-Subtree `
-                        $InputObject[$i] `
-                        $PropertyName))
+                        -InputObject $InputObject[$i] `
+                        -PropertyName $PropertyName `
+                        -Parent:$Parent))
 
                     $i = $i + 1
                 }
@@ -474,13 +531,33 @@ function Find-Subtree {
                 }
 
                 if ($PropertyName -in $properties.Name) {
-                    $subresults += @($InputObject)
+                    if ($Parent) {
+                        $subresults += @(
+                            [PsCustomObject]@{
+                                parent = $Parent
+                                child = $InputObject
+                            }
+                        )
+                    }
+                    else {
+                        $subresults += @($InputObject)
+                    }
                 }
                 else {
-                    foreach ($property in $properties) {
-                        $subresults += @((Find-Subtree `
-                            $property.Value `
-                            $PropertyName))
+                    if ($Parent) {
+                        foreach ($property in $properties) {
+                            $subresults += @((Find-Subtree `
+                                -InputObject $property.Value `
+                                -PropertyName $PropertyName `
+                                -Parent $property.Name))
+                        }
+                    }
+                    else {
+                        foreach ($property in $properties) {
+                            $subresults += @((Find-Subtree `
+                                -InputObject $property.Value `
+                                -PropertyName $PropertyName))
+                        }
                     }
                 }
             }
@@ -844,7 +921,7 @@ function Get-MarkdownTree_FromTable {
 
             Add-Property `
                 -InputObject $stack[$level] `
-                -Name 'Complete' `
+                -Name 'complete' `
                 -Value ($checkBoxCapture.Groups['check'].Value -eq 'x')
         }
 
@@ -893,7 +970,13 @@ function Get-NoteProperty {
         return $properties
     }
 
-    $result = if ($PropertyName -in $properties.Name) {
+    $result = if ($null -eq $properties -or @($properties).Count -eq 0) {
+        [PsCustomObject]@{
+            Success = $false
+            Name = $PropertyName
+            Value = $null
+        }
+    } elseif ($PropertyName -in $properties.Name) {
         [PsCustomObject]@{
             Success = $true
             Name = $PropertyName
