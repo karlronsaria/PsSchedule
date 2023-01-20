@@ -5,10 +5,10 @@ function Find-MyTree {
     Param(
         [Parameter(ParameterSetName = 'Named')]
         [ArgumentCompleter({
-            $settings =
+            $setting =
                 cat "$PsScriptRoot\..\res\setting.json" `
                 | ConvertFrom-Json
-            $path = $settings.SearchDirectory
+            $path = $setting.SearchDirectory
             return (dir $path -Directory).Name
         })]
         [String]
@@ -39,12 +39,15 @@ function Find-MyTree {
         $Arguments
     )
 
-    $settings =
+    $setting =
         cat "$PsScriptRoot\..\res\setting.json" `
         | ConvertFrom-Json
 
+    $SENTINEL_DEPTH_LIMIT = -1
+    $DEFAULT_MODE = 'Print'
+
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
-        $path = $settings.SearchDirectory
+        $path = $setting.SearchDirectory
         $subdirectories = (dir $path -Directory).Name
         $validModes = @('Print', 'Tree', 'Cat', 'Open')
 
@@ -72,15 +75,15 @@ function Find-MyTree {
     }
 
     if (-not $Mode) {
-        $Mode = 'Print'
+        $Mode = $DEFAULT_MODE
     }
 
     if (-not $Directory) {
-        $Directory = $settings.SearchDirectory
+        $Directory = $setting.SearchDirectory
     }
 
     if (-not $DepthLimit) {
-        $DepthLimit = -1
+        $DepthLimit = $SENTINEL_DEPTH_LIMIT
     }
 
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
@@ -89,7 +92,7 @@ function Find-MyTree {
         $cmd += " -Mode '$Mode'"
         $cmd += " -Tag '$Tag'"
 
-        if ($DepthLimit -gt -1) {
+        if ($DepthLimit -gt $SENTINEL_DEPTH_LIMIT) {
             $cmd += " -DepthLimit $DepthLimit"
         }
 
@@ -97,8 +100,8 @@ function Find-MyTree {
         Write-Output ""
     }
 
-    $RotateProperties = $settings.RotateSubtreeOnProperties
-    $IgnoreSubdirectory = $settings.IgnoreSubdirectory
+    $RotateProperties = $setting.RotateSubtreeOnProperties
+    $IgnoreSubdirectory = $setting.IgnoreSubdirectory
     $path = Join-Path (Join-Path $Directory $Subdirectory) '*.md'
 
     $dir = $path `
@@ -149,11 +152,11 @@ function Find-MyTree {
             }
 
             'Open' {
-                $settings =
+                $setting =
                     cat "$PsScriptRoot\..\res\setting.json" `
                         | ConvertFrom-Json
 
-                $OpenCommand = $settings.OpenCommand
+                $OpenCommand = $setting.OpenCommand
 
                 foreach ($item in $sls) {
                     Invoke-Expression `
@@ -228,10 +231,10 @@ function Get-MySchedule {
     Param(
         [Parameter(ParameterSetName = 'Named')]
         [ArgumentCompleter({
-            $settings =
+            $setting =
                 cat "$PsScriptRoot\..\res\setting.json" `
                 | ConvertFrom-Json
-            $path = $settings.ScheduleDirectory
+            $path = $setting.ScheduleDirectory
             return (dir $path -Directory).Name
         })]
         [String]
@@ -279,12 +282,14 @@ function Get-MySchedule {
         # - [ ] WhatIf
     )
 
-    $settings =
+    $setting =
         cat "$PsScriptRoot\..\res\setting.json" `
         | ConvertFrom-Json
 
+    $DEFAULT_MODE = 'Schedule'
+
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
-        $path = $settings.ScheduleDirectory
+        $path = $setting.ScheduleDirectory
         $subdirectories = (dir $path -Directory).Name
         $validModes = @('Schedule', 'Open', 'Cat', 'Tree')
 
@@ -316,15 +321,15 @@ function Get-MySchedule {
     }
 
     if (-not $Mode) {
-        $Mode = 'Schedule'
+        $Mode = $DEFAULT_MODE
     }
 
     if (-not $Directory) {
-        $Directory = $settings.ScheduleDirectory
+        $Directory = $setting.ScheduleDirectory
     }
 
     if (-not $Extension) {
-        $Extension = $settings.ScheduleExtension
+        $Extension = $setting.ScheduleExtension
     }
 
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
@@ -431,14 +436,11 @@ function Get-MySchedule {
 
     . "$PsScriptRoot\ScheduleObject.ps1"
 
-    $settings = cat "$PsScriptRoot\..\res\setting.json" `
-        | ConvertFrom-Json
-
-    $DefaultsFileName = $settings.ScheduleDefaultsFile
-    $OpenCommand = $settings.OpenCommand
-    $RotateProperties = $settings.RotateSubtreeOnProperties
-    $IgnoreSubdirectory = $settings.IgnoreSubdirectory
-    $DefaultSubdirectory = $settings.ScheduleDefaultSubdirectory
+    $DefaultsFileName = $setting.ScheduleDefaultsFile
+    $OpenCommand = $setting.OpenCommand
+    $RotateProperties = $setting.RotateSubtreeOnProperties
+    $IgnoreSubdirectory = $setting.IgnoreSubdirectory
+    $DefaultSubdirectory = $setting.ScheduleDefaultSubdirectory
 
     $DefaultSubdirectory = switch ($Mode) {
         'Cat' { '' }

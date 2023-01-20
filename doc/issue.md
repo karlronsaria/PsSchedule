@@ -1,15 +1,5 @@
 # issue
 
-- [x] 2023_01_20_144402
-
-  - what
-    - File ``/res/default.json`` should be named ``setting.json``.
-
-- [ ] 2023_01_20_144308
-
-  - what
-    - ``MySchedule.ps1``: All defaults and constants should be recorded in ``/res/default.json``.
-
 - [ ] 2023_01_20_144131
 
   - what
@@ -146,6 +136,21 @@
   
   - actual
     - action items with header levels other than 3 are ignored
+
+## resolved
+
+- [x] 2023_01_20_144308
+
+  - what
+    - ``MySchedule.ps1``: All defaults and constants should be recorded in ``/res/default.json``.
+  - status
+    - what: canceled
+    - why: Close enough.
+
+- [x] 2023_01_20_144402
+
+  - what
+    - File ``/res/default.json`` should be named ``setting.json``.
 
 - [x] 2023_01_13_010203
   

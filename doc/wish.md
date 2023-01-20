@@ -1,16 +1,10 @@
 # I wish
 
+- [ ] ``MySchedule`` functions had ``-WhatIf`` flag
+
 - [ ] ``Get-MarkdownTable`` could extricate style information, such as *italic* _text_ or **bold** __text__
 
-- [x] ``Get-MySchedule`` had parameter inference
-  - [x] ``Get-MySchedule``
-  - [x] ``Find-MyTree``
-
-- [ ] the node delimiter ':' would have an escape sequence
-
-- [x] an action item could tell me in schedule view whether or not it has an unfinished todo-list
-
-- [x] I could identify and interact with the checkboxes that appear in markdown action items
+- [ ] the node delimiter ``:`` would have an escape sequence
 
 - [ ] ``Get-MarkdownTable``
   
@@ -83,6 +77,16 @@
           - every: week
           - type: routine
         ```
+
+## resolved
+
+- [x] ``MySchedule`` functions had parameter inference
+  - [x] ``Get-MySchedule``
+  - [x] ``Find-MyTree``
+
+- [x] an action item could tell me in schedule view whether or not it has an unfinished todo-list
+
+- [x] I could identify and interact with the checkboxes that appear in markdown action items
 
 - [x] I could schedule an action item for the same time every monday, friday, and saturday
   
