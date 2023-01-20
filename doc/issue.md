@@ -1,5 +1,20 @@
 # issue
 
+- [x] 2023_01_20_144402
+
+  - what
+    - File ``/res/default.json`` should be named ``setting.json``.
+
+- [ ] 2023_01_20_144308
+
+  - what
+    - ``MySchedule.ps1``: All defaults and constants should be recorded in ``/res/default.json``.
+
+- [ ] 2023_01_20_144131
+
+  - what
+    - ``Get-MySchedule``: ``Extension`` parameter is never used due to all work files having the markdown ``*.md`` extension.
+
 - [ ] 2023_01_11_173519
   
   - howto

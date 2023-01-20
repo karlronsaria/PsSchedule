@@ -1,35 +1,102 @@
 # # todo
 # - [ ] test
 function Find-MyTree {
+    [CmdletBinding(DefaultParameterSetName = "Named")]
     Param(
+        [Parameter(ParameterSetName = 'Named')]
         [ArgumentCompleter({
-            $default =
-                cat $PsScriptRoot\..\res\default.json `
+            $settings =
+                cat "$PsScriptRoot\..\res\setting.json" `
                 | ConvertFrom-Json
-            $path = $default.SearchDirectory
+            $path = $settings.SearchDirectory
             return (dir $path -Directory).Name
         })]
         [String]
         $Subdirectory,
 
+        [Parameter(ParameterSetName = 'Named')]
         [String[]]
         $Tag,
 
+        [Parameter(ParameterSetName = 'Named')]
         [ValidateSet('Print', 'Tree', 'Cat', 'Open')]
         [String]
-        $Mode = 'Print',
+        $Mode,
 
+        [Parameter(ParameterSetName = 'Named')]
         [String]
-        $Directory = $( `
-            (cat $PsScriptRoot\..\res\default.json `
-                | ConvertFrom-Json).SearchDirectory `
-        ),
+        $Directory,
 
+        [Parameter(ParameterSetName = 'Named')]
         [Int]
-        $DepthLimit = -1
+        $DepthLimit,
+
+        [Parameter(
+            ParameterSetName = 'Inferred',
+            Position = 0
+        )]
+        [String[]]
+        $Arguments
     )
 
-    $settings = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
+    $settings =
+        cat "$PsScriptRoot\..\res\setting.json" `
+        | ConvertFrom-Json
+
+    if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
+        $path = $settings.SearchDirectory
+        $subdirectories = (dir $path -Directory).Name
+        $validModes = @('Print', 'Tree', 'Cat', 'Open')
+
+        foreach ($arg in $Arguments) {
+            if (-not $DepthLimit `
+                -and ($arg -is [Int] `
+                -or $arg -eq '^-?\d+$'))
+            {
+                $DepthLimit = [Int]$arg
+            }
+            elseif (-not $Mode `
+                -and $arg -in $validModes)
+            {
+                $Mode = $arg
+            }
+            elseif (-not $Subdirectory `
+                -and $arg -in $subdirectories)
+            {
+                $Subdirectory = $arg
+            }
+            elseif (-not $Tag) {
+                $Tag = $arg
+            }
+        }
+    }
+
+    if (-not $Mode) {
+        $Mode = 'Print'
+    }
+
+    if (-not $Directory) {
+        $Directory = $settings.SearchDirectory
+    }
+
+    if (-not $DepthLimit) {
+        $DepthLimit = -1
+    }
+
+    if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
+        $cmd = "Get-MySchedule"
+        $cmd += " -Subdirectory '$Subdirectory'"
+        $cmd += " -Mode '$Mode'"
+        $cmd += " -Tag '$Tag'"
+
+        if ($DepthLimit -gt -1) {
+            $cmd += " -DepthLimit $DepthLimit"
+        }
+
+        Write-Output $cmd
+        Write-Output ""
+    }
+
     $RotateProperties = $settings.RotateSubtreeOnProperties
     $IgnoreSubdirectory = $settings.IgnoreSubdirectory
     $path = Join-Path (Join-Path $Directory $Subdirectory) '*.md'
@@ -83,7 +150,7 @@ function Find-MyTree {
 
             'Open' {
                 $settings =
-                    cat "$PsScriptRoot\..\res\default.json" `
+                    cat "$PsScriptRoot\..\res\setting.json" `
                         | ConvertFrom-Json
 
                 $OpenCommand = $settings.OpenCommand
@@ -157,24 +224,29 @@ function Find-MyTree {
 # # todo
 # - [ ] test
 function Get-MySchedule {
+    [CmdletBinding(DefaultParameterSetName = "Named")]
     Param(
+        [Parameter(ParameterSetName = 'Named')]
         [ArgumentCompleter({
-            $default =
-                cat $PsScriptRoot\..\res\default.json `
+            $settings =
+                cat "$PsScriptRoot\..\res\setting.json" `
                 | ConvertFrom-Json
-            $path = $default.ScheduleDirectory
+            $path = $settings.ScheduleDirectory
             return (dir $path -Directory).Name
         })]
         [String]
         $Subdirectory,
 
+        [Parameter(ParameterSetName = 'Named')]
         [ValidateSet('Schedule', 'Open', 'Cat', 'Tree')]
         [String]
-        $Mode = 'Schedule',
+        $Mode,
 
+        [Parameter(ParameterSetName = 'Named')]
         [String[]]
         $Pattern,
 
+        [Parameter(ParameterSetName = 'Named')]
         [Alias('Date')]
         [ArgumentCompleter({
             $date = Get-Date
@@ -185,27 +257,89 @@ function Get-MySchedule {
         [String]
         $StartDate,
 
+        [Parameter(ParameterSetName = 'Named')]
         [String]
-        $Directory = $( `
-            (cat $PsScriptRoot\..\res\default.json `
-                | ConvertFrom-Json).ScheduleDirectory `
-        ),
+        $Directory,
 
+        [Parameter(ParameterSetName = 'Named')]
         [String]
-        $Extension = $( `
-            (cat $PsScriptRoot\..\res\default.json `
-                | ConvertFrom-Json).ScheduleExtension `
-        ),
+        $Extension,
 
         [Switch]
         $NoConfirm,
 
-        [Switch]
-        $Verbose
+        [Parameter(
+            ParameterSetName = 'Inferred',
+            Position = 0
+        )]
+        [String[]]
+        $Arguments
 
         # todo
         # - [ ] WhatIf
     )
+
+    $settings =
+        cat "$PsScriptRoot\..\res\setting.json" `
+        | ConvertFrom-Json
+
+    if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
+        $path = $settings.ScheduleDirectory
+        $subdirectories = (dir $path -Directory).Name
+        $validModes = @('Schedule', 'Open', 'Cat', 'Tree')
+
+        foreach ($arg in $Arguments) {
+            if (-not $StartDate `
+                -and $arg -match "^\d{4}(_\d{2}){2}(_\d+)?$")
+            {
+                $StartDate = $arg
+            }
+            elseif (-not $Mode `
+                -and $arg -in $validModes)
+            {
+                $Mode = $arg
+            }
+            elseif (-not $Subdirectory `
+                -and $arg -in $subdirectories)
+            {
+                $Subdirectory = $arg
+            }
+            elseif (-not $Extension `
+                -and $arg -match '\.\w(\w|\d)*')
+            {
+                $Extension = $arg
+            }
+            elseif (-not $Pattern) {
+                $Pattern = $arg
+            }
+        }
+    }
+
+    if (-not $Mode) {
+        $Mode = 'Schedule'
+    }
+
+    if (-not $Directory) {
+        $Directory = $settings.ScheduleDirectory
+    }
+
+    if (-not $Extension) {
+        $Extension = $settings.ScheduleExtension
+    }
+
+    if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
+        $cmd = "Get-MySchedule"
+        $cmd += " -Subdirectory '$Subdirectory'"
+        $cmd += " -Mode '$Mode'"
+        $cmd += " -Extension '$Extension'"
+
+        if ($Pattern) {
+            $cmd += " -Pattern '$Pattern'"
+        }
+
+        Write-Output $cmd
+        Write-Output ""
+    }
 
     function Get-NewDirectoryPath {
         Param(
@@ -257,8 +391,9 @@ function Get-MySchedule {
             $DefaultsFileName
         )
 
-        $IgnoreSubdirectory = (cat "$PsScriptRoot\..\res\default.json" `
-            | ConvertFrom-Json).IgnoreSubdirectory
+        $IgnoreSubdirectory =
+            (cat "$PsScriptRoot\..\res\setting.json" `
+                | ConvertFrom-Json).IgnoreSubdirectory
 
         $schedule =
             Get-ChildItem `
@@ -296,7 +431,9 @@ function Get-MySchedule {
 
     . "$PsScriptRoot\ScheduleObject.ps1"
 
-    $settings = cat $PsScriptRoot\..\res\default.json | ConvertFrom-Json
+    $settings = cat "$PsScriptRoot\..\res\setting.json" `
+        | ConvertFrom-Json
+
     $DefaultsFileName = $settings.ScheduleDefaultsFile
     $OpenCommand = $settings.OpenCommand
     $RotateProperties = $settings.RotateSubtreeOnProperties

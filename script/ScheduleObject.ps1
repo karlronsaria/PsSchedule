@@ -265,8 +265,14 @@ function Get-Schedule {
 
                 $mdFiles = Join-Path $DirectoryPath "*.md"
 
+                $setting =
+                    cat "$PsScriptRoot\..\res\setting.json" `
+                    | ConvertFrom-Json
+
                 $defaultsPath =
-                    Join-Path $DirectoryPath 'default.json' `
+                    Join-Path `
+                        $DirectoryPath `
+                        $setting.ScheduleDefaultsFile
 
                 $defaults = if ((Test-Path $defaultsPath)) {
                     cat $defaultsPath | ConvertFrom-Json
@@ -294,7 +300,8 @@ function Get-Schedule {
                         -Path $jsonFiles `
                         -Recurse:$Recurse `
                     | where {
-                        'default.json' -ne $_.Name.ToLower()
+                        $setting.ScheduleDefaultsFile `
+                            -ne $_.Name.ToLower()
                     } | foreach {
                         cat $_ | ConvertFrom-Json
                     }

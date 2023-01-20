@@ -1,6 +1,10 @@
 # I wish
 
-- [ ] ``Get-MySchedule`` had parameter inference
+- [ ] ``Get-MarkdownTable`` could extricate style information, such as *italic* _text_ or **bold** __text__
+
+- [x] ``Get-MySchedule`` had parameter inference
+  - [x] ``Get-MySchedule``
+  - [x] ``Find-MyTree``
 
 - [ ] the node delimiter ':' would have an escape sequence
 
