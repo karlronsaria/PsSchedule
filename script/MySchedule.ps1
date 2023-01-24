@@ -562,8 +562,10 @@ function Get-MySchedule {
 
     switch ($Mode) {
         'Schedule' {
+            $hasVerbose = $PsBoundParameters.ContainsKey('Verbose')
+
             return $schedule | Write-Schedule `
-                -Verbose:$Verbose
+                -Verbose:$hasVerbose
         }
 
         'Tree' {

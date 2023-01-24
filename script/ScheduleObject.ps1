@@ -160,7 +160,9 @@ function Write-Schedule {
             -PropertyName 'complete' `
             -Parent $ActionItem.what
 
-        if ($Verbose -and $null -ne $subtree) {
+        $hasVerbose = $PsBoundParameters.ContainsKey('Verbose')
+
+        if ($hasVerbose -and $null -ne $subtree) {
             Write-OutputColored
 
             $subtree | foreach {
