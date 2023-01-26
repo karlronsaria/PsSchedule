@@ -160,7 +160,21 @@ function Write-Schedule {
             -PropertyName 'complete' `
             -Parent $ActionItem.what
 
-        $hasVerbose = $PsBoundParameters.ContainsKey('Verbose')
+        # # OLD (karlr (2023_01_26_140650)
+        # # ------------------------------
+        # # link
+        # # - url: https://stackoverflow.com/questions/24446680/is-it-possible-to-check-if-verbose-argument-was-given-in-powershell
+        # # - retrieved: 2023_01_26
+        #
+        # $hasVerbose =
+        #     $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
+
+        # link
+        # - url: https://www.briantist.com/how-to/test-for-verbose-in-powershell/
+        # - retrieved: 2023_01_26
+        $hasVerbose =
+            $VerbosePreference `
+            -ne [System.Management.Automation.ActionPreference]::SilentlyContinue
 
         if ($hasVerbose -and $null -ne $subtree) {
             Write-OutputColored
@@ -1396,7 +1410,9 @@ function Get-Schedule_FromTable {
             $complete = Add-NoteProperty `
                 -InputObject $InputObject `
                 -PropertyName 'complete' `
-                -Default $false
+                -Default ([PsCustomObject]@{
+                    complete = $false
+                })
 
             $date = $date.AddDays(-1)
         }
