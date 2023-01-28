@@ -1,5 +1,7 @@
 # I wish
 
+- [ ] recurring schedule items had ``- startDate`` (and possibly ``- endDate``)
+
 - [ ] ``MySchedule`` functions had ``-WhatIf`` flag
 
 - [ ] ``Get-MarkdownTable`` could extricate style information, such as *italic* _text_ or **bold** __text__
