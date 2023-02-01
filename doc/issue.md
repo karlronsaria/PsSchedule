@@ -1,5 +1,26 @@
 # issue
 
+- [ ] 2023_02_01_121902
+  - howto
+    ```powershell
+    Get-MySchedule
+    ```
+  - actual
+    ```
+    Wednesday (2023_02_01)
+    ----------------------
+    00:00  [ ] todo: reappoint: meeting with Roi
+    10:00      daily todo
+    11:00      event: Sunday service
+    ```
+  - expected
+    ```
+    Wednesday (2023_02_01)
+    ----------------------
+    00:00  [ ] todo: reappoint: meeting with Roi
+    10:00      daily todo
+    ```
+
 - [ ] 2023_01_20_144131
 
   - what
