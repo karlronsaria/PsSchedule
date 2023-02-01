@@ -1,6 +1,8 @@
 # I wish
 
-- [ ] ``Get-MySchedule`` ``-Week``, ``-Month``
+- [ ] action trees had a low-emphasis branch (e.g. ``log``) that can be muted for ``Find-MyTree``
+
+- [ ] ``Get-MySchedule`` had ``-Week``, ``-Month``
 
 - [ ] recurring schedule items had ``- startDate`` (and possibly ``- endDate``)
 
