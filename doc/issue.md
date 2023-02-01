@@ -1,5 +1,43 @@
 # issue
 
+- [ ] 2023_02_01_152740
+  - howto
+    ```powershell
+    Get-MySchedule EvagelismTraining
+    ```
+  - actual
+    ```
+    Get-Content : Access to the path 'C:\Users\karlr\.android' is denied.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:410 char:15
+    +             | Get-Content `
+    +               ~~~~~~~~~~~
+        + CategoryInfo          : PermissionDenied: (C:\Users\karlr\.android:String) [Get-Content], UnauthorizedAccessException
+        + FullyQualifiedErrorId : GetContentReaderUnauthorizedAccessError,Microsoft.PowerShell.Commands.GetContentCommand
+
+    Get-Content : Access to the path 'C:\Users\karlr\.dbus-keyrings' is denied.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:410 char:15
+    +             | Get-Content `
+    +               ~~~~~~~~~~~
+        + CategoryInfo          : PermissionDenied: (C:\Users\karlr\.dbus-keyrings:String) [Get-Content], UnauthorizedAccessException
+        + FullyQualifiedErrorId : GetContentReaderUnauthorizedAccessError,Microsoft.PowerShell.Commands.GetContentCommand
+
+    Get-Content : Access to the path 'C:\Users\karlr\.dotnet' is denied.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:410 char:15
+    +             | Get-Content `
+    +               ~~~~~~~~~~~
+        + CategoryInfo          : PermissionDenied: (C:\Users\karlr\.dotnet:String) [Get-Content], UnauthorizedAccessException
+        + FullyQualifiedErrorId : GetContentReaderUnauthorizedAccessError,Microsoft.PowerShell.Commands.GetContentCommand
+
+    Get-Content : Access to the path 'C:\Users\karlr\.nuget' is denied.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:410 char:15
+    +             | Get-Content `
+    +               ~~~~~~~~~~~
+        + CategoryInfo          : PermissionDenied: (C:\Users\karlr\.nuget:String) [Get-Content], UnauthorizedAccessException
+        + FullyQualifiedErrorId : GetContentReaderUnauthorizedAccessError,Microsoft.PowerShell.Commands.GetContentCommand
+
+    ...
+    ```
+
 - [ ] 2023_02_01_121902
   - howto
     ```powershell
