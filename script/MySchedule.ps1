@@ -87,7 +87,7 @@ function Find-MyTree {
     }
 
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
-        $cmd = "Get-MySchedule"
+        $cmd = "Find-MyTree"
         $cmd += " -Subdirectory '$Subdirectory'"
         $cmd += " -Mode '$Mode'"
         $cmd += " -Tag '$Tag'"
