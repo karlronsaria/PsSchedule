@@ -1,10 +1,114 @@
 # I wish
 
-- [ ] action trees had a low-emphasis branch (e.g. ``log``) that can be muted for ``Find-MyTree``
+- [ ] 
+  - howto
+    - in powershell
+      ```powershell
+      Find-MyTree -Subdirectory request -Tag church
+      ```
+    - in markdown file
+      ```
+      # request
+      - where: CBC Bible Study Men's
+      - tag: church, CBC, men
+      - log
+      - what
+        - AJ
+          - a job
+          - future
+        - Joey
+          - repentance
+        - Tom
+          - family member
+            - going through IVF
+              - for wisdom
+        - Ivan
+          - fmily member
+            - hates her parents
+              - experienced child abuse
+              - doesn't want to forgive them
+        - David
+          - sleep for family
+      ```
+  - expected
+    ```
+    - AJ
+      - where
+        - CBC Bible Study Men's
+      - tag
+        - church, CBC, men
+      - log
+      - what
+        - a job
+        - future
+    - Joey
+      - where
+        - CBC Bible Study Men's
+      - tag
+        - church, CBC, men
+      - log
+      - what
+        - repentance
+    - Tom
+      - where
+        - CBC Bible Study Men's
+      - tag
+        - church, CBC, men
+      - log
+      - what
+        - family member
+          - going through IVF
+            - for wisdom
+    - Ivan
+      - where
+        - CBC Bible Study Men's
+      - tag
+        - church, CBC, men
+      - log
+      - what
+        - fmily member
+          - hates her parents
+            - experienced child abuse
+            - doesn't want to forgive them
+    - David
+      - where
+        - CBC Bible Study Men's
+      - tag
+        - church, CBC, men
+      - log
+      - what
+        - sleep for family
+    ```
+  - expected
+    ```
+    - where
+      - CBC Bible Study Men's
+    - tag
+      - church, CBC, men
+    - what
+      - AJ
+        - a job
+        - future
+      - Joey
+        - repentance
+      - Tom
+        - family member
+          - going through IVF
+            - for wisdom
+      - Ivan
+        - fmily member
+          - hates her parents
+            - experienced child abuse
+            - doesn't want to forgive them
+      - David
+        - sleep for family
+    ```
 
-- [ ] ``Get-MySchedule`` had ``-Week``, ``-Month``
+- [ ] action trees had a low-emphasis branch (e.g. ``log``) that could be muted for ``Find-MyTree``
 
-- [ ] recurring schedule items had ``- startDate`` (and possibly ``- endDate``)
+- [ ] ``Get-MySchedule`` had ``-Week`` and ``-Month``
+
+- [ ] recurring schedule items had ``startDate`` (and possibly ``endDate``)
 
 - [ ] ``MySchedule`` functions had ``-WhatIf`` flag
 
