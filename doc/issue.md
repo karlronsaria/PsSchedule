@@ -1,6 +1,6 @@
 # issue
 
-- [ ] 2023_02_01_152740
+- [x] 2023_02_01_152740
   - howto
     ```powershell
     Get-MySchedule EvagelismTraining
@@ -38,7 +38,7 @@
     ...
     ```
 
-- [ ] 2023_02_01_121902
+- [x] 2023_02_01_121902
   - howto
     ```powershell
     Get-MySchedule
@@ -64,7 +64,7 @@
   - what
     - ``Get-MySchedule``: ``Extension`` parameter is never used due to all work files having the markdown ``*.md`` extension.
 
-- [ ] 2023_01_11_173519
+- [x] 2023_01_11_173519
   
   - howto
     - in powershell
@@ -98,7 +98,7 @@
     23:00      recite Philippians
     ```
 
-- [ ] 2023_01_11_170506
+- [x] 2023_01_11_170506
   
   - actual
     - ``todo.md`` in neovim
@@ -117,6 +117,22 @@
       ```
     - ``todo.md`` in MarkText
       ![Capture_2023_01_11_163152](./res/Screenshot_2023-01-11_163152.png)
+  - workaround
+    - ``todo.md`` in neovim
+      
+      ```
+      - [ ] Domino's Pizza jacket
+        - link
+          - retrieved: 2023_01_07
+          - list
+
+            - 
+              - what: tracking
+              - url: https://www.htgdominos.com/myaccount.asp
+            - 
+              - what: invoice
+              - url: \doc\My\invoice_-_2023_01_07_HtgDominos.pdf
+      ```
 
 - [ ] 2023_01_10_230005
   
