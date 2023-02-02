@@ -39,6 +39,28 @@ function Find-MyTree {
         $Arguments
     )
 
+    function Find-Tag {
+        Param(
+            [String[]]
+            $Haystack,
+
+            [String[]]
+            $Needle
+        )
+
+        $found = $false
+
+        foreach ($subneedle in $Needle) {
+            $found = $found -or $subneedle -in $Haystack
+
+            if ($found) {
+                break
+            }
+        }
+
+        $found
+    }
+
     $setting =
         cat "$PsScriptRoot\..\res\setting.json" `
         | ConvertFrom-Json
@@ -86,7 +108,7 @@ function Find-MyTree {
         $DepthLimit = $SENTINEL_DEPTH_LIMIT
     }
 
-    if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
+    $Command = if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $cmd = "Find-MyTree"
         $cmd += " -Subdirectory '$Subdirectory'"
         $cmd += " -Mode '$Mode'"
@@ -96,8 +118,9 @@ function Find-MyTree {
             $cmd += " -DepthLimit $DepthLimit"
         }
 
-        Write-Output $cmd
-        Write-Output ""
+        $cmd
+    } else {
+        ""
     }
 
     $RotateProperties = $setting.RotateSubtreeOnProperties
@@ -112,6 +135,11 @@ function Find-MyTree {
         }
 
     if ($Mode -in @('Cat', 'Open')) {
+        if ($Command) {
+            Write-Output $Command
+            Write-Output ""
+        }
+
         if ($null -eq $Tag) {
             switch ($Mode) {
                 'Cat' {
@@ -171,29 +199,8 @@ function Find-MyTree {
     $tree = $dir `
         | Get-Content `
         | Get-MarkdownTable `
-            -DepthLimit $DepthLimit
-
-    function Find-Tag {
-        Param(
-            [String[]]
-            $Haystack,
-
-            [String[]]
-            $Needle
-        )
-
-        $found = $false
-
-        foreach ($subneedle in $Needle) {
-            $found = $found -or $subneedle -in $Haystack
-
-            if ($found) {
-                break
-            }
-        }
-
-        $found
-    }
+            -DepthLimit $DepthLimit `
+            -MuteProperty:$setting.MuteProperties
 
     if ($null -ne $Tag -and $Tag.Count -gt 0) {
         $tree = $tree `
@@ -209,7 +216,7 @@ function Find-MyTree {
     }
 
     $tree = $tree | Get-SubtreeRotation `
-        -RotateProperty $RotateProperties `
+        -RotateProperty $RotateProperties
 
     $tree = switch ($Mode) {
         'Tree' {
@@ -218,6 +225,13 @@ function Find-MyTree {
 
         'Print' {
             $tree | Write-MarkdownTree
+        }
+    }
+
+    if ($Command) {
+        return [PsCustomObject]@{
+            Command = $Command
+            Tree = $tree
         }
     }
 

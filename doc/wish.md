@@ -1,6 +1,6 @@
 # I wish
 
-- [ ] 
+- [x] 
   - howto
     - in powershell
       ```powershell
@@ -103,8 +103,12 @@
       - David
         - sleep for family
     ```
+  - solution
+    - 2023_02_02_130327
+      - remove values from ``res/setting.json#RotateOnProperties``
+      - continue to use module until something doesn't look right
 
-- [ ] action trees had a low-emphasis branch (e.g. ``log``) that could be muted for ``Find-MyTree``
+- [x] action trees had a low-emphasis branch (e.g. ``log``) that could be muted for ``Find-MyTree``
 
 - [ ] ``Get-MySchedule`` had ``-Week`` and ``-Month``
 

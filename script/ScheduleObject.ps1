@@ -336,7 +336,8 @@ function Get-Schedule {
                 )
 
                 $what = $content `
-                    | Get-MarkdownTable
+                    | Get-MarkdownTable `
+                        -MuteProperty:$setting.MuteProperties
 
                 return $what | foreach {
                     switch ($_) {
@@ -672,7 +673,7 @@ function Get-SubtreeRotation {
 
     End {
         if ([String]::IsNullOrEmpty($RotateProperty)) {
-            return $InputObject
+            return
         }
 
         return $tree
@@ -690,7 +691,10 @@ function Get-MarkdownTable {
         $Line,
 
         [Int]
-        $DepthLimit = -1
+        $DepthLimit = -1,
+
+        [String[]]
+        $MuteProperty
     )
 
     Begin {
@@ -719,6 +723,7 @@ function Get-MarkdownTable {
         $table = $table `
             | Get-MarkdownTree_FromTable `
                 -HighestLevel $what.HighestLevel `
+                -MuteProperty:$MuteProperty `
             | where { -not (Test-EmptyObject $_) }
 
         return $table
@@ -852,7 +857,10 @@ function Get-MarkdownTree_FromTable {
         $TableRow,
 
         [Int]
-        $HighestLevel
+        $HighestLevel,
+
+        [String[]]
+        $MuteProperty
     )
 
     Begin {
@@ -949,7 +957,7 @@ function Get-MarkdownTree_FromTable {
         }
 
         if ([String]::IsNullOrWhiteSpace($content)) {
-            $content = "list_subitem"
+            $content = 'list_subitem'
 
             # DRAWINGBOARD
             # ------------
@@ -961,10 +969,12 @@ function Get-MarkdownTree_FromTable {
             # return
         }
 
-        Add-Property `
-            -InputObject $parent `
-            -Name $content `
-            -Value $stack[$level]
+        if ($content -notin $MuteProperty) {
+            Add-Property `
+                -InputObject $parent `
+                -Name $content `
+                -Value $stack[$level]
+        }
 
         # $keys[$level] = $content
     }
