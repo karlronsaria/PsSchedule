@@ -490,6 +490,13 @@ function Get-MySchedule {
             | sort -Property Path -Unique
         }
 
+        if ($null -eq $files -and $null -eq $jsonFiles) {
+            # Make the output look pretty
+            $dir = Join-Path $Directory $Subdirectory | Get-Item
+            Write-Output "No content in $($dir.FullName) could be found matching the pattern '$Pattern'"
+            return
+        }
+
         if ($Mode -eq 'Open') {
             foreach ($sls in (@($files) + @($jsonFiles))) {
                 Invoke-Expression `
