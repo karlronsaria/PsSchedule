@@ -1003,33 +1003,49 @@ function Get-NoteProperty {
         return $properties
     }
 
-    $result = if ($null -eq $properties -or @($properties).Count -eq 0) {
-        [PsCustomObject]@{
-            Success = $false
-            Name = $PropertyName
-            Value = $null
+    try {
+        $result = if ($null -eq $properties -or @($properties).Count -eq 0) {
+            [PsCustomObject]@{
+                Success = $false
+                Name = $PropertyName
+                Value = $null
+            }
+        } elseif ($PropertyName -in $properties.Name) {
+            [PsCustomObject]@{
+                Success = $true
+                Name = $PropertyName
+                Value = $InputObject.$PropertyName
+            }
+        } elseif ($null -ne $Default) {
+            [PsCustomObject]@{
+                Success = $false
+                Name = $PropertyName
+                Value = $Default.$PropertyName
+            }
+        } else {
+            [PsCustomObject]@{
+                Success = $false
+                Name = $PropertyName
+                Value = $null
+            }
         }
-    } elseif ($PropertyName -in $properties.Name) {
-        [PsCustomObject]@{
-            Success = $true
-            Name = $PropertyName
-            Value = $InputObject.$PropertyName
-        }
-    } elseif ($null -ne $Default) {
-        [PsCustomObject]@{
-            Success = $false
-            Name = $PropertyName
-            Value = $Default.$PropertyName
-        }
-    } else {
-        [PsCustomObject]@{
+
+        return $result
+    }
+    catch
+    {
+        return [PsCustomObject]@{
             Success = $false
             Name = $PropertyName
             Value = $null
         }
     }
 
-    return $result
+    return [PsCustomObject]@{
+        Success = $false
+        Name = $PropertyName
+        Value = $null
+    }
 }
 
 function Get-Schedule_FromTable {
@@ -1236,7 +1252,32 @@ function Get-Schedule_FromTable {
             return $list
         }
 
-        $getList = $InputObject | Get-NoteProperty -PropertyName 'list'
+        $recurringStart = $InputObject `
+            | Get-NoteProperty -PropertyName 'startdate'
+
+        if ($recurringStart.Success) {
+            $startWhen = Get-DateParseVaryingLength `
+                -DateString $recurringStart.Value
+
+            if ($startWhen.DateTime -gt (Get-Date)) {
+                return
+            }
+        }
+
+        $recurringEnd = $InputObject `
+            | Get-NoteProperty -PropertyName 'enddate'
+
+        if ($recurringEnd.Success) {
+            $endWhen = Get-DateParseVaryingLength `
+                -DateString $recurringEnd.Value
+
+            if ($endWhen.DateTime -lt (Get-Date)) {
+                return
+            }
+        }
+
+        $getList = $InputObject `
+            | Get-NoteProperty -PropertyName 'list'
 
         if ($getList.Success) {
             foreach ($subitem in $getList.Value.list_subitem) {

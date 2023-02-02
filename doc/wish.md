@@ -112,7 +112,7 @@
 
 - [ ] ``Get-MySchedule`` had ``-Week`` and ``-Month``
 
-- [ ] recurring schedule items had ``startDate`` (and possibly ``endDate``)
+- [x] recurring schedule items had ``startDate`` (and possibly ``endDate``)
 
 - [ ] ``MySchedule`` functions had ``-WhatIf`` flag
 
