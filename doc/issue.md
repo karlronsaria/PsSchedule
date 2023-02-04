@@ -1,5 +1,43 @@
 # issue
 
+- [ ] 2023_02_04_124905
+  - howto
+    - in sched.md
+      ```
+      # sched
+      - what: Amazon Delivery
+      - where
+        - 25725 Jeronimo Rd, Mission Viejo, CA, 92691, United States
+      - when
+        - [ ] 2023_01_20
+        - [ ] 2023_01_30
+      ```
+    - in powershell
+      ```powershell
+      Get-MySchedule
+      ```
+    - actual
+      ```
+      Saturday (2023_02_04)
+      ---------------------
+      00:00  [ ] todo: reappoint: meeting with Roi
+      10:00      daily todo
+      10:00      event: evangelism training
+      13:00      event: phone interview
+
+      Sunday (2023_02_05)
+      -------------------
+      11:00      event: Sunday service
+
+      Monday (2023_02_06)
+      -------------------
+      16:00  [!] general offering
+
+      Friday (2023_02_10)
+      -------------------
+      06:30      event: bible study men's
+      ```
+
 - [x] 2023_02_01_152740
   - howto
     ```powershell
