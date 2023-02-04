@@ -1,5 +1,19 @@
 # issue
 
+- [ ] 2023_02_04_140555
+  - howto
+    ```powershell
+    Get-MySchedule -Pattern recite
+    ```
+  - actual
+    ```
+    No content in C:\note\sched\notebook\ could be found matching the pattern 'recite'
+    ```
+  - expected
+    ```
+    No content in C:\note\sched\notebook\general\ could be found matching the pattern 'recite'
+    ```
+
 - [ ] 2023_02_04_124905
   - howto
     - in sched.md
