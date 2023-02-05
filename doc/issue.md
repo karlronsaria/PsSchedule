@@ -1,6 +1,6 @@
 # issue
 
-- [ ] 2023_02_04_140555
+- [x] 2023_02_04_140555
   - howto
     ```powershell
     Get-MySchedule -Pattern recite

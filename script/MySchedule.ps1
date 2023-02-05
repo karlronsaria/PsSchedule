@@ -506,7 +506,7 @@ function Get-MySchedule {
 
         if ($null -eq $files -and $null -eq $jsonFiles) {
             # Make the output look pretty
-            $dir = Join-Path $Directory $Subdirectory | Get-Item
+            $dir = $path | Get-Item
             Write-Output "No content in $($dir.FullName) could be found matching the pattern '$Pattern'"
             return
         }
