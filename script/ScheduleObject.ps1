@@ -1307,6 +1307,16 @@ function Get-Schedule_FromTable {
             foreach ($property in (Get-NoteProperty $schedWhen)) {
                 $obj = $InputObject.PsObject.Copy()
                 $obj.when = "$($property.Name)"
+                $whenValue = $property.Value
+
+                if ($whenValue -is [PsCustomObject]) {
+                    foreach ($subproperty in (Get-NoteProperty $whenValue)) {
+                        $obj | Add-Member `
+                            -MemberType 'NoteProperty' `
+                            -Name $subproperty.Name `
+                            -Value $subproperty.Value
+                    }
+                }
 
                 $what = Get-Schedule_FromTable `
                     -InputObject $obj `
@@ -1325,19 +1335,23 @@ function Get-Schedule_FromTable {
             -Default $Default).ToLower()
 
         if ('todo' -eq $schedType) {
-            $capture =
-                [Regex]::Match($schedWhen, '\s*\[ \]\s+(?<datetime>.*)$')
-
-            if (-not $capture.Success) {
+            if ($InputObject.complete) {
                 return $list
             }
 
+            $capture = [Regex]::Match( `
+                $schedWhen, `
+                '(?<checkbox>\s*\[ \]\s+)?(?<datetime>.*)$' `
+            )
+
             $schedWhen = $capture.Groups['datetime'].Value
 
-            $InputObject | Add-Member `
-                -MemberType NoteProperty `
-                -Name complete `
-                -Value $false
+            if ($capture.Groups['checkbox'].Success) {
+                $InputObject | Add-Member `
+                    -MemberType NoteProperty `
+                    -Name complete `
+                    -Value $false
+            }
         }
 
         $schedEvery = (Add-NoteProperty `

@@ -14,7 +14,7 @@
     No content in C:\note\sched\notebook\general\ could be found matching the pattern 'recite'
     ```
 
-- [ ] 2023_02_04_124905
+- [x] 2023_02_04_124905
   - howto
     - in sched.md
       ```
