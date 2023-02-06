@@ -1,5 +1,37 @@
 # issue
 
+- [ ] 2023_02_06_092921
+  - howto
+    ```powershell
+    Get-MySchedule request, partners, tree
+    ```
+  - actual
+    ```
+    Get-MySchedule -Subdirectory 'request' -Mode 'tree' -Extension '*.md' -Pattern 'partners'
+
+    - when
+      - 02/06/2023 11:00:00
+    - what
+      - counsel
+    - type
+      - todayonly
+    - when
+      - 02/06/2023 11:00:00
+    - what
+      - evangelism
+    - type
+      - todayonly
+    - when
+      - 02/06/2023 11:00:00
+    - what
+      - Partners
+    - type
+      - todayonly
+    ```
+    - output is an array of strings
+  - expected
+    - output is a PsCustomObject
+
 - [x] 2023_02_04_140555
   - howto
     ```powershell
