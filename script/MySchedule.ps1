@@ -19,7 +19,7 @@ function Find-MyTree {
         $Tag,
 
         [Parameter(ParameterSetName = 'Named')]
-        [ValidateSet('Print', 'Tree', 'Cat', 'Open')]
+        [ValidateSet('Print', 'Tree', 'Cat', 'Edit', 'Start')]
         [String]
         $Mode,
 
@@ -71,7 +71,7 @@ function Find-MyTree {
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $path = $setting.SearchDirectory
         $subdirectories = (dir $path -Directory).Name
-        $validModes = @('Print', 'Tree', 'Cat', 'Open')
+        $validModes = @('Print', 'Tree', 'Cat', 'Edit')
 
         foreach ($arg in $Arguments) {
             if (-not $DepthLimit `
@@ -134,7 +134,7 @@ function Find-MyTree {
             $_.FullName -notlike "*$IgnoreSubdirectory*"
         }
 
-    if ($Mode -in @('Cat', 'Open')) {
+    if ($Mode -in @('Cat', 'Edit')) {
         if ($Command) {
             Write-Output $Command
             Write-Output ""
@@ -146,7 +146,7 @@ function Find-MyTree {
                     return $dir | cat
                 }
 
-                'Open' {
+                default {
                     return "Cannot run command indiscriminately on all files"
                 }
             }
@@ -179,19 +179,26 @@ function Find-MyTree {
                 return dir $sls.Path | cat
             }
 
-            'Open' {
+            'Edit' {
                 $setting =
                     cat "$PsScriptRoot\..\res\setting.json" `
                         | ConvertFrom-Json
 
-                $OpenCommand = $setting.OpenCommand
+                $EditCommand = $setting.EditCommand
 
                 foreach ($item in $sls) {
                     Invoke-Expression `
-                        "$OpenCommand $($item.Path) +$($item.LineNumber)"
+                        "$EditCommand $($item.Path) +$($item.LineNumber)"
                 }
 
                 return $sls
+            }
+
+            'Start' {
+                foreach ($item in $sls) {
+                    Invoke-Expression `
+                        "Start-Process $($item.Path)"
+                }
             }
         }
     }
@@ -255,7 +262,7 @@ function Get-MySchedule {
         $Subdirectory,
 
         [Parameter(ParameterSetName = 'Named')]
-        [ValidateSet('Schedule', 'Open', 'Cat', 'Tree')]
+        [ValidateSet('Schedule', 'Edit', 'Start', 'Cat', 'Tree')]
         [String]
         $Mode,
 
@@ -305,7 +312,7 @@ function Get-MySchedule {
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $path = $setting.ScheduleDirectory
         $subdirectories = (dir $path -Directory).Name
-        $validModes = @('Schedule', 'Open', 'Cat', 'Tree')
+        $validModes = @('Schedule', 'Edit', 'Start', 'Cat', 'Tree')
 
         foreach ($arg in $Arguments) {
             if (-not $StartDate `
@@ -451,14 +458,15 @@ function Get-MySchedule {
     . "$PsScriptRoot\ScheduleObject.ps1"
 
     $DefaultsFileName = $setting.ScheduleDefaultsFile
-    $OpenCommand = $setting.OpenCommand
+    $EditCommand = $setting.EditCommand
     $RotateProperties = $setting.RotateSubtreeOnProperties
     $IgnoreSubdirectory = $setting.IgnoreSubdirectory
     $DefaultSubdirectory = $setting.ScheduleDefaultSubdirectory
 
     $DefaultSubdirectory = switch ($Mode) {
         'Cat' { '' }
-        'Open' { '' }
+        'Edit' { '' }
+        'Start' { '' }
         'Tree' { '' }
         'Schedule' { $DefaultSubdirectory }
     }
@@ -511,10 +519,10 @@ function Get-MySchedule {
             return
         }
 
-        if ($Mode -eq 'Open') {
+        if ($Mode -eq 'Edit') {
             foreach ($sls in (@($files) + @($jsonFiles))) {
                 Invoke-Expression `
-                    "$OpenCommand $($sls.Path) +$($sls.LineNumber)"
+                    "$EditCommand $($sls.Path) +$($sls.LineNumber)"
             }
 
             Write-Output $files
@@ -531,36 +539,51 @@ function Get-MySchedule {
         }
     }
 
-    if ($Mode -eq 'Open') {
-        if ($NoConfirm) {
-            Write-Output "Opening all files in"
-            Write-Output "  $files"
-            Write-Output "  $jsonFiles"
-        }
-        else {
-            Write-Output "This will open all files in"
-            Write-Output "  $files"
-            Write-Output "  $jsonFiles"
-            Write-Output ""
-            $confirm = 'n'
+    $command = ""
+    $nonConfirmMessage = ""
+    $confirmMessage = ""
 
-            do {
-                $confirm = Read-Host "Continue? (y/n)"
-            }
-            while ($confirm -notin @('n', 'y'))
-
-            if ($confirm -eq 'n') {
-                return
-            }
+    switch ($Mode) {
+        'Edit' {
+            $command = $EditCommand
+            $nonConfirmMessage = "Opening to editor"
+            $confirmMessage = "open to editor"
         }
 
-        foreach ($file in (dir (@($files) + @($jsonFiles)))) {
-            Invoke-Expression `
-                "$OpenCommand $file"
+        'Start' {
+            $command = "Start-Process"
+            $nonConfirmMessage = "Starting"
+            $confirmMessage = "start"
         }
-
-        return
     }
+
+    if ($NoConfirm) {
+        Write-Output "$nonConfirmMessage all files in"
+        Write-Output "  $files"
+        Write-Output "  $jsonFiles"
+    }
+    else {
+        Write-Output "This will $confirmMessage all files in"
+        Write-Output "  $files"
+        Write-Output "  $jsonFiles"
+        Write-Output ""
+        $confirm = 'n'
+
+        do {
+            $confirm = Read-Host "Continue? (y/n)"
+        }
+        while ($confirm -notin @('n', 'y'))
+
+        if ($confirm -eq 'n') {
+            return
+        }
+    }
+
+    foreach ($file in (dir (@($files) + @($jsonFiles)))) {
+        Invoke-Expression "$command $file"
+    }
+
+    return
 
     if ($Mode -eq 'Cat') {
         if ($null -ne $files) {
