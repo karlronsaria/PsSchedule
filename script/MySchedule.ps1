@@ -530,6 +530,17 @@ function Get-MySchedule {
             return
         }
 
+        if ($Mode -eq 'Start') {
+            foreach ($sls in (@($files) + @($jsonFiles))) {
+                Invoke-Expression `
+                    "Start-Process $($sls.Path)"
+            }
+
+            Write-Output $files
+            Write-Output $jsonFiles
+            return
+        }
+
         if ($null -ne $files) {
             $files = $files.Path
         }
