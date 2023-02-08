@@ -550,51 +550,53 @@ function Get-MySchedule {
         }
     }
 
-    $command = ""
-    $nonConfirmMessage = ""
-    $confirmMessage = ""
+    if ($Mode -in @('Edit', 'Start')) {
+        $command = ""
+        $nonConfirmMessage = ""
+        $confirmMessage = ""
 
-    switch ($Mode) {
-        'Edit' {
-            $command = $EditCommand
-            $nonConfirmMessage = "Opening to editor"
-            $confirmMessage = "open to editor"
+        switch ($Mode) {
+            'Edit' {
+                $command = $EditCommand
+                $nonConfirmMessage = "Opening to editor"
+                $confirmMessage = "open to editor"
+            }
+
+            'Start' {
+                $command = "Start-Process"
+                $nonConfirmMessage = "Starting"
+                $confirmMessage = "start"
+            }
         }
 
-        'Start' {
-            $command = "Start-Process"
-            $nonConfirmMessage = "Starting"
-            $confirmMessage = "start"
+        if ($NoConfirm) {
+            Write-Output "$nonConfirmMessage all files in"
+            Write-Output "  $files"
+            Write-Output "  $jsonFiles"
         }
-    }
+        else {
+            Write-Output "This will $confirmMessage all files in"
+            Write-Output "  $files"
+            Write-Output "  $jsonFiles"
+            Write-Output ""
+            $confirm = 'n'
 
-    if ($NoConfirm) {
-        Write-Output "$nonConfirmMessage all files in"
-        Write-Output "  $files"
-        Write-Output "  $jsonFiles"
-    }
-    else {
-        Write-Output "This will $confirmMessage all files in"
-        Write-Output "  $files"
-        Write-Output "  $jsonFiles"
-        Write-Output ""
-        $confirm = 'n'
+            do {
+                $confirm = Read-Host "Continue? (y/n)"
+            }
+            while ($confirm -notin @('n', 'y'))
 
-        do {
-            $confirm = Read-Host "Continue? (y/n)"
+            if ($confirm -eq 'n') {
+                return
+            }
         }
-        while ($confirm -notin @('n', 'y'))
 
-        if ($confirm -eq 'n') {
-            return
+        foreach ($file in (dir (@($files) + @($jsonFiles)))) {
+            Invoke-Expression "$command $file"
         }
-    }
 
-    foreach ($file in (dir (@($files) + @($jsonFiles)))) {
-        Invoke-Expression "$command $file"
+        return
     }
-
-    return
 
     if ($Mode -eq 'Cat') {
         if ($null -ne $files) {

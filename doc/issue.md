@@ -1,4 +1,33 @@
 # issue
+- [ ] 2023_02_07_212709
+  - howto
+    - in powershell
+      ```powershell
+      Get-MySchedule request, partners, tree
+      ```
+    - in ``sched.md``
+      ```
+      # sched
+      - who: Code Ninjas Ladera Ranch CA
+      - what
+        - phone interview
+          - where: phone
+          - when: 2023_02_04_1300
+          - type: event
+          - every: none
+        - personal interview
+          - where
+            - address: 25652 Crown Valley Pkwy Suite F-1, Ladera Ranch, CA 92694
+          - when: 2023_02_08_1300
+          - type: event
+          - every: none
+      ```
+  - actual
+    ```
+    Tuesday (2023_02_07)
+    --------------------
+    21:28      @{phone interview=; personal interview=}
+    ```
 
 - [ ] 2023_02_06_092921
   - howto
