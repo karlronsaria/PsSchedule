@@ -110,11 +110,13 @@
 
 - [x] action trees had a low-emphasis branch (e.g. ``log``) that could be muted for ``Find-MyTree``
 
-- [ ] ``Get-MySchedule`` had ``-Week`` and ``-Month``
+- [x] ``Get-MySchedule`` had ``-Week``
 
 - [x] recurring schedule items had ``startDate`` (and possibly ``endDate``)
 
-- [ ] ``MySchedule`` functions had ``-WhatIf`` flag
+- [x] ``MySchedule`` functions had ``-WhatIf`` flag
+  - cancelled
+    - needless, since neither function in ``MySchedule`` makes any file system changes
 
 - [ ] ``Get-MarkdownTable`` could extricate style information, such as *italic* _text_ or **bold** __text__
 
