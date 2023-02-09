@@ -12,6 +12,7 @@ function Write-Schedule {
     Begin {
         $EPOCH_YEAR = 1970
         $LONG_TIME_DAYS_THRESHOLD = 10
+        $ITEM_CONTINUATION_SYMBOL = '---'
 
         $day = $null
         $month = $null
@@ -68,23 +69,40 @@ function Write-Schedule {
                 What = $what
             }
 
-            $str = $displayItem `
-                | Format-Table `
-                    -Property `
-                        When, `
-                        @{
-                            Name = 'Type'
-                            Expression = { $_.Type }
-                            Align = 'Right'
-                        }, `
-                        What `
-                    -HideTableHeaders `
-                | Out-String
+            $displayItems = @($displayItem)
 
-            $str = $str.Trim()
+            if ($ActionItem.PsObject.Properties.Name -contains 'to') {
+                $to = $ActionItem.to
+                $hour = $to.Substring(0, 2)
+                $minute = $to.Substring(2)
 
-            if (-not [String]::IsNullOrWhiteSpace($str)) {
-                Write-OutputColored $str -Foreground $foreground
+                $displayItems +=
+                    @([PsCustomObject]@{
+                        When = "$(Get-Date -Hour $hour -Minute $minute -f HH:mm)"
+                        Type = $icon
+                        What = $ITEM_CONTINUATION_SYMBOL
+                    })
+            }
+
+            foreach ($displayItem in $displayItems) {
+                $str = $displayItem `
+                    | Format-Table `
+                        -Property `
+                            When, `
+                            @{
+                                Name = 'Type'
+                                Expression = { $_.Type }
+                                Align = 'Right'
+                            }, `
+                            What `
+                        -HideTableHeaders `
+                    | Out-String
+
+                $str = $str.Trim()
+
+                if (-not [String]::IsNullOrWhiteSpace($str)) {
+                    Write-OutputColored $str -Foreground $foreground
+                }
             }
         }
 
@@ -1076,14 +1094,18 @@ function Get-Schedule_FromTable {
         $EndDate,
 
         [PsCustomObject]
-        $Default = ([PsCustomObject]@{
-            when = (Get-Date -f HHmm)
-            type = 'todayonly'
-            every = 'none'
-        })
+        $Default
     )
 
     Begin {
+        if ($null -eq $Default) {
+            $Default = ([PsCustomObject]@{
+                when = (Get-Date -f HHmm)
+                type = 'todayonly'
+                every = 'none'
+            })
+        }
+
         function Get-WeekDayCode {
             Param(
                 [DateTime]
@@ -1156,9 +1178,18 @@ function Get-Schedule_FromTable {
                 $Default
             )
 
-            $every = $ActionItem.every.ToLower()
-            $when = $ActionItem.when.ToLower()
-            $type = $ActionItem.type.ToLower()
+            $list = foreach ($item in @('when', 'type')) {
+                $temp = $ActionItem.$item
+
+                if ($null -eq $temp) {
+                    $null
+                } else {
+                    $temp.ToLower()
+                }
+            }
+
+            $when = $list[0]
+            $type = $list[1]
 
             return @('event', 'errand', 'deadline') `
                     -contains $type `
