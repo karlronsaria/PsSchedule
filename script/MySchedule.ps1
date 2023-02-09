@@ -290,6 +290,9 @@ function Get-MySchedule {
         $Extension,
 
         [Switch]
+        $Week,
+
+        [Switch]
         $NoConfirm,
 
         [Parameter(
@@ -431,6 +434,7 @@ function Get-MySchedule {
             | Get-Content `
             | Get-Schedule `
                 -StartDate:$StartDate `
+                -Week:$Week `
                 -Default:$Default
 
         if ($null -ne $JsonFile -and (Test-Path $JsonFile)) {

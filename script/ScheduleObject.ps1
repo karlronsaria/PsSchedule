@@ -240,7 +240,10 @@ function Get-Schedule {
         $Recurse,
 
         [String]
-        $StartDate
+        $StartDate,
+
+        [Switch]
+        $Week
     )
 
     Begin {
@@ -335,6 +338,12 @@ function Get-Schedule {
                     $null `
                 )
 
+                $endDate = if ($Week) {
+                    $date.AddDays(7)
+                } else {
+                    $null
+                }
+
                 $what = $content `
                     | Get-MarkdownTable `
                         -MuteProperty:$setting.MuteProperties
@@ -343,16 +352,12 @@ function Get-Schedule {
                     switch ($_) {
                         'Error' { $null }
                         default {
-                            $temp = if ($null -eq $Default) {
-                                $_.sched `
-                                | Get-Schedule_FromTable `
-                                    -StartDate $date
-                            } else {
+                            $temp =
                                 $_.sched `
                                 | Get-Schedule_FromTable `
                                     -StartDate $date `
-                                    -Default $Default
-                            }
+                                    -EndDate:$endDate `
+                                    -Default:$Default
 
                             $temp `
                             | Sort-Object `
@@ -382,7 +387,10 @@ function Add-Schedule {
         $Table,
 
         [String]
-        $StartDate
+        $StartDate,
+
+        [Switch]
+        $Week
     )
 
     Begin {
@@ -404,9 +412,16 @@ function Add-Schedule {
             $null `
         )
 
+        $endDate = if ($Week) {
+            $date.AddDays(7)
+        } else {
+            $null
+        }
+
         return $list `
             + @($Table | Get-Schedule_FromTable `
-                -StartDate $date
+                -StartDate $date `
+                -EndDate:$endDate
             ) `
             | Sort-Object `
                 -Property when `
@@ -490,7 +505,8 @@ function Write-MarkdownTree {
                             | Get-NoteProperty `
                                 -PropertyName 'complete'
 
-                        $token = if ($actionItemCapture.Value) { 'x' } else { ' ' }
+                        $token =
+                            if ($actionItemCapture.Value) { 'x' } else { ' ' }
                     }
 
                     $content = if ($actionItemCapture.Success) {
@@ -1057,6 +1073,8 @@ function Get-Schedule_FromTable {
         [DateTime]
         $StartDate = $(Get-Date),
 
+        $EndDate,
+
         [PsCustomObject]
         $Default = ([PsCustomObject]@{
             when = (Get-Date -f HHmm)
@@ -1230,23 +1248,35 @@ function Get-Schedule_FromTable {
             return $result.Value
         }
 
-        function Test-DateIsToday {
+        function Test-DateIsInRange {
             Param(
                 [DateTime]
                 $Date,
 
                 [DateTime]
-                $Today = (Get-Date)
+                $StartDate = (Get-Date),
+
+                $EndDate
             )
 
-            return $Today.Year -eq $Date.Year `
-                -and $Today.Month -eq $Date.Month `
-                -and $Today.Day -eq $Date.Day
+            if ($null -eq $EndDate) {
+                return $StartDate.Year -eq $Date.Year `
+                    -and $StartDate.Month -eq $Date.Month `
+                    -and $StartDate.Day -eq $Date.Day
+            }
+
+            return $StartDate.Year -le $Date.Year
+                -and $StartDate.Month -le $Date.Month `
+                -and $StartDate.Day -le $Date.Day `
+                -and $EndDate.Year -ge $Date.Year `
+                -and $EndDate.Month -ge $Date.Month `
+                -and $EndDate.Day -ge $Date.Day
         }
     }
 
     Process {
         $list = @()
+        $now = Get-Date
 
         if ($null -eq $InputObject) {
             return $list
@@ -1259,7 +1289,7 @@ function Get-Schedule_FromTable {
             $startWhen = Get-DateParseVaryingLength `
                 -DateString $recurringStart.Value
 
-            if ($startWhen.DateTime -gt (Get-Date)) {
+            if ($startWhen.DateTime -gt $now) {
                 return
             }
         }
@@ -1271,7 +1301,7 @@ function Get-Schedule_FromTable {
             $endWhen = Get-DateParseVaryingLength `
                 -DateString $recurringEnd.Value
 
-            if ($endWhen.DateTime -lt (Get-Date)) {
+            if ($endWhen.DateTime -lt $now) {
                 return
             }
         }
@@ -1287,6 +1317,7 @@ function Get-Schedule_FromTable {
 
                 $newItem = $newItem | Get-Schedule_FromTable `
                     -StartDate:$StartDate `
+                    -EndDate:$EndDate `
                     -Default:$Default
 
                 $list += @($newItem)
@@ -1321,6 +1352,7 @@ function Get-Schedule_FromTable {
                 $what = Get-Schedule_FromTable `
                     -InputObject $obj `
                     -StartDate:$StartDate `
+                    -EndDate:$EndDate `
                     -Default:$Default
 
                 $list += @($what)
@@ -1378,11 +1410,12 @@ function Get-Schedule_FromTable {
                 $date = $dateTimeResult.DateTime
 
                 if ($todayOnlyEvent) {
-                    $isToday = Test-DateIsToday `
+                    $isInRange = Test-DateIsInRange `
                         -Date $date `
-                        -Today $StartDate
+                        -StartDate $StartDate `
+                        -EndDate:$EndDate
 
-                    if ($isToday) {
+                    if ($isInRange) {
                         $what = Get-NewActionItem `
                             -ActionItem $InputObject `
                             -Date $date
@@ -1453,6 +1486,7 @@ function Get-Schedule_FromTable {
                     $what = Get-Schedule_FromTable `
                         -InputObject $obj `
                         -StartDate:$StartDate `
+                        -EndDate:$EndDate `
                         -Default:$Default
 
                     $list += @($what)
@@ -1495,10 +1529,11 @@ function Get-Schedule_FromTable {
             -Second 0 `
             -Millisecond 0
 
-        $isToday =
-            Test-DateIsToday `
+        $isInRange =
+            Test-DateIsInRange `
                 -Date $dateTime `
-                -Today $StartDate
+                -StartDate $StartDate `
+                -EndDate:$EndDate
 
         $addTodo =
             'todo' -eq $InputObject.type `
@@ -1507,7 +1542,7 @@ function Get-Schedule_FromTable {
 
         $addToday =
             ($todayOnlyEvent `
-                -and $isToday) `
+                -and $isInRange) `
             -or `
             $addTodo `
             -or `
