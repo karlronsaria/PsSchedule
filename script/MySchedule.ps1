@@ -134,7 +134,7 @@ function Find-MyTree {
             $_.FullName -notlike "*$IgnoreSubdirectory*"
         }
 
-    if ($Mode -in @('Cat', 'Edit')) {
+    if ($Mode -in @('Cat', 'Edit', 'Start')) {
         if ($Command) {
             Write-Output $Command
             Write-Output ""
