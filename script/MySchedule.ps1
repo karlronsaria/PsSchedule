@@ -587,7 +587,7 @@ function Get-MySchedule {
             while ($confirm -notin @('n', 'y'))
 
             if ($confirm -eq 'n') {
-                continue
+                return
             }
         }
 
