@@ -481,8 +481,7 @@ function Get-MySchedule {
         -DefaultSubdirectory $DefaultSubdirectory
 
     if (-not (Test-Path $path)) {
-        @()
-        continue
+        return @()
     }
 
     $files = Join-Path $path $Extension
@@ -521,10 +520,8 @@ function Get-MySchedule {
             # Make the output look pretty
             $dir = $path | Get-Item
             Write-Output "No content in $($dir.FullName) could be found matching the pattern '$Pattern'"
-            continue
         }
-
-        if ($Mode -eq 'Edit') {
+        elseif ($Mode -eq 'Edit') {
             foreach ($sls in (@($files) + @($jsonFiles))) {
                 Invoke-Expression `
                     "$EditCommand $($sls.Path) +$($sls.LineNumber)"
@@ -532,10 +529,8 @@ function Get-MySchedule {
 
             Write-Output $files
             Write-Output $jsonFiles
-            continue
         }
-
-        if ($Mode -eq 'Start') {
+        elseif ($Mode -eq 'Start') {
             foreach ($sls in (@($files) + @($jsonFiles))) {
                 Invoke-Expression `
                     "Start-Process $($sls.Path)"
@@ -543,15 +538,15 @@ function Get-MySchedule {
 
             Write-Output $files
             Write-Output $jsonFiles
-            continue
         }
+        else {
+            if ($null -ne $files) {
+                $files = $files.Path
+            }
 
-        if ($null -ne $files) {
-            $files = $files.Path
-        }
-
-        if ($null -ne $jsonFiles) {
-            $jsonFiles = $jsonFiles.Path
+            if ($null -ne $jsonFiles) {
+                $jsonFiles = $jsonFiles.Path
+            }
         }
     }
 
@@ -599,11 +594,8 @@ function Get-MySchedule {
         foreach ($file in (dir (@($files) + @($jsonFiles)))) {
             Invoke-Expression "$command $file"
         }
-
-        continue
     }
-
-    if ($Mode -eq 'Cat') {
+    elseif ($Mode -eq 'Cat') {
         if ($null -ne $files) {
             dir $files | cat
         }
@@ -611,49 +603,48 @@ function Get-MySchedule {
         if ($null -ne $jsonFiles) {
             dir $jsonFiles | cat
         }
-
-        continue
     }
+    else {
+        if (-not $StartDate) {
+            $StartDate = Get-Date -f 'yyyy_MM_dd'
+        }
 
-    if (-not $StartDate) {
-        $StartDate = Get-Date -f 'yyyy_MM_dd'
-    }
+        foreach ($startDate_subitem in $StartDate) {
+            $schedule = Get-ScheduleObject `
+                -File:$files `
+                -JsonFile:$jsonFiles `
+                -StartDate:$startDate_subitem `
+                -Default:$defaults `
+                -DefaultsFileName:$DefaultsFileName
 
-    foreach ($startDate_subitem in $StartDate) {
-        $schedule = Get-ScheduleObject `
-            -File:$files `
-            -JsonFile:$jsonFiles `
-            -StartDate:$startDate_subitem `
-            -Default:$defaults `
-            -DefaultsFileName:$DefaultsFileName
+            switch ($Mode) {
+                'Schedule' {
+                    # # OLD (karlr (2023_01_26_140650)
+                    # # ------------------------------
+                    # # link
+                    # # - url: https://stackoverflow.com/questions/24446680/is-it-possible-to-check-if-verbose-argument-was-given-in-powershell
+                    # # - retrieved: 2023_01_26
+                    #
+                    # $hasVerbose =
+                    #     $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
 
-        switch ($Mode) {
-            'Schedule' {
-                # # OLD (karlr (2023_01_26_140650)
-                # # ------------------------------
-                # # link
-                # # - url: https://stackoverflow.com/questions/24446680/is-it-possible-to-check-if-verbose-argument-was-given-in-powershell
-                # # - retrieved: 2023_01_26
-                #
-                # $hasVerbose =
-                #     $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
+                    # link
+                    # - url: https://www.briantist.com/how-to/test-for-verbose-in-powershell/
+                    # - retrieved: 2023_01_26
+                    $hasVerbose =
+                        $VerbosePreference `
+                        -ne [System.Management.Automation.ActionPreference]::SilentlyContinue
 
-                # link
-                # - url: https://www.briantist.com/how-to/test-for-verbose-in-powershell/
-                # - retrieved: 2023_01_26
-                $hasVerbose =
-                    $VerbosePreference `
-                    -ne [System.Management.Automation.ActionPreference]::SilentlyContinue
+                    $schedule | Write-Schedule `
+                        -Verbose:$hasVerbose
+                }
 
-                $schedule | Write-Schedule `
-                    -Verbose:$hasVerbose
-            }
-
-            'Tree' {
-                $schedule `
-                    | Get-SubtreeRotation `
-                        -RotateProperty $RotateProperties `
-                    | Write-MarkdownTree
+                'Tree' {
+                    $schedule `
+                        | Get-SubtreeRotation `
+                            -RotateProperty $RotateProperties `
+                        | Write-MarkdownTree
+                }
             }
         }
     }
