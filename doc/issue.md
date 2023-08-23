@@ -1,4 +1,15 @@
 # issue
+- [ ] 2023_08_22_202828
+  - actual
+    ```
+    C:\Users\karlr> Get-MySchedule -Subdirectory general -Mode Edit -Pattern amazon
+
+    C:\note\sched\notebook\general\sched_-_2022_12_18_Delivery.md:8:  - url: https://www.amazon.com
+    This will open to editor all files in
+      C:\note\sched\notebook\general\sched_-_2022_12_18_Delivery.md:8:  - url: https://www.amazon.com
+
+    Continue? (y/n):
+    ```
 - [ ] 2023_02_07_212709
   - howto
     - in powershell
@@ -178,15 +189,15 @@
     - ``Get-MySchedule``: ``Extension`` parameter is never used due to all work files having the markdown ``*.md`` extension.
 
 - [x] 2023_01_11_173519
-  
+
   - howto
     - in powershell
-      
+
       ```powershell
       Get-MySchedule -Subdirectory homework -StartDate 2023_01_09
       ```
     - in ``sched.md``
-      
+
       ```
       # sched
       - what
@@ -195,7 +206,7 @@
       - type: todayonly
       ```
   - actual
-    
+
     ```
     Monday (2023_01_09)
     -------------------
@@ -203,7 +214,7 @@
     23:00      @{recite Philippians=}
     ```
   - expected
-    
+
     ```
     Monday (2023_01_09)
     -------------------
@@ -212,10 +223,10 @@
     ```
 
 - [x] 2023_01_11_170506
-  
+
   - actual
     - ``todo.md`` in neovim
-      
+
       ```
       - [ ] Domino's Pizza jacket
         - link
@@ -232,7 +243,7 @@
       ![Capture_2023_01_11_163152](./res/Screenshot_2023-01-11_163152.png)
   - workaround
     - ``todo.md`` in neovim
-      
+
       ```
       - [ ] Domino's Pizza jacket
         - link
@@ -248,16 +259,16 @@
       ```
 
 - [ ] 2023_01_10_230005
-  
+
   - howto
     - in powershell
-      
+
       ```powershell
       $tree = cat .\todo_-_2022_12_16.md | Get-MarkdownTable
       $tree.lookup | Write-MarkdownTree
       ```
     - in ``todo_-_2022_12_16.md``
-      
+
       ```
       # lookup
       - howto: tie shoes efficiently
@@ -283,7 +294,7 @@
       - [ ] learn: Hindley-Milner type system
       ```
   - actual
-    
+
     ```
     - howto
       - tie shoes efficiently
@@ -293,7 +304,7 @@
       - Hindley-Milner type system
     ```
   - expected
-    
+
     ```
     - howto
       - tie shoes efficiently
@@ -321,7 +332,7 @@
     ```
 
 - [ ] 2022_10_27_180542
-  
+
   - actual
     - action items with header levels other than 3 are ignored
 
@@ -341,9 +352,9 @@
     - File ``/res/default.json`` should be named ``setting.json``.
 
 - [x] 2023_01_13_010203
-  
+
   - actual
-    
+
     ```
     C:\Users\karlr> Get-MySchedule -Subdirectory request -Pattern Partners -Mode Schedule
     The property 'Path' cannot be found on this object. Verify that the property exists.
@@ -352,21 +363,21 @@
     +         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
         + FullyQualifiedErrorId : PropertyNotFoundStrict
-    
+
     Test-Path : Cannot bind argument to parameter 'Path' because it is null.
     At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:269 char:24
     +         if ((Test-Path $JsonFile)) {
     +                        ~~~~~~~~~
         + CategoryInfo          : InvalidData: (:) [Test-Path], ParameterBindingValidationException
         + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.TestPathCommand
-    
+
     Friday (2023_01_13)
     -------------------
     11:00      evangelism
     11:00      ChangeAndGrowthPlan
     11:00      Partners
     23:00      Partners
-    
+
     C:\Users\karlr> Get-MySchedule -Subdirectory request -Pattern Partners -Mode Tree
     The property 'Path' cannot be found on this object. Verify that the property exists.
     At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:360 char:9
@@ -374,14 +385,14 @@
     +         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
         + FullyQualifiedErrorId : PropertyNotFoundStrict
-    
+
     Test-Path : Cannot bind argument to parameter 'Path' because it is null.
     At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\MySchedule.ps1:269 char:24
     +         if ((Test-Path $JsonFile)) {
     +                        ~~~~~~~~~
         + CategoryInfo          : InvalidData: (:) [Test-Path], ParameterBindingValidationException
         + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.TestPathCommand
-    
+
     Add-Member : Cannot add a member with the name "Partners" because a member with that name already exists. To overwrite the member anyway, add the Force parameter to
     your command.
     At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script\ScheduleObject.ps1:530 char:29
@@ -389,7 +400,7 @@
     +                             ~~~~~~~~~~~~
         + CategoryInfo          : InvalidOperation: (@{evangelism=; ...an=; Partners=}:PSObject) [Add-Member], InvalidOperationException
         + FullyQualifiedErrorId : MemberAlreadyExists,Microsoft.PowerShell.Commands.AddMemberCommand
-    
+
     - evangelism
       - when
         - 01/13/2023 11:00:00
@@ -408,14 +419,14 @@
     ```
 
 - [x] 2023_01_02_224101
-  
+
   - howto
-    
+
     ```powershell
     Find-MyTree -Subdirectory request -Tag coworker
     ```
   - actual
-    
+
     ```
     - @{sus=; ihr=; oth=}
       - when
@@ -424,7 +435,7 @@
         - susihroth
     ```
   - expected
-    
+
     ```
     - sus
       - when
@@ -444,15 +455,15 @@
     ```
 
 - [x] 2022_11_10_003045
-  
+
   - howto
-    
+
     ```
     \shortcut\bin\tagsearch.bat request self
     ```
-  
+
   - actual
-    
+
     ```
     The property 'Name' cannot be found on this object. Verify that the
     property exists.
@@ -463,7 +474,7 @@
         + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundExc
        eption
         + FullyQualifiedErrorId : PropertyNotFoundStrict
-    
+
     The property 'Name' cannot be found on this object. Verify that the
     property exists.
     At C:\Users\karlr\OneDrive\Documents\devlib\powershell\PsSchedule\script
@@ -473,7 +484,7 @@
         + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundExc
        eption
         + FullyQualifiedErrorId : PropertyNotFoundStrict
-    
+
     - tag
       - self
     - what
@@ -491,9 +502,9 @@
     - tag
       - self
     ```
-  
+
   - expected
-    
+
     ```
     - tag
       - self
@@ -511,21 +522,21 @@
       - that I can learn how to evangelize
       - that I can learn how to learn how to evangelize
     ```
-  
+
   - cause
-    
+
     - the latest refactor to accomodate the new tree form
       - as in ``"I wish" 2022_11_09_175458``
       - messes up trees at Level 2 that don't have inline branches
 
 - [x] 2022_11_08_125240
-  
+
   - solution: non-issue
-  
+
   - howto
-    
+
     - in ``sched.md``
-      
+
       ```
       # sched
       - what: Amazon delivery
@@ -534,23 +545,23 @@
       - type: todo
       - every: none
       ```
-    
+
     - cmd
-      
+
       ```
       \shortcut\bin\sched.bat
       ```
-  
+
   - actual
-    
+
     ```
     Tuesday (2022_11_08)
     --------------------
     00:01      Amazon delivery
     ```
-  
+
   - expected
-    
+
     ```
     Tuesday (2022_11_08)
     --------------------
@@ -558,20 +569,20 @@
     ```
 
 - [x] 2022_11_06_114157
-  
+
   - howto
     ``Get-MarkdownTable``
-  
+
   - actual
-    
+
     ```
     ...
     @{when=11/10/2022 18:30:00; what=Homegroup Bible Study; who:=; where=; type=event}
     ...
     ```
-  
+
   - expected
-    
+
     ```
     ...
     @{when=11/10/2022 18:30:00; what=Homegroup Bible Study; who=; where=; type=event}
@@ -579,19 +590,19 @@
     ```
 
 - [x] 2022_11_05_140003
-  
+
   - actual
     - ``todo`` items are treated as one-day events
   - expected
     - ``todo`` items are treated as action items to be completed, starting at ``when``
 
 - [x] 2022_11_03_150245
-  
+
   - actual
-    
+
     ```
     C:\Users\karlr> sched.bat -subdir request
-    
+
     Thursday (2022_11_03)
     ---------------------
     22:00      friend
@@ -603,30 +614,30 @@
     22:00      coworkers
     22:00      leaders
     ```
-  
+
   - cause
-    
+
     - ``script\ScheduleObject.ps1:919-920``
-      
+
       ```powershell
       switch -Regex ($schedEvery) {
           '\w+(\s*,\s*\w+)+' {
       ```
-  
+
   - solution
-    
+
     ```powershell
     switch -Regex ($schedEvery) {
         '\w+(\s*,\s*\w+)*' {
     ```
 
 - [x] 2022_10_26_170128
-  
+
   - howto
     ``C:\shortcut\bin\sched.bat``
-  
+
   - actual
-    
+
     ```
     Add-Member : Cannot add a member with the name "retrieved" because a member with
     that name already exists. To overwrite the member anyway, add the Force parameter
@@ -639,7 +650,7 @@
        :PSObject) [Add-Member], InvalidOperationException
         + FullyQualifiedErrorId : MemberAlreadyExists,Microsoft.PowerShell.Commands.Ad
        dMemberCommand
-    
+
     The property 'sched' cannot be found on this object. Verify that the property
     exists.
     At C:\Users\karlr\OneDrive\Documents\devlib\powershell\PsSchedule\script\ScheduleOb
@@ -649,19 +660,19 @@
         + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
         + FullyQualifiedErrorId : PropertyNotFoundStrict
     ```
-  
+
   - cause
-    
+
     1. Line 454: failure to use proper binding: ``$content``
     2. Line 211: failure to account for failable return value from ``Get-MarkdownTable``
 
 - [x] 2022_10_21_121845
-  
+
   - howto
     ``C:\shortcut\bin\sched.bat``
-  
+
   - actual
-    
+
     ```
     Add-Member : Cannot add a member with the name "https" because a member with that
     name already exists. To overwrite the member anyway, add the Force parameter to
@@ -675,20 +686,20 @@
         + FullyQualifiedErrorId : MemberAlreadyExists,Microsoft.PowerShell.Commands.Ad
        dMemberCommand
     ```
-  
+
   - cause
     In a schedule file:
-    
+
     ```
     - url
       - https://revolvebiblechurch.ccbchurch.com/goto/giving
       - https://pushpay.com/g/compasschurch?r=weekly&src=hpp
     ```
-    
+
     Web links are being parsed like node names.
-  
+
   - solution
-    
+
     - require inline branches to be spaced:
       - accepted
         ``- what: daily todo``
