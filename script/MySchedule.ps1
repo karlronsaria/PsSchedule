@@ -316,6 +316,7 @@ function Get-MySchedule {
         $path = $setting.ScheduleDirectory
         $subdirectories = (dir $path -Directory).Name
         $validModes = @('Schedule', 'Edit', 'Start', 'Cat', 'Tree')
+        $startDate_subitem = $null
 
         foreach ($arg in $Arguments) {
             if (-not $startDate_subitem `

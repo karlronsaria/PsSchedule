@@ -1,4 +1,5 @@
 # issue
+
 - [ ] 2023_08_22_202828
   - actual
     ```
@@ -10,6 +11,7 @@
 
     Continue? (y/n):
     ```
+
 - [ ] 2023_02_07_212709
   - howto
     - in powershell
@@ -71,6 +73,63 @@
     - output is an array of strings
   - expected
     - output is a PsCustomObject
+
+- [x] 2023_09_11_125704
+  - actual
+    ```
+    C:\Users\karlr> Get-MySchedule general, cat, offering
+    The variable '$startDate_subitem' cannot be retrieved because it has not been
+    set.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script
+    \MySchedule.ps1:321 char:22
+    +             if (-not $startDate_subitem `
+    +                      ~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : InvalidOperation: (startDate_subitem:String) [],
+       RuntimeException
+        + FullyQualifiedErrorId : VariableIsUndefined
+
+    The variable '$startDate_subitem' cannot be retrieved because it has not been
+    set.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script
+    \MySchedule.ps1:321 char:22
+    +             if (-not $startDate_subitem `
+    +                      ~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : InvalidOperation: (startDate_subitem:String) [],
+       RuntimeException
+        + FullyQualifiedErrorId : VariableIsUndefined
+
+    The variable '$startDate_subitem' cannot be retrieved because it has not been
+    set.
+    At C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\PsSchedule\script
+    \MySchedule.ps1:321 char:22
+    +             if (-not $startDate_subitem `
+    +                      ~~~~~~~~~~~~~~~~~~
+        + CategoryInfo          : InvalidOperation: (startDate_subitem:String) [],
+       RuntimeException
+        + FullyQualifiedErrorId : VariableIsUndefined
+
+    Get-MySchedule -Subdirectory '' -Mode 'Schedule' -Extension '*.md'
+
+
+    Monday (2023_09_11)
+    -------------------
+    00:00  [ ] todo: reappoint: meet with Roi
+    10:00      daily todo
+    16:00  [!] general offering
+
+    Tuesday (2023_09_12)
+    --------------------
+    18:30      event: bible study men's
+
+    Saturday (2023_09_16)
+    ---------------------
+    13:30      event: meet with Jesse Luna
+    14:30      ---
+
+    Sunday (2023_09_17)
+    -------------------
+    11:00      event: Sunday service
+    ```
 
 - [x] 2023_02_04_140555
   - howto
