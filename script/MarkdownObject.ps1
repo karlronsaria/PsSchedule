@@ -338,6 +338,40 @@ function Get-MarkdownTree {
             }
         }
 
+        function Add-Table {
+            Param(
+                [PsCustomObject[]]
+                $Stack,
+
+                [PsCustomObject[]]
+                $Table,
+
+                [PsCustomObject]
+                $TableStart,
+
+                [Int]
+                $PrevLevel,
+
+                [String]
+                $PrevName
+            )
+
+            $Table = ConvertTo-MdTable `
+                -TableBuild $Table
+
+            $tempLevel = if ('ListItem' -in $TableStart.Type) {
+                $TableStart.Level - 2
+            }
+            else {
+                $PrevLevel - 1
+            }
+
+            Add-Property `
+                -InputObject $Stack[$tempLevel] `
+                -Name $PrevName `
+                -Value $Table
+        }
+
         <#
         .SYNOPSIS
         f: str -> (int, enum, str)
@@ -435,10 +469,10 @@ function Get-MarkdownTree {
                 $stack = @($null) * ($HighestLevel + 1)
                 # $keys = @($null) * ($HighestLevel + 1)
                 $stack[0] = [PsCustomObject]@{}
-                $table = $null
+                $level = 0
+                $tableBuild = $null
                 $prevLevel = 0
                 $prevName = ""
-                $level = 0
                 $tableStart = $null
             }
 
@@ -459,35 +493,27 @@ function Get-MarkdownTree {
                 $stack[$level] = [PsCustomObject]@{}
 
                 if ('TableRow' -in $TableRow.Type) {
-                    if ($null -eq $table) {
-                        $table = New-MdTableBuild
+                    if ($null -eq $tableBuild) {
+                        $tableBuild = New-MdTableBuild
                         $tableStart = $TableRow
                     }
 
-                    $table | Add-MdTableRow `
+                    $tableBuild | Add-MdTableRow `
                         -RowList $content `
                         -RemoveStyling
 
                     return
                 }
                 else {
-                    if ($null -ne $table) {
-                        $table = ConvertTo-MdTable `
-                            -TableBuild $table
+                    if ($null -ne $tableBuild) {
+                        Add-Table `
+                            -Stack $stack `
+                            -Table $tableBuild `
+                            -TableStart $tableStart `
+                            -PrevLevel $prevLevel `
+                            -PrevName $prevName
 
-                        $tempLevel = if ('ListItem' -in $tableStart.Type) {
-                            $tableStart.Level - 2
-                        }
-                        else {
-                            $prevLevel - 1
-                        }
-
-                        Add-Property `
-                            -InputObject $stack[$tempLevel] `
-                            -Name $prevName `
-                            -Value $table
-
-                        $table = $null
+                        $tableBuild = $null
                     }
 
                     $prevLevel = $level
@@ -543,7 +569,7 @@ function Get-MarkdownTree {
                 }
 
                 if ($content -notin $MuteProperty) {
-                    $name = $content
+                    $prevName = $content
 
                     Add-Property `
                         -InputObject $parent `
@@ -555,6 +581,15 @@ function Get-MarkdownTree {
             }
 
             End {
+                if ($null -ne $tableBuild) {
+                    Add-Table `
+                        -Stack $stack `
+                        -Table $tableBuild `
+                        -TableStart $tableStart `
+                        -PrevLevel $prevLevel `
+                        -PrevName $prevName
+                }
+
                 return $stack[0]
             }
         }
