@@ -65,8 +65,13 @@ function Find-MyTree {
         cat "$PsScriptRoot\..\res\setting.json" `
         | ConvertFrom-Json
 
-    $SENTINEL_DEPTH_LIMIT = -1
-    $DEFAULT_MODE = 'Print'
+    Set-Variable `
+        -Option Constant `
+        -Name 'const' `
+        -Value @([PsCustomObject]@{
+            SENTINEL_DEPTH_LIMIT = -1
+            DEFAULT_MODE = 'Print'
+        })
 
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $path = $setting.SearchDirectory
@@ -97,7 +102,7 @@ function Find-MyTree {
     }
 
     if (-not $Mode) {
-        $Mode = $DEFAULT_MODE
+        $Mode = $const.DEFAULT_MODE
     }
 
     if (-not $Directory) {
@@ -105,7 +110,7 @@ function Find-MyTree {
     }
 
     if (-not $DepthLimit) {
-        $DepthLimit = $SENTINEL_DEPTH_LIMIT
+        $DepthLimit = $const.SENTINEL_DEPTH_LIMIT
     }
 
     $Command = if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
@@ -114,7 +119,7 @@ function Find-MyTree {
         $cmd += " -Mode '$Mode'"
         $cmd += " -Tag '$Tag'"
 
-        if ($DepthLimit -gt $SENTINEL_DEPTH_LIMIT) {
+        if ($DepthLimit -gt $const.SENTINEL_DEPTH_LIMIT) {
             $cmd += " -DepthLimit $DepthLimit"
         }
 
@@ -205,7 +210,7 @@ function Find-MyTree {
 
     $tree = $dir `
         | Get-Content `
-        | Get-MarkdownTable `
+        | Get-MarkdownTree `
             -DepthLimit $DepthLimit `
             -MuteProperty:$setting.MuteProperties
 
@@ -310,7 +315,12 @@ function Get-MySchedule {
         cat "$PsScriptRoot\..\res\setting.json" `
         | ConvertFrom-Json
 
-    $DEFAULT_MODE = 'Schedule'
+    Set-Variable `
+        -Option Constant `
+        -Name 'const' `
+        -Value @([PsCustomObject]@{
+            DEFAULT_MODE = 'Schedule'
+        })
 
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $path = $setting.ScheduleDirectory
@@ -346,7 +356,7 @@ function Get-MySchedule {
     }
 
     if (-not $Mode) {
-        $Mode = $DEFAULT_MODE
+        $Mode = $const.DEFAULT_MODE
     }
 
     if (-not $Directory) {

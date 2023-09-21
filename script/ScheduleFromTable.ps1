@@ -1,5 +1,9 @@
 . "$PsScriptRoot\ScheduleObject.ps1"
 
+<#
+.SYNOPSIS
+f: (...) -> (...)
+#>
 function Get-Schedule_FromTable {
     Param(
         [Parameter(ValueFromPipeline = $true)]

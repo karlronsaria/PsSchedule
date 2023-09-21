@@ -1,3 +1,6 @@
+# . "$PsScriptRoot/MarkdownObject.ps1"
+# . "$PsScriptRoot/ScheduleFromTable.ps1"
+
 <#
 .EXAMPLE
 cat .\sched\*.md | Get-Schedule -StartDate 2022_10_11 | Write-Schedule
@@ -10,9 +13,14 @@ function Write-Schedule {
     )
 
     Begin {
-        $EPOCH_YEAR = 1970
-        $LONG_TIME_DAYS_THRESHOLD = 10
-        $ITEM_CONTINUATION_SYMBOL = '---'
+        Set-Variable `
+            -Option Constant `
+            -Name 'const' `
+            -Value @([PsCustomObject]@{
+                EPOCH_YEAR = 1970
+                LONG_TIME_DAYS_THRESHOLD = 10
+                ITEM_CONTINUATION_SYMBOL = '---'
+            })
 
         $day = $null
         $month = $null
@@ -51,8 +59,16 @@ function Write-Schedule {
                 }
 
                 default {
-                    if (($ActionItem | Get-NoteProperty -PropertyName 'complete').Success) {
-                        $icon = "[$((if ($ActionItem.complete) { 'x' } else { ' ' }))]"
+                    if (($ActionItem `
+                        | Get-NoteProperty `
+                            -PropertyName 'complete').Success `
+                    ) {
+                        $icon = "[$((if ($ActionItem.complete) {
+                            'x'
+                        } else {
+                            ' '
+                        }))]"
+
                         $what = "todo: $what"
                         $foreground = 'Yellow'
                     }
@@ -78,9 +94,10 @@ function Write-Schedule {
 
                 $displayItems +=
                     @([PsCustomObject]@{
-                        When = "$(Get-Date -Hour $hour -Minute $minute -f HH:mm)"
+                        When =
+                            "$(Get-Date -Hour $hour -Minute $minute -f HH:mm)"
                         Type = $icon
-                        What = $ITEM_CONTINUATION_SYMBOL
+                        What = $const.ITEM_CONTINUATION_SYMBOL
                     })
             }
 
@@ -130,7 +147,7 @@ function Write-Schedule {
             $host.Ui.RawUi.ForegroundColor = $hf
         }
 
-        $prevDate = Get-Date -Year $EPOCH_YEAR -Month 1 -Day 1
+        $prevDate = Get-Date -Year $const.EPOCH_YEAR -Month 1 -Day 1
     }
 
     Process {
@@ -148,8 +165,9 @@ function Write-Schedule {
             -or $year -ne $when.Year
 
         if ($isNewDay) {
-            $isLongComing = $EPOCH_YEAR -ne $prevDate.Year `
-                -and $LONG_TIME_DAYS_THRESHOLD -le ($when - $prevDate).Days
+            $isLongComing = $const.EPOCH_YEAR -ne $prevDate.Year `
+                -and $const.LONG_TIME_DAYS_THRESHOLD `
+                -le ($when - $prevDate).Days
 
             $prevDate = $when
 
@@ -162,7 +180,6 @@ function Write-Schedule {
             $day = $when.Day
             $month = $when.Month
             $year = $when.Year
-
             $heading = "$($when.DayOfWeek) ($(Get-Date $when -f yyyy_MM_dd))"
 
             Write-OutputColored
@@ -268,7 +285,7 @@ function Get-Schedule {
         $content = @()
 
         if (-not $StartDate) {
-            $StartDate = $(Get-Date -f 'yyyy_MM_dd')
+            $StartDate = Get-Date -f 'yyyy_MM_dd'
         }
     }
 
@@ -279,37 +296,33 @@ function Get-Schedule {
     }
 
     End {
+        $setting = cat "$PsScriptRoot\..\res\setting.json" `
+            | ConvertFrom-Json
+
         switch ($PsCmdlet.ParameterSetName) {
             'ByDirectory' {
-                $what = @()
-
-                if ( `
-                    -not [String]::IsNullOrWhiteSpace($Subdirectory))
-                {
-                    $DirectoryPath =
+                $DirectoryPath =
+                    if (-not [String]::IsNullOrWhiteSpace( `
+                        $Subdirectory `
+                    )) {
                         Join-Path $DirectoryPath $Subdirectory
-                }
-                elseif ( `
-                    -not [String]::IsNullOrWhiteSpace($DefaultSubdirectory))
-                {
-                    $DirectoryPath =
+                    }
+                    elseif (-not [String]::IsNullOrWhiteSpace( `
+                        $DefaultSubdirectory `
+                    )) {
                         Join-Path $DirectoryPath $DefaultSubdirectory
-                }
+                    }
+                    else {
+                        $DirectoryPath
+                    }
 
                 if (-not (Test-Path $DirectoryPath)) {
-                    return $what
+                    return @()
                 }
 
-                $mdFiles = Join-Path $DirectoryPath "*.md"
-
-                $setting =
-                    cat "$PsScriptRoot\..\res\setting.json" `
-                    | ConvertFrom-Json
-
-                $defaultsPath =
-                    Join-Path `
-                        $DirectoryPath `
-                        $setting.ScheduleDefaultsFile
+                $defaultsPath = Join-Path `
+                    $DirectoryPath `
+                    $setting.ScheduleDefaultsFile
 
                 $defaults = if ((Test-Path $defaultsPath)) {
                     cat $defaultsPath | ConvertFrom-Json
@@ -317,8 +330,10 @@ function Get-Schedule {
                     $null
                 }
 
-                $what =
-                    Get-ChildItem `
+                $mdFiles = Join-Path $DirectoryPath "*.md"
+                $jsonFiles = Join-Path $DirectoryPath "*.json"
+
+                $what = Get-ChildItem `
                         -Path $mdFiles `
                         -Recurse:$Recurse `
                     | Get-Content `
@@ -326,26 +341,20 @@ function Get-Schedule {
                         -StartDate:$StartDate `
                         -Default:$defaults
 
-                $jsonFiles = Join-Path $DirectoryPath "*.json"
+                    if (-not (Test-Path $jsonFiles)) {
+                        return $what
+                    }
 
-                if (-not (Test-Path $jsonFiles)) {
-                    return $what
-                }
-
-                $subtables =
-                    Get-ChildItem `
+                return Get-ChildItem `
                         -Path $jsonFiles `
                         -Recurse:$Recurse `
                     | where {
                         $setting.ScheduleDefaultsFile `
                             -ne $_.Name.ToLower()
-                    } | foreach {
-                        cat $_ | ConvertFrom-Json
-                    }
-
-                return $what `
+                    } `
+                    | cat | ConvertFrom-Json `
                     | Add-Schedule `
-                        -Table $subtables `
+                        -Table $what `
                         -StartDate:$StartDate
             }
 
@@ -362,30 +371,22 @@ function Get-Schedule {
                     $null
                 }
 
-                $what = $content `
-                    | Get-MarkdownTable `
-                        -MuteProperty:$setting.MuteProperties
-
-                return $what | foreach {
-                    switch ($_) {
-                        'Error' { $null }
-                        default {
-                            $temp =
-                                $_.sched `
-                                | Get-Schedule_FromTable `
-                                    -StartDate $date `
-                                    -EndDate:$endDate `
-                                    -Default:$Default
-
-                            $temp `
-                            | Sort-Object `
-                                -Property when `
-                            | Where-Object {
-                                $date -le $_.when
-                            }
-                        }
+                return $content `
+                    | Get-MarkdownTree `
+                        -MuteProperty:$setting.MuteProperties `
+                    | where {
+                        $_ -ne 'Error'
+                    } | foreach {
+                        $_.sched
+                    } | Get-Schedule_FromTable `
+                        -StartDate $date `
+                        -EndDate:$endDate `
+                        -Default:$Default `
+                    | sort `
+                        -Property when `
+                    | where {
+                        $date -le $_.when
                     }
-                }
             }
         }
     }
@@ -446,639 +447,6 @@ function Add-Schedule {
             | Where-Object {
                 $date -le $_.when
             }
-    }
-}
-
-function Write-MarkdownTree {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        $InputObject,
-
-        [Int]
-        $Level = 0,
-
-        [Switch]
-        $AsTree
-    )
-
-    Process {
-        if ($null -eq $InputObject) {
-            return
-        }
-
-        # karlr (2023_01_12):
-        # I strongly believe I shouldn't have to do this.
-        switch -Regex ($InputObject.GetType().Name) {
-            '.*\[\]$' {
-                foreach ($subitem in $InputObject) {
-                    Write-MarkdownTree " " $Level
-                    Write-MarkdownTree $subitem ($Level + 1)
-                }
-            }
-
-            'PsCustomObject' {
-                $properties = $InputObject.PsObject.Properties `
-                    | where {
-                        'NoteProperty' -eq $_.MemberType
-                    }
-
-                foreach ($property in $properties) {
-                    if (-not $AsTree `
-                        -and $property.Name -eq 'complete' `
-                        -and $property.Value -is [Boolean])
-                    {
-                        continue
-                    }
-
-                    if ($property.Name -eq 'list_subitem') {
-                        Write-MarkdownTree `
-                            $property.Value `
-                            $Level
-
-                        continue
-                    }
-
-                    $list = Write-MarkdownTree `
-                        $property.Value `
-                        ($Level + 1)
-
-                    $inline =
-                        [String]::IsNullOrWhiteSpace($property.Name) `
-                        -and @($list).Count -gt 0
-
-                    if ($inline) {
-                        Write-Output "- $($list[0].Trim())"
-                        Write-Output $list[1 .. ($list.Count - 1)]
-                        continue
-                    }
-
-                    $actionItemCapture = [PsCustomObject]@{
-                        Success = $false
-                    }
-
-                    $token = ''
-
-                    if (-not $AsTree) {
-                        $actionItemCapture = $property.Value `
-                            | Get-NoteProperty `
-                                -PropertyName 'complete'
-
-                        $token =
-                            if ($actionItemCapture.Value) { 'x' } else { ' ' }
-                    }
-
-                    $content = if ($actionItemCapture.Success) {
-                        "[$token] $($property.Name)"
-                    } else {
-                        $property.Name
-                    }
-
-                    Write-Output "$('  ' * $Level)- $content"
-                    $list
-                }
-            }
-
-            default {
-                Write-Output "$('  ' * $Level)- $InputObject"
-            }
-        }
-    }
-}
-
-function Find-Subtree {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        $InputObject,
-
-        [String]
-        $PropertyName,
-
-        [String]
-        $Parent
-    )
-
-    Process {
-        if ($null -eq $InputObject) {
-            return @()
-        }
-
-        $subresults = @()
-
-        switch -Regex ($InputObject.GetType().Name) {
-            '.*\[\]$' {
-                $i = 0
-
-                while ($i -lt $InputObject.Count) {
-                    $subresults += @((Find-Subtree `
-                        -InputObject $InputObject[$i] `
-                        -PropertyName $PropertyName `
-                        -Parent:$Parent))
-
-                    $i = $i + 1
-                }
-            }
-
-            'PsCustomObject' {
-                $properties = $InputObject.PsObject.Properties `
-                    | where {
-                        'NoteProperty' -eq $_.MemberType
-                    }
-
-                if ($null -eq $properties) {
-                    return $subresults
-                }
-
-                if ($PropertyName -in $properties.Name) {
-                    if ($Parent) {
-                        $subresults += @(
-                            [PsCustomObject]@{
-                                parent = $Parent
-                                child = $InputObject
-                            }
-                        )
-                    }
-                    else {
-                        $subresults += @($InputObject)
-                    }
-                }
-                else {
-                    if ($Parent) {
-                        foreach ($property in $properties) {
-                            $subresults += @((Find-Subtree `
-                                -InputObject $property.Value `
-                                -PropertyName $PropertyName `
-                                -Parent $property.Name))
-                        }
-                    }
-                    else {
-                        foreach ($property in $properties) {
-                            $subresults += @((Find-Subtree `
-                                -InputObject $property.Value `
-                                -PropertyName $PropertyName))
-                        }
-                    }
-                }
-            }
-        }
-
-        return $subresults
-    }
-}
-
-function Get-SubtreeRotation {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        $InputObject,
-
-        [String[]]
-        $RotateProperty
-    )
-
-    Begin {
-        $tree = [PsCustomObject]@{}
-    }
-
-    Process {
-        if ([String]::IsNullOrEmpty($RotateProperty)) {
-            return $InputObject
-        }
-
-        $properties = $InputObject.PsObject.Properties
-        $subtree = [PsCustomObject]@{}
-
-        $rotate = $properties | where {
-            $_.Name -in $RotateProperty
-        }
-
-        if ($null -eq $rotate) {
-            return $InputObject
-        }
-
-        # For every property name submitted, make an attempt to create a
-        # new object with rotated properties, but return on first successful
-        # occurrence
-        foreach ($attempt in $rotate) {
-            # Create an object identical to the input object sans the
-            # properties to be rotated
-            $properties | where {
-                $_.Name -notin $RotateProperty
-            } | foreach {
-                $subtree | Add-Member `
-                    -MemberType NoteProperty `
-                    -Name $_.Name `
-                    -Value $_.Value
-            }
-
-            switch ($attempt.Value) {
-                { $_ -is [String] } {
-                    # Graft the newly created object as subtree to the new
-                    # tree, with the rotated property as the parent
-                    $tree | Add-Member `
-                        -MemberType NoteProperty `
-                        -Name $_ `
-                        -Value $subtree
-                }
-
-                { $_ -is [PsCustomObject] } {
-                    $subproperties = $_.PsObject.Properties | where {
-                        $_.MemberType -eq 'NoteProperty'
-                    }
-
-                    foreach ($subproperty in $subproperties) {
-                        $subtreeCopy = $subtree.PsObject.Copy()
-
-                        $subtreeCopy | Add-Member `
-                            -MemberType NoteProperty `
-                            -Name $attempt.Name `
-                            -Value $subproperty.Value
-
-                        $tree | Add-Member `
-                            -MemberType NoteProperty `
-                            -Name $subproperty.Name `
-                            -Value $subtreeCopy
-                    }
-                }
-            }
-
-            # return on first successful occurrence
-            break
-        }
-    }
-
-    End {
-        if ([String]::IsNullOrEmpty($RotateProperty)) {
-            return
-        }
-
-        return $tree
-    }
-}
-
-<#
-.PARAMETER DepthLimit
-Note: Inline or folded trees can escape the depth limit
-#>
-function Get-MarkdownTable {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        [String]
-        $Line,
-
-        [Int]
-        $DepthLimit = -1,
-
-        [String[]]
-        $MuteProperty
-    )
-
-    Begin {
-        $content = @()
-    }
-
-    Process {
-        $content += @($Line)
-    }
-
-    End {
-        $what = $content `
-            | Get-MarkdownTable_FromCat `
-            | Get-HighestLevel_FromTable
-
-        $table = $what.Table `
-            | Get-TableTrim `
-                -StartLevel $what.StartLevel
-
-        if (-1 -ne $DepthLimit) {
-            $table = $table | where {
-                $_.Level -le $DepthLimit
-            }
-        }
-
-        $table = $table `
-            | Get-MarkdownTree_FromTable `
-                -HighestLevel $what.HighestLevel `
-                -MuteProperty:$MuteProperty `
-            | where { -not (Test-EmptyObject $_) }
-
-        return $table
-    }
-}
-
-function Get-MarkdownTable_FromCat {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        [String]
-        $Line
-    )
-
-    Begin {
-        $prevType = 'None'
-        $level = 0
-        $indentLength = 0
-    }
-
-    Process {
-        $capture = [Regex]::Match($Line, '^(?<indent>\s*)((?<header>#+)|(?<list_item_delim>\-|\*|\d+\.)\s)\s*(?<content>.+)?$')
-        $header = $capture.Groups['header']
-        $indent = $capture.Groups['indent']
-
-        $type = if ($capture.Groups['list_item_delim'].Success) {
-            if ($capture.Groups['content'].Success) {
-                'ListItem'
-            } else {
-                'UnnamedRow'
-            }
-        } elseif ($header.Success) {
-            'Header'
-        } else {
-            'None'
-        }
-
-        if ('None' -eq $type) {
-            return
-        }
-
-        if ('Header' -eq $type) {
-            $level = $header.Length
-        }
-        elseif ('Header' -eq $prevType) {
-            $level = $level + 1
-        }
-        elseif ($indent.Length -ne $indentLength) {
-            $level += ($indent.Length - $indentLength) / 2
-        }
-
-        $indentLength = $indent.Length
-        $prevType = $type
-
-        [PsCustomObject]@{
-            Level = $level
-            Type = $type
-            Content = $capture.Groups['content'].Value
-        }
-    }
-}
-
-function Get-HighestLevel_FromTable {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        [PsCustomObject]
-        $TableRow
-    )
-
-    Begin {
-        $startLevel = $null
-        $highestLevel = $null
-        $table = @()
-    }
-
-    Process {
-        if ($null -eq $startLevel) {
-            $highestLevel = $startLevel = $TableRow.Level
-        }
-
-        if ($TableRow.Level -gt $highestLevel) {
-            $highestLevel = $TableRow.Level
-        }
-
-        $table += @($TableRow)
-    }
-
-    End {
-        return [PsCustomObject]@{
-            StartLevel = $startLevel
-            HighestLevel = $highestLevel
-            Table = $table
-        }
-    }
-}
-
-function Get-TableTrim {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        [PsCustomObject]
-        $TableRow,
-
-        [Int]
-        $StartLevel
-    )
-
-    Process {
-        if ('None' -eq $TableRow.Type) {
-            return
-        }
-
-        return [PsCustomObject]@{
-            Level = $TableRow.Level - $StartLevel + 1
-            Content = $TableRow.Content
-        }
-    }
-}
-
-function Test-EmptyObject {
-    Param(
-        [PsCustomObject]
-        $InputObject
-    )
-
-    return 0 -eq @($InputObject.PsObject.Properties).Count
-}
-
-function Get-MarkdownTree_FromTable {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        [PsCustomObject]
-        $TableRow,
-
-        [Int]
-        $HighestLevel,
-
-        [String[]]
-        $MuteProperty
-    )
-
-    Begin {
-        function Add-Property {
-            Param(
-                $InputObject,
-
-                [String]
-                $Name,
-
-                $Value
-            )
-
-            $property = $InputObject.PsObject.Properties | where {
-                $_.Name -eq $Name
-            }
-
-            if ($null -eq $property) {
-                $InputObject | Add-Member `
-                    -MemberType NoteProperty `
-                    -Name $Name `
-                    -Value $Value
-
-                return
-            }
-
-            if (1 -eq @($property.Value).Count) {
-                $property.Value = @($property.Value)
-            }
-
-            if ((Test-EmptyObject $property.Value[-1])) {
-                $property.Value[-1] = @($Value)
-            }
-            else {
-                $property.Value += @($Value)
-            }
-        }
-
-        $stack = @($null) * ($HighestLevel + 1)
-        # $keys = @($null) * ($HighestLevel + 1)
-        $stack[0] = [PsCustomObject]@{}
-    }
-
-    Process {
-        $level = $TableRow.Level
-        $content = $TableRow.Content
-        $parent = $stack[$level - 1]
-
-        if ($null -eq $parent) {
-            return 'Error'
-        }
-
-        $capture = [Regex]::Match( `
-            $content, `
-            "^\s*(?<key>[^:`"]+)\s*:(\s+(?<value>.*))?\s*$" `
-        )
-
-        $keyCapture = $capture.Groups['key']
-
-        if ($keyCapture.Success) {
-            $key = $keyCapture.Value
-            $value = $capture.Groups['value'].Value
-            $stack[$level] = $value
-            $content = $key
-
-        # # DRAWINGBOARD
-        # # ------------
-        # } elseif (2 -eq $level -and (Test-EmptyObject $parent)) {
-        #     $stack[$level] = [PsCustomObject]@{ what = $key }
-        #
-        #     Add-Property `
-        #         -InputObject $stack[0] `
-        #         -Name $keys[1] `
-        #         -Value $stack[$level]
-        #
-        #     return
-
-        } else {
-            $stack[$level] = [PsCustomObject]@{}
-        }
-
-        $checkBoxCapture = [Regex]::Match( `
-            $content, `
-            "\[(?<check>x| )\]\s*(?<content>.*)" `
-        )
-
-        if ($checkBoxCapture.Success) {
-            $content = $checkBoxCapture.Groups['content'].Value
-
-            Add-Property `
-                -InputObject $stack[$level] `
-                -Name 'complete' `
-                -Value ($checkBoxCapture.Groups['check'].Value -eq 'x')
-        }
-
-        if ([String]::IsNullOrWhiteSpace($content)) {
-            $content = 'list_subitem'
-
-            # DRAWINGBOARD
-            # ------------
-            # Add-Property `
-            #     -InputObject $stack[$level - 2] `
-            #     -Name 'list' `
-            #     -Value $stack[$level]
-            # 
-            # return
-        }
-
-        if ($content -notin $MuteProperty) {
-            Add-Property `
-                -InputObject $parent `
-                -Name $content `
-                -Value $stack[$level]
-        }
-
-        # $keys[$level] = $content
-    }
-
-    End {
-        return $stack[0]
-    }
-}
-
-function Get-NoteProperty {
-    Param(
-        [Parameter(ValueFromPipeline = $true)]
-        [PsCustomObject]
-        $InputObject,
-
-        [String]
-        $PropertyName,
-
-        $Default
-    )
-
-    $properties = $InputObject.PsObject.Properties `
-        | where { 'NoteProperty' -eq $_.MemberType }
-
-    if ([String]::IsNullOrEmpty($PropertyName)) {
-        return $properties
-    }
-
-    try {
-        $result = if ($null -eq $properties -or @($properties).Count -eq 0) {
-            [PsCustomObject]@{
-                Success = $false
-                Name = $PropertyName
-                Value = $null
-            }
-        } elseif ($PropertyName -in $properties.Name) {
-            [PsCustomObject]@{
-                Success = $true
-                Name = $PropertyName
-                Value = $InputObject.$PropertyName
-            }
-        } elseif ($null -ne $Default) {
-            [PsCustomObject]@{
-                Success = $false
-                Name = $PropertyName
-                Value = $Default.$PropertyName
-            }
-        } else {
-            [PsCustomObject]@{
-                Success = $false
-                Name = $PropertyName
-                Value = $null
-            }
-        }
-
-        return $result
-    }
-    catch
-    {
-        return [PsCustomObject]@{
-            Success = $false
-            Name = $PropertyName
-            Value = $null
-        }
-    }
-
-    return [PsCustomObject]@{
-        Success = $false
-        Name = $PropertyName
-        Value = $null
     }
 }
 
