@@ -540,6 +540,8 @@ function Get-MySchedule {
 
             Write-Output $files
             Write-Output $jsonFiles
+            $files = $null
+            $jsonFiles = $null
         }
         elseif ($Mode -eq 'Start') {
             foreach ($sls in (@($files) + @($jsonFiles))) {
@@ -549,6 +551,8 @@ function Get-MySchedule {
 
             Write-Output $files
             Write-Output $jsonFiles
+            $files = $null
+            $jsonFiles = $null
         }
         else {
             if ($null -ne $files) {
@@ -580,12 +584,14 @@ function Get-MySchedule {
             }
         }
 
+        $allDirs = (@($files) + @($jsonFiles)) | where { $null -ne $_ }
+
         if ($NoConfirm) {
             Write-Output "$nonConfirmMessage all files in"
             Write-Output "  $files"
             Write-Output "  $jsonFiles"
         }
-        else {
+        elseif ($null -ne $allDirs -and @($allDirs).Count -gt 1) {
             Write-Output "This will $confirmMessage all files in"
             Write-Output "  $files"
             Write-Output "  $jsonFiles"
@@ -602,8 +608,10 @@ function Get-MySchedule {
             }
         }
 
-        foreach ($file in (dir (@($files) + @($jsonFiles)))) {
-            Invoke-Expression "$command $file"
+        foreach ($dir in $allDirs) {
+            foreach ($item in (dir $dir)) {
+                Invoke-Expression "$command $item"
+            }
         }
     }
     elseif ($Mode -eq 'Cat') {

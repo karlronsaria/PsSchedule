@@ -1,17 +1,5 @@
 # issue
 
-- [ ] 2023_08_22_202828
-  - actual
-    ```
-    C:\Users\karlr> Get-MySchedule -Subdirectory general -Mode Edit -Pattern amazon
-
-    C:\note\sched\notebook\general\sched_-_2022_12_18_Delivery.md:8:  - url: https://www.amazon.com
-    This will open to editor all files in
-      C:\note\sched\notebook\general\sched_-_2022_12_18_Delivery.md:8:  - url: https://www.amazon.com
-
-    Continue? (y/n):
-    ```
-
 - [ ] 2023_02_07_212709
   - howto
     - in powershell
@@ -73,6 +61,20 @@
     - output is an array of strings
   - expected
     - output is a PsCustomObject
+
+## complete
+
+- [x] 2023_08_22_202828
+  - actual
+    ```
+    C:\Users\karlr> Get-MySchedule -Subdirectory general -Mode Edit -Pattern amazon
+
+    C:\note\sched\notebook\general\sched_-_2022_12_18_Delivery.md:8:  - url: https://www.amazon.com
+    This will open to editor all files in
+      C:\note\sched\notebook\general\sched_-_2022_12_18_Delivery.md:8:  - url: https://www.amazon.com
+
+    Continue? (y/n):
+    ```
 
 - [x] 2023_09_11_125704
   - actual
