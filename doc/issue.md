@@ -1,5 +1,88 @@
 # issue
 
+- [ ] 2023_01_10_230005
+
+  - howto
+    - in powershell
+
+      ```powershell
+      $tree = cat .\todo_-_2022_12_16.md | Get-MarkdownTable
+      $tree.lookup | Write-MarkdownTree
+      ```
+    - in ``todo_-_2022_12_16.md``
+
+      ```
+      # lookup
+      - howto: tie shoes efficiently
+        - [ ] learn
+        - [x] find
+          - link
+            - search
+              - How To Tie Your Shoes Insanely Fast!
+              - SharpshooterJD
+              - YouTube
+            - retrieved: 2023_01_10
+      - howto: remove windshield glare
+        - [ ] learn
+        - [x] find
+          - link
+            - search
+              - STOP Auto Glass GLARE & WATER SPOTS....FOREVER!!!!!
+              - Sweet Project Cars
+              - YouTube
+            - retrieved: 2023_01_10
+      - [ ] learn: webassembly
+        - [ ] link video in listen-later playlist
+      - [ ] learn: Hindley-Milner type system
+      ```
+  - actual
+
+    ```
+    - howto
+      - tie shoes efficiently
+      - remove windshield glare
+    - [ ] learn
+      - webassembly
+      - Hindley-Milner type system
+    ```
+  - expected
+
+    ```
+    - howto
+      - tie shoes efficiently
+        - [ ] learn
+        - [x] find
+          - link
+            - search
+              - How To Tie Your Shoes Insanely Fast!
+              - SharpshooterJD
+              - YouTube
+            - retrieved: 2023_01_10
+      - remove windshield glare
+        - [ ] learn
+        - [x] find
+          - link
+            - search
+              - STOP Auto Glass GLARE & WATER SPOTS....FOREVER!!!!!
+              - Sweet Project Cars
+              - YouTube
+            - retrieved: 2023_01_10
+    - learn
+      - [ ] webassembly
+        - [ ] link video in listen-later playlist
+      - [ ] Hindley-Milner type system
+    ```
+
+- [ ] 2022_10_27_180542
+
+  - actual
+    - action items with header levels other than 3 are ignored
+
+- [ ] 2023_01_20_144131
+
+  - what
+    - ``Get-MySchedule``: ``Extension`` parameter is never used due to all work files having the markdown ``*.md`` extension.
+
 - [ ] 2023_02_07_212709
   - howto
     - in powershell
@@ -61,8 +144,6 @@
     - output is an array of strings
   - expected
     - output is a PsCustomObject
-
-## complete
 
 - [x] 2023_08_22_202828
   - actual
@@ -244,11 +325,6 @@
     10:00      daily todo
     ```
 
-- [ ] 2023_01_20_144131
-
-  - what
-    - ``Get-MySchedule``: ``Extension`` parameter is never used due to all work files having the markdown ``*.md`` extension.
-
 - [x] 2023_01_11_173519
 
   - howto
@@ -318,84 +394,6 @@
               - what: invoice
               - url: \doc\My\invoice_-_2023_01_07_HtgDominos.pdf
       ```
-
-- [ ] 2023_01_10_230005
-
-  - howto
-    - in powershell
-
-      ```powershell
-      $tree = cat .\todo_-_2022_12_16.md | Get-MarkdownTable
-      $tree.lookup | Write-MarkdownTree
-      ```
-    - in ``todo_-_2022_12_16.md``
-
-      ```
-      # lookup
-      - howto: tie shoes efficiently
-        - [ ] learn
-        - [x] find
-          - link
-            - search
-              - How To Tie Your Shoes Insanely Fast!
-              - SharpshooterJD
-              - YouTube
-            - retrieved: 2023_01_10
-      - howto: remove windshield glare
-        - [ ] learn
-        - [x] find
-          - link
-            - search
-              - STOP Auto Glass GLARE & WATER SPOTS....FOREVER!!!!!
-              - Sweet Project Cars
-              - YouTube
-            - retrieved: 2023_01_10
-      - [ ] learn: webassembly
-        - [ ] link video in listen-later playlist
-      - [ ] learn: Hindley-Milner type system
-      ```
-  - actual
-
-    ```
-    - howto
-      - tie shoes efficiently
-      - remove windshield glare
-    - [ ] learn
-      - webassembly
-      - Hindley-Milner type system
-    ```
-  - expected
-
-    ```
-    - howto
-      - tie shoes efficiently
-        - [ ] learn
-        - [x] find
-          - link
-            - search
-              - How To Tie Your Shoes Insanely Fast!
-              - SharpshooterJD
-              - YouTube
-            - retrieved: 2023_01_10
-      - remove windshield glare
-        - [ ] learn
-        - [x] find
-          - link
-            - search
-              - STOP Auto Glass GLARE & WATER SPOTS....FOREVER!!!!!
-              - Sweet Project Cars
-              - YouTube
-            - retrieved: 2023_01_10
-    - learn
-      - [ ] webassembly
-        - [ ] link video in listen-later playlist
-      - [ ] Hindley-Milner type system
-    ```
-
-- [ ] 2022_10_27_180542
-
-  - actual
-    - action items with header levels other than 3 are ignored
 
 ## resolved
 
