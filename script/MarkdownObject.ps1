@@ -479,9 +479,8 @@ function Get-MarkdownTree {
             Process {
                 $level = $TableRow.Level
                 $content = $TableRow.Content
-                $parent = $stack[$level - 1]
 
-                if ($null -eq $parent) {
+                if ($null -eq $stack[$level - 1]) {
                     return 'Error'
                 }
 
@@ -527,7 +526,7 @@ function Get-MarkdownTree {
 
                     # # DRAWINGBOARD
                     # # ------------
-                    # } elseif (2 -eq $level -and (Test-EmptyObject $parent)) {
+                    # } elseif (2 -eq $level -and (Test-EmptyObject $stack[$level - 1])) {
                     #     $stack[$level] = [PsCustomObject]@{ what = $key }
                     #
                     #     Add-Property `
@@ -568,13 +567,32 @@ function Get-MarkdownTree {
                     # return
                 }
 
-                if ($content -notin $MuteProperty) {
-                    $prevName = $content
+                # Reprocess key-value expression as a single property name.
+                # This only happens when a string is left behind on the stack.
+                if ($stack[$level - 1] -is [String]) {
+                    $props = $stack[$level - 2].PsObject.Properties | where {
+                        $_.Name -eq $prevName
+                    }
 
+                    foreach ($prop in $props) {
+                        $stack[$level - 1] = [PsCustomObject]@{}
+
+                        $stack[$level - 2] | Add-Member `
+                            -MemberType NoteProperty `
+                            -Name "$($prop.Name): $($prop.Value)" `
+                            -Value $stack[$level - 1]
+
+                        $stack[$level - 2].PsObject.Properties.Remove($prop.Name)
+                    }
+                }
+
+                if ($content -notin $MuteProperty) {
                     Add-Property `
-                        -InputObject $parent `
+                        -InputObject $stack[$level - 1] `
                         -Name $content `
                         -Value $stack[$level]
+
+                    $prevName = $content
                 }
 
                 # $keys[$level] = $content
