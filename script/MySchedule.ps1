@@ -31,6 +31,9 @@ function Find-MyTree {
         [Int]
         $DepthLimit,
 
+        [Switch]
+        $NoHints,
+
         [Parameter(
             ParameterSetName = 'Inferred',
             Position = 0
@@ -492,6 +495,11 @@ function Get-MySchedule {
         -DefaultSubdirectory $DefaultSubdirectory
 
     if (-not (Test-Path $path)) {
+        if (-not $NoHints) {
+            Write-Output "Path not found"
+            Write-Output "Hint: The Directory must be a schedule ""notebook"", with at least one subdirectory called ""$($setting.ScheduleDefaultSubdirectory)"""
+        }
+
         return @()
     }
 
