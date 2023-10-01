@@ -11,7 +11,13 @@ function Write-MarkdownTree {
         $Level = 0,
 
         [Switch]
-        $AsTree
+        $AsTree,
+
+	[Switch]
+	$BranchTables,
+
+        [Switch]
+        $NoTables
     )
 
     Process {
@@ -24,8 +30,25 @@ function Write-MarkdownTree {
         switch -Regex ($InputObject.GetType().Name) {
             '.*\[\]$' {
                 foreach ($subitem in $InputObject) {
-                    Write-MarkdownTree " " $Level -AsTree:$AsTree
-                    Write-MarkdownTree $subitem ($Level + 1) -AsTree:$AsTree
+                    if ($NoTables) {
+                        Write-MarkdownTree " " $Level -AsTree:$AsTree
+                        Write-MarkdownTree $subitem ($Level + 1) -AsTree:$AsTree
+                    }
+                    else {
+                        $table = $subitem | Write-MdTable
+
+                        if ($BranchTables) {
+                            $lead = '- '
+
+                            foreach ($row in $table) {
+                                Write-Output "$('  ' * $Level)$lead$row"
+                                $lead = '  '
+                            }
+                        }
+                        else {
+                            $table
+                        }
+                    }
                 }
             }
 
@@ -47,7 +70,7 @@ function Write-MarkdownTree {
                         Write-MarkdownTree `
                             -InputObject $property.Value `
                             -Level $Level `
-			    -AssTree:$AsTree
+                            -AsTree:$AsTree
 
                         continue
                     }
@@ -55,7 +78,7 @@ function Write-MarkdownTree {
                     $list = Write-MarkdownTree `
                         -InputObject $property.Value `
                         -Level ($Level + 1) `
-			-AsTree:$AsTree
+                        -AsTree:$AsTree
 
                     $inline =
                         [String]::IsNullOrWhiteSpace($property.Name) `
