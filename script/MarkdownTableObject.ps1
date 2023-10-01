@@ -261,3 +261,83 @@ function Get-MdTable {
     }
 }
 
+<#
+.SYNOPSIS
+f: tree -> str
+#>
+function Write-MdTable {
+    Param(
+        [Parameter(ValueFromPipeline = $true)]
+        [PsCustomObject[]]
+        $InputObject
+    )
+
+    Begin {
+        $list = @()
+        $properties = @()
+    }
+
+    Process {
+        $InputObject | foreach {
+            $list += @($_)
+
+            $properties += @($_.PsObject.Properties.Name | where {
+                $_ -notin $properties
+            })
+        }
+    }
+
+    End {
+        $lengths = @{}
+
+        foreach ($property in $properties) {
+            $lengths[$property] = $property.Length
+        }
+
+        $rows += @(foreach ($item in $list) {
+            $row = @{}
+
+            foreach ($property in $properties) {
+                $value = if ($property -in $item.PsObject.Properties.Name) {
+                    $item.$property
+                } else {
+                    ""
+                }
+
+                if ($value.Length -gt $property.Length) {
+                    $lengths[$property] = $value.Length
+                }
+
+                $row[$property] = $value
+            }
+
+            $row
+        })
+
+        $str = "|"
+
+        foreach ($property in $properties) {
+            $str += " " + ("{0, -$($lengths[$property])}" -f $property) + " |"
+        }
+
+        Write-Output $str
+        $str = "|"
+
+        foreach ($property in $properties) {
+            $str += " " + ("-" * $lengths[$property]) + " |"
+        }
+
+        Write-Output $str
+
+        foreach ($row in $rows) {
+            $str = "|"
+
+            foreach ($property in $properties) {
+                $str += " " + ("{0, -$($lengths[$property])}" -f $($row[$property])) + " |"
+            }
+
+            Write-Output $str
+        }
+    }
+}
+

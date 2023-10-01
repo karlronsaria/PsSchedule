@@ -24,8 +24,8 @@ function Write-MarkdownTree {
         switch -Regex ($InputObject.GetType().Name) {
             '.*\[\]$' {
                 foreach ($subitem in $InputObject) {
-                    Write-MarkdownTree " " $Level
-                    Write-MarkdownTree $subitem ($Level + 1)
+                    Write-MarkdownTree " " $Level -AsTree:$AsTree
+                    Write-MarkdownTree $subitem ($Level + 1) -AsTree:$AsTree
                 }
             }
 
@@ -45,15 +45,17 @@ function Write-MarkdownTree {
 
                     if ($property.Name -eq 'list_subitem') {
                         Write-MarkdownTree `
-                            $property.Value `
-                            $Level
+                            -InputObject $property.Value `
+                            -Level $Level `
+			    -AssTree:$AsTree
 
                         continue
                     }
 
                     $list = Write-MarkdownTree `
-                        $property.Value `
-                        ($Level + 1)
+                        -InputObject $property.Value `
+                        -Level ($Level + 1) `
+			-AsTree:$AsTree
 
                     $inline =
                         [String]::IsNullOrWhiteSpace($property.Name) `
