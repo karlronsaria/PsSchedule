@@ -1,5 +1,28 @@
 # issue
 
+- [ ] 2023_10_02_020437
+  - howto
+    - in powershell
+      ```powershell
+      cat myFile.md | Write-MarkdownTree
+      ```
+    - in markdown
+      ```
+      - [ ] sep: hir
+      ```
+  - actual
+    ```
+    sep
+    ---
+    hir
+    ```
+  - expected
+    ```
+    complete sep
+    -------- ---
+    False    hir
+    ```
+
 - [ ] 2023_01_10_230005
 
   - howto

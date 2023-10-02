@@ -763,3 +763,48 @@ function Get-NoteProperty {
     }
 }
 
+function Write-MdTreeToHtml {
+    Param(
+	[Parameter(ValueFromPipeline = $true)]
+        [PsCustomObject]
+	$InputObject
+    )
+
+    Write-Output "<ul class=""contains-task-list"">"
+
+    $properties = $InputObject.PsObject.Properties `
+    	| where { $_.MemberType -eq 'NoteProperty' } `
+	| where { $_.Name.ToLower() -ne 'complete' }
+
+    foreach ($prop in $properties) {
+	$value = $prop.Value
+	$actionItem = 'complete' -in $value.PsObject.Properties.Name
+
+	Write-Output @(if ($actionItem) {
+	    "<li class=""task-list-item""><input type=""checkbox"">$($prop.Name)"
+	}
+	else {
+            "<li>$($prop.Name)"
+	})
+            
+	Write-MdTreeToHtml $value
+        Write-Output "</li>"
+    }
+
+    Write-Output "</ul>"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
