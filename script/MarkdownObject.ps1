@@ -13,8 +13,8 @@ function Write-MarkdownTree {
         [Switch]
         $AsTree,
 
-	[Switch]
-	$BranchTables,
+        [Switch]
+        $BranchTables,
 
         [Switch]
         $NoTables
@@ -499,6 +499,40 @@ function Get-MarkdownTree {
                 $prevLevel = 0
                 $prevName = ""
                 $tableStart = $null
+
+                function Convert-StackLeafToFoldedBranch {
+                    Param(
+                        [Object[]]
+                        $Stack,
+
+                        [Int]
+                        $Level,
+
+                        [String]
+                        $PrevPropertyName
+                    )
+
+                    if (-not $Stack[$Level] -is [String]) {
+                        return $Stack
+                    }
+
+                    $props = $Stack[$Level - 1].PsObject.Properties `
+                        | where {
+                            $_.Name -eq $PrevPropertyName
+                        }
+
+                    foreach ($prop in $props) {
+                        $Stack[$Level - 1] | Add-Member `
+                            -MemberType NoteProperty `
+                            -Name "$($prop.Name): $($prop.Value)" `
+                            -Value $Stack[$Level]
+
+                        $Stack[$Level - 1].PsObject.Properties.Remove($prop.Name)
+                    }
+
+                    $Stack[$Level] = [PsCustomObject]@{}
+                    return $Stack
+                }
             }
 
             Process {
@@ -509,9 +543,20 @@ function Get-MarkdownTree {
                     return 'Error'
                 }
 
+# - [ ] est: uan
+#   - sin
+# 
+# - est
+#   - uan
+#     - sin
+#   - complete
+#     - false
+
+# $m = [Regex]::Match("[ ] est: uan", "^\s*(\[(?<check>x| )\] )?((?<key>[^:`"]+)\s*:\s+)?(?<value>.*)?\s*$"); $m.Groups['check']; $m.Groups['key']; $m.Groups['value']
+
                 $capture = [Regex]::Match( `
                     $content, `
-                    "^\s*(?<key>[^:`"]+)\s*:(\s+(?<value>.*))?\s*$" `
+                    "^\s*(\[(?<check>x| )\] )?((?<key>[^:`"]+)\s*:\s+)?(?<value>.*)?\s*$" `
                 )
 
                 $stack[$level] = [PsCustomObject]@{}
@@ -540,14 +585,46 @@ function Get-MarkdownTree {
                         $tableBuild = $null
                     }
 
+                    $checkGroup = $capture.Groups['check']
+
+                    if ($checkGroup.Success) {
+                        # $stack = Convert-StackLeafToFoldedBranch `
+                        #     -Stack $stack `
+                        #     -Level $level `
+                        #     -PrevPropertyName $prevName
+
+                        Add-Property `
+                            -InputObject $stack[$level] `
+                            -Name 'complete' `
+                            -Value ($checkGroup.Value -eq 'x')
+                    }
+
                     $prevLevel = $level
                     $keyCapture = $capture.Groups['key']
 
                     if ($keyCapture.Success) {
                         $key = $keyCapture.Value
                         $value = $capture.Groups['value'].Value
-                        $stack[$level] = $value
-                        $content = $key
+
+                        if ([String]::IsNullOrWhiteSpace($key)) {
+                            $key = 'list_subitem'
+                        }
+
+                        if ($key -notin $MuteProperty) {
+                            Add-Property `
+                                -InputObject $stack[$level - 1] `
+                                -Name $key `
+                                -Value ([PsCustomObject]@{
+                                    $value = $stack[$level]
+                                })
+
+                            $stack[$level - 1] = $stack[$level]
+                            $prevName = $key
+                        }
+
+                        continue
+                        # $stack[$level] = $value
+                        # $content = $key
 
                     # # DRAWINGBOARD
                     # # ------------
@@ -562,22 +639,9 @@ function Get-MarkdownTree {
                     #     return
 
                     }
-
-                    $checkBoxCapture = [Regex]::Match( `
-                        $content, `
-                        "\[(?<check>x| )\]\s*(?<content>.*)" `
-                    )
-
-                    if ($checkBoxCapture.Success) {
-                        $content = $checkBoxCapture.Groups['content'].Value
-                        $token = $checkBoxCapture.Groups['check'].Value
-
-                        Add-Property `
-                            -InputObject $stack[$level] `
-                            -Name 'complete' `
-                            -Value ($token -eq 'x')
-                    }
                 }
+
+                $content = $capture.Groups['value']
 
                 if ([String]::IsNullOrWhiteSpace($content)) {
                     $content = 'list_subitem'
@@ -592,24 +656,12 @@ function Get-MarkdownTree {
                     # return
                 }
 
-                # Reprocess key-value expression as a single property name.
-                # This only happens when a string is left behind on the stack.
-                if ($stack[$level - 1] -is [String]) {
-                    $props = $stack[$level - 2].PsObject.Properties | where {
-                        $_.Name -eq $prevName
-                    }
-
-                    foreach ($prop in $props) {
-                        $stack[$level - 1] = [PsCustomObject]@{}
-
-                        $stack[$level - 2] | Add-Member `
-                            -MemberType NoteProperty `
-                            -Name "$($prop.Name): $($prop.Value)" `
-                            -Value $stack[$level - 1]
-
-                        $stack[$level - 2].PsObject.Properties.Remove($prop.Name)
-                    }
-                }
+                # # Reprocess key-value expression as a single property name.
+                # # This only happens when a string is left behind on the stack.
+                # $stack = Convert-StackLeafToFoldedBranch `
+                #     -Stack $stack `
+                #     -Level ($level - 1) `
+                #     -PrevPropertyName $prevName
 
                 if ($content -notin $MuteProperty) {
                     Add-Property `
@@ -793,18 +845,4 @@ function Write-MdTreeToHtml {
 
     Write-Output "</ul>"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

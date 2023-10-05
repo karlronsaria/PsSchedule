@@ -303,6 +303,9 @@ function Get-MySchedule {
         [Switch]
         $NoConfirm,
 
+        [Switch]
+        $NoHints,
+
         [Parameter(
             ParameterSetName = 'Inferred',
             Position = 0
@@ -431,7 +434,10 @@ function Get-MySchedule {
             $Default,
 
             [String]
-            $DefaultsFileName
+            $DefaultsFileName,
+
+            [Switch]
+            $NoHints
         )
 
         $IgnoreSubdirectory =
@@ -642,7 +648,8 @@ function Get-MySchedule {
                 -JsonFile:$jsonFiles `
                 -StartDate:$startDate_subitem `
                 -Default:$defaults `
-                -DefaultsFileName:$DefaultsFileName
+                -DefaultsFileName:$DefaultsFileName `
+                -NoHints:$NoHints
 
             switch ($Mode) {
                 'Schedule' {

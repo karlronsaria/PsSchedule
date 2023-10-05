@@ -4,7 +4,7 @@
   - howto
     - in powershell
       ```powershell
-      cat myFile.md | Write-MarkdownTree
+      cat myFile.md | Get-MarkdownTree
       ```
     - in markdown
       ```
