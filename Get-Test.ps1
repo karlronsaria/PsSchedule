@@ -1,16 +1,19 @@
 <#
-    .HOWTO
-    $getScripts = "$pathTo\Get-Test.ps1"
+.DESCRIPTION
+$getScripts = "$pathTo\Get-Test.ps1"
 
-    & $getScripts | foreach {
-        . $_
-    }
+& $getScripts | foreach {
+    . $_
+}
 
-    .LINK
-    Url: https://stackoverflow.com/questions/65462679/why-powershell-exe-there-is-no-way-to-dot-source-a-script
-    Retrieved: 2022_10_09
+.LINK
+Url: https://stackoverflow.com/questions/65462679/why-powershell-exe-there-is-no-way-to-dot-source-a-script
+Retrieved: 2022_10_09
 #>
 
-$scripts = dir "$PsScriptRoot\test\*.ps1"
+$scripts = dir @(
+    "$PsScriptRoot\test\*.ps1"
+    "$PsScriptRoot\script\Debug\*.ps1"
+)
 
 return $scripts
