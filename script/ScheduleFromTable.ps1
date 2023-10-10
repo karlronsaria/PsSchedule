@@ -189,14 +189,12 @@ function Get-Schedule_FromTable {
                 -PropertyName $PropertyName `
                 -Default $Default
 
-            if ($result.Success) {
-                return $result.Value
+            if (-not $result.Success) {
+                $InputObject | Add-Member `
+                    -MemberType 'NoteProperty' `
+                    -Name $result.Name `
+                    -Value $result.Value `
             }
-
-            $InputObject | Add-Member `
-                -MemberType 'NoteProperty' `
-                -Name $result.Name `
-                -Value $result.Value `
 
             return $result.Value
         }
@@ -225,37 +223,54 @@ function Get-Schedule_FromTable {
                 -and $EndDate.Month -ge $Date.Month `
                 -and $EndDate.Day -ge $Date.Day
         }
+
+        function Test-TimeFrameIncludesNow {
+            Param(
+                [PsCustomObject]
+                $InputObject,
+
+                [DateTime]
+                $StartDate
+            )
+
+            $recurringStart = $InputObject `
+                | Get-NoteProperty -PropertyName 'startdate'
+
+            if ($recurringStart.Success) {
+                $startWhen = Get-DateParseVaryingLength `
+                    -DateString $recurringStart.Value
+
+                if ($startWhen.DateTime -gt $StartDate) {
+                    return $false
+                }
+            }
+
+            $recurringEnd = $InputObject `
+                | Get-NoteProperty -PropertyName 'enddate'
+
+            if ($recurringEnd.Success) {
+                $endWhen = Get-DateParseVaryingLength `
+                    -DateString $recurringEnd.Value
+
+                if ($endWhen.DateTime -lt $StartDate) {
+                    return $false
+                }
+            }
+
+            return $true
+        }
     }
 
     Process {
         $list = @()
 
-        if ($null -eq $InputObject) {
+        $exclude = $null -eq $InputObject `
+            -or -not (Test-TimeFrameIncludesNow `
+            -InputObject $InputObject `
+            -DateTime $StartDate)
+
+        if ($exclude) {
             return $list
-        }
-
-        $recurringStart = $InputObject `
-            | Get-NoteProperty -PropertyName 'startdate'
-
-        if ($recurringStart.Success) {
-            $startWhen = Get-DateParseVaryingLength `
-                -DateString $recurringStart.Value
-
-            if ($startWhen.DateTime -gt $StartDate) {
-                return
-            }
-        }
-
-        $recurringEnd = $InputObject `
-            | Get-NoteProperty -PropertyName 'enddate'
-
-        if ($recurringEnd.Success) {
-            $endWhen = Get-DateParseVaryingLength `
-                -DateString $recurringEnd.Value
-
-            if ($endWhen.DateTime -lt $StartDate) {
-                return
-            }
         }
 
         $getList = $InputObject `
@@ -263,14 +278,14 @@ function Get-Schedule_FromTable {
 
         if ($getList.Success) {
             foreach ($subitem in $getList.Value.list_subitem) {
-                $newItem = $InputObject | Get-NewActionItem `
-                    -ExcludeProperty 'list' `
-                    -AddProperty ($subitem.PsObject.Properties)
-
-                $newItem = $newItem | Get-Schedule_FromTable `
-                    -StartDate:$StartDate `
-                    -EndDate:$EndDate `
-                    -Default:$Default
+                $newItem = $InputObject `
+                    | Get-NewActionItem `
+                        -ExcludeProperty 'list' `
+                        -AddProperty ($subitem.PsObject.Properties) `
+                    | Get-Schedule_FromTable `
+                        -StartDate:$StartDate `
+                        -EndDate:$EndDate `
+                        -Default:$Default
 
                 $list += @($newItem)
             }
@@ -283,10 +298,7 @@ function Get-Schedule_FromTable {
             -PropertyName 'when' `
             -Default $Default
 
-        if ($schedWhen -is [String]) {
-            $schedWhen = $schedWhen.ToLower()
-        }
-        else {
+        if (-not ($schedWhen -is [String])) {
             foreach ($property in (Get-NoteProperty $schedWhen)) {
                 $obj = $InputObject.PsObject.Copy()
                 $obj.when = "$($property.Name)"
@@ -313,6 +325,8 @@ function Get-Schedule_FromTable {
             return $list
         }
 
+        $schedWhen = $schedWhen.ToLower()
+
         $schedType = (Add-NoteProperty `
             -InputObject $InputObject `
             -PropertyName 'type' `
@@ -325,7 +339,7 @@ function Get-Schedule_FromTable {
 
             $capture = [Regex]::Match( `
                 $schedWhen, `
-                '(?<checkbox>\s*\[ \]\s+)?(?<datetime>.*)$' `
+                '(?<checkbox>\s*\[ \] )?(?<datetime>.*)$' `
             )
 
             $schedWhen = $capture.Groups['datetime'].Value

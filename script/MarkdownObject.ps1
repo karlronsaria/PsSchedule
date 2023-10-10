@@ -500,6 +500,17 @@ function Get-MarkdownTree {
                 $prevName = ""
                 $tableStart = $null
 
+                function Get-NoteProperty {
+                    Param(
+                        [PsCustomObject]
+                        $InputObject
+                    )
+
+                    return $InputObject.PsObject.Properties | where {
+                        $_.MemberType -eq 'NoteProperty'
+                    }
+                }
+
                 function Convert-StackLeafToFoldedBranch {
                     Param(
                         [Object[]]
@@ -533,6 +544,51 @@ function Get-MarkdownTree {
                     $Stack[$Level] = [PsCustomObject]@{}
                     return $Stack
                 }
+
+                function Test-IsLeaf {
+                    Param(
+                        [PsCustomObject]
+                        $InputObject
+                    )
+
+                    $props = Get-NoteProperty $InputObject
+
+                    if (@($props).Count -eq 1) {
+                        switch (@($props)[0].Value) {
+                            { $_ -is [PsCustomObject] } {
+                                return $null -eq (Get-NoteProperty $_)
+                            }
+
+                            default {
+                                return $false
+                            }
+                        }
+                    }
+
+                    return $false
+                }
+
+                function Convert-LeafToString {
+                    Param(
+                        [PsCustomObject]
+                        $InputObject
+                    )
+
+                    foreach ($prop in (Get-NoteProperty $InputObject)) {
+                        $value = $prop.Value
+
+                        if (Test-IsLeaf $value) {
+                            $InputObject.($prop.Name) =
+                                @(Get-NoteProperty $value)[0].Name
+                        }
+                        else {
+                            $value | foreach {
+                                Convert-LeafToString $_
+                            }
+                        }
+                    }
+                }
+
             }
 
             Process {
@@ -543,21 +599,15 @@ function Get-MarkdownTree {
                     return 'Error'
                 }
 
-# - [ ] est: uan
-#   - sin
-# 
-# - est
-#   - uan
-#     - sin
-#   - complete
-#     - false
-
-# $m = [Regex]::Match("[ ] est: uan", "^\s*(\[(?<check>x| )\] )?((?<key>[^:`"]+)\s*:\s+)?(?<value>.*)?\s*$"); $m.Groups['check']; $m.Groups['key']; $m.Groups['value']
-
                 $capture = [Regex]::Match( `
                     $content, `
                     "^\s*(\[(?<check>x| )\] )?((?<key>[^:`"]+)\s*:\s+)?(?<value>.*)?\s*$" `
                 )
+
+                # if ($level -lt $prevLevel) {
+                #     # todo
+                #     Convert-LeafToString $stack[$prevLevel]
+                # }
 
                 $stack[$level] = [PsCustomObject]@{}
 
@@ -573,87 +623,57 @@ function Get-MarkdownTree {
 
                     return
                 }
-                else {
-                    if ($null -ne $tableBuild) {
-                        Add-Table `
-                            -Stack $stack `
-                            -Table $tableBuild `
-                            -TableStart $tableStart `
-                            -PrevLevel $prevLevel `
-                            -PrevName $prevName
 
-                        $tableBuild = $null
+                if ($null -ne $tableBuild) {
+                    Add-Table `
+                        -Stack $stack `
+                        -Table $tableBuild `
+                        -TableStart $tableStart `
+                        -PrevLevel $prevLevel `
+                        -PrevName $prevName
+
+                    $tableBuild = $null
+                }
+
+                $checkGroup = $capture.Groups['check']
+
+                if ($checkGroup.Success) {
+                    Add-Property `
+                        -InputObject $stack[$level] `
+                        -Name 'complete' `
+                        -Value ($checkGroup.Value -eq 'x')
+                }
+
+                $prevLevel = $level
+                $keyCapture = $capture.Groups['key']
+
+                if ($keyCapture.Success) {
+                    $key = $keyCapture.Value
+                    $value = $capture.Groups['value'].Value
+
+                    if ([String]::IsNullOrWhiteSpace($key)) {
+                        $key = 'list_subitem'
                     }
 
-                    $checkGroup = $capture.Groups['check']
-
-                    if ($checkGroup.Success) {
-                        # $stack = Convert-StackLeafToFoldedBranch `
-                        #     -Stack $stack `
-                        #     -Level $level `
-                        #     -PrevPropertyName $prevName
-
+                    if ($key -notin $MuteProperty) {
                         Add-Property `
-                            -InputObject $stack[$level] `
-                            -Name 'complete' `
-                            -Value ($checkGroup.Value -eq 'x')
+                            -InputObject $stack[$level - 1] `
+                            -Name $key `
+                            -Value ([PsCustomObject]@{
+                                $value = $stack[$level]
+                            })
+
+                        # $stack[$level - 1] = $stack[$level]
+                        $prevName = $key
                     }
 
-                    $prevLevel = $level
-                    $keyCapture = $capture.Groups['key']
-
-                    if ($keyCapture.Success) {
-                        $key = $keyCapture.Value
-                        $value = $capture.Groups['value'].Value
-
-                        if ([String]::IsNullOrWhiteSpace($key)) {
-                            $key = 'list_subitem'
-                        }
-
-                        if ($key -notin $MuteProperty) {
-                            Add-Property `
-                                -InputObject $stack[$level - 1] `
-                                -Name $key `
-                                -Value ([PsCustomObject]@{
-                                    $value = $stack[$level]
-                                })
-
-                            $stack[$level - 1] = $stack[$level]
-                            $prevName = $key
-                        }
-
-                        continue
-                        # $stack[$level] = $value
-                        # $content = $key
-
-                    # # DRAWINGBOARD
-                    # # ------------
-                    # } elseif (2 -eq $level -and (Test-EmptyObject $stack[$level - 1])) {
-                    #     $stack[$level] = [PsCustomObject]@{ what = $key }
-                    #
-                    #     Add-Property `
-                    #         -InputObject $stack[0] `
-                    #         -Name $keys[1] `
-                    #         -Value $stack[$level]
-                    #
-                    #     return
-
-                    }
+                    return
                 }
 
                 $content = $capture.Groups['value']
 
                 if ([String]::IsNullOrWhiteSpace($content)) {
                     $content = 'list_subitem'
-
-                    # DRAWINGBOARD
-                    # ------------
-                    # Add-Property `
-                    #     -InputObject $stack[$level - 2] `
-                    #     -Name 'list' `
-                    #     -Value $stack[$level]
-                    # 
-                    # return
                 }
 
                 # # Reprocess key-value expression as a single property name.
@@ -671,8 +691,6 @@ function Get-MarkdownTree {
 
                     $prevName = $content
                 }
-
-                # $keys[$level] = $content
             }
 
             End {
@@ -685,6 +703,8 @@ function Get-MarkdownTree {
                         -PrevName $prevName
                 }
 
+                # todo
+                Convert-LeafToString $stack[0]
                 return $stack[0]
             }
         }
@@ -713,14 +733,6 @@ function Get-MarkdownTree {
                 Write-Output $_
             }
 
-# todo
-<#
-            } | foreach {
-                [PsCustomObject]@{
-                    Level = $_.Level - $startLevel + 1
-                    Content = $_.Content
-                }
-#>
         return $content `
             | where {
                 $_.Type.Count -gt 0
@@ -817,29 +829,29 @@ function Get-NoteProperty {
 
 function Write-MdTreeToHtml {
     Param(
-	[Parameter(ValueFromPipeline = $true)]
+        [Parameter(ValueFromPipeline = $true)]
         [PsCustomObject]
-	$InputObject
+        $InputObject
     )
 
     Write-Output "<ul class=""contains-task-list"">"
 
     $properties = $InputObject.PsObject.Properties `
-    	| where { $_.MemberType -eq 'NoteProperty' } `
-	| where { $_.Name.ToLower() -ne 'complete' }
+        | where { $_.MemberType -eq 'NoteProperty' } `
+        | where { $_.Name.ToLower() -ne 'complete' }
 
     foreach ($prop in $properties) {
-	$value = $prop.Value
-	$actionItem = 'complete' -in $value.PsObject.Properties.Name
+        $value = $prop.Value
+        $actionItem = 'complete' -in $value.PsObject.Properties.Name
 
-	Write-Output @(if ($actionItem) {
-	    "<li class=""task-list-item""><input type=""checkbox"">$($prop.Name)"
-	}
-	else {
+        Write-Output @(if ($actionItem) {
+            "<li class=""task-list-item""><input type=""checkbox"">$($prop.Name)"
+        }
+        else {
             "<li>$($prop.Name)"
-	})
-            
-	Write-MdTreeToHtml $value
+        })
+
+        Write-MdTreeToHtml $value
         Write-Output "</li>"
     }
 

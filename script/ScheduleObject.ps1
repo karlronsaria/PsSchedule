@@ -325,7 +325,7 @@ function Get-Schedule {
                     $setting.ScheduleDefaultsFile
 
                 $defaults = if ((Test-Path $defaultsPath)) {
-                    cat $defaultsPath | ConvertFrom-Json
+                    Get-Content $defaultsPath | ConvertFrom-Json
                 } else {
                     $null
                 }
@@ -352,7 +352,8 @@ function Get-Schedule {
                         $setting.ScheduleDefaultsFile `
                             -ne $_.Name.ToLower()
                     } `
-                    | cat | ConvertFrom-Json `
+                    | Get-Content `
+                    | ConvertFrom-Json `
                     | Add-Schedule `
                         -Table $what `
                         -StartDate:$StartDate
