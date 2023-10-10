@@ -25,10 +25,8 @@ function Write-MarkdownTree {
             return
         }
 
-        # karlr (2023_01_12):
-        # I strongly believe I shouldn't have to do this.
-        switch -Regex ($InputObject.GetType().Name) {
-            '.*\[\]$' {
+        switch ($InputObject) {
+            { $_ -is [Array] } {
                 foreach ($subitem in $InputObject) {
                     if ($NoTables) {
                         Write-MarkdownTree " " $Level -AsTree:$AsTree
@@ -52,7 +50,7 @@ function Write-MarkdownTree {
                 }
             }
 
-            'PsCustomObject' {
+            { $_ -is [PsCustomObject] } {
                 $properties = $InputObject.PsObject.Properties `
                     | where {
                         'NoteProperty' -eq $_.MemberType
@@ -147,8 +145,8 @@ function Find-Subtree {
 
         $subresults = @()
 
-        switch -Regex ($InputObject.GetType().Name) {
-            '.*\[\]$' {
+        switch ($InputObject) {
+            { $_ -is [Array] } {
                 $i = 0
 
                 $subresults = @(while ($i -lt $InputObject.Count) {
@@ -161,7 +159,7 @@ function Find-Subtree {
                 })
             }
 
-            'PsCustomObject' {
+            { $_ -is [PsCustomObject] } {
                 $properties = $InputObject.PsObject.Properties `
                     | where {
                         'NoteProperty' -eq $_.MemberType

@@ -5,11 +5,39 @@ function Find-MyTree {
     Param(
         [Parameter(ParameterSetName = 'Named')]
         [ArgumentCompleter({
+            # A fixed list of parameters is passed to an argument-completer script block.
+            # Here, only two are of interest:
+            #  * $wordToComplete: 
+            #      The part of the value that the user has typed so far, if any.
+            #  * $preBoundParameters (called $fakeBoundParameters 
+            #    in the docs):
+            #      A hashtable of those (future) parameter values specified so 
+            #      far that are side effect-free (see above).
+            # ---
+            # link
+            # - url: https://stackoverflow.com/questions/65892518/tab-complete-a-parameter-value-based-on-another-parameters-already-specified-va
+            # - retrieved: 2023_10_10
+            Param($cmdName, $paramName, $wordToComplete, $cmdAst, $preBoundParameters)
+
             $setting =
                 cat "$PsScriptRoot\..\res\setting.json" `
                 | ConvertFrom-Json
-            $path = $setting.SearchDirectory
-            return (dir $path -Directory).Name
+
+            $dirs = (dir $setting.SearchDirectory -Directory).Name
+
+            $suggestions = if ($wordToComplete) {
+                $dirs | where { $_ -like "$wordToComplete*" }
+            }
+            else {
+                $dirs
+            }
+
+            return $(if ($suggestions) {
+                $suggestions
+            }
+            else {
+                $dirs
+            })
         })]
         [String]
         $Subdirectory,
@@ -260,11 +288,27 @@ function Get-MySchedule {
     Param(
         [Parameter(ParameterSetName = 'Named')]
         [ArgumentCompleter({
+            Param($cmdName, $paramName, $wordToComplete, $cmdAst, $preBoundParameters)
+
             $setting =
                 cat "$PsScriptRoot\..\res\setting.json" `
                 | ConvertFrom-Json
-            $path = $setting.ScheduleDirectory
-            return (dir $path -Directory).Name
+
+            $dirs = (dir $setting.SearchDirectory -Directory).Name
+
+            $suggestions = if ($wordToComplete) {
+                $dirs | where { $_ -like "$wordToComplete*" }
+            }
+            else {
+                $dirs
+            }
+
+            return $(if ($suggestions) {
+                $suggestions
+            }
+            else {
+                $dirs
+            })
         })]
         [String]
         $Subdirectory,
@@ -281,10 +325,27 @@ function Get-MySchedule {
         [Parameter(ParameterSetName = 'Named')]
         [Alias('Date')]
         [ArgumentCompleter({
+            Param($cmdName, $paramName, $wordToComplete, $cmdAst, $preBoundParameters)
+
             $date = Get-Date
-            (@(0 .. 62) + @(-61 .. -1)) | foreach {
+
+            $dates = (@(0 .. 62) + @(-61 .. -1)) | foreach {
                 Get-Date ($date.AddDays($_)) -Format 'yyyy_MM_dd'
             }
+
+            $suggestions = if ($wordToComplete) {
+                $dates | where { $_ -like "$wordToComplete*" }
+            }
+            else {
+                $dirs
+            }
+
+            return $(if ($suggestions) {
+                $suggestions
+            }
+            else {
+                $dates
+            })
         })]
         [String[]]
         $StartDate,

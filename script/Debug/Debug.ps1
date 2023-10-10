@@ -1,5 +1,6 @@
 function Debug-Tree {
     Param(
+        [Parameter(ValueFromPipeline = $true)]
         $InputObject,
 
         [ScriptBlock]
@@ -35,42 +36,47 @@ function Debug-Tree {
         $Level = 0
     )
 
-    switch ($InputObject) {
-        { $_ -is [PsCustomObject] } {
-            $_.PsObject.Properties | where {
-                $_.MemberType -eq 'NoteProperty'
-            } | foreach {
-                & $ForBranch `
-                    -InputObject $_.Name `
-                    -Level $Level
+    Process {
+        switch ($InputObject) {
+            { $_ -is [PsCustomObject] } {
+                $_.PsObject.Properties | where {
+                    $_.MemberType -eq 'NoteProperty'
+                } | foreach {
+                    & $ForBranch `
+                        -InputObject $_.Name `
+                        -Level $Level
 
-                Debug-Tree `
-                    -InputObject $_.Value `
-                    -ForBranch $ForBranch `
-                    -ForLeaf $ForLeaf `
-                    -Level ($Level + 1)
+                    Debug-Tree `
+                        -InputObject $_.Value `
+                        -ForBranch $ForBranch `
+                        -ForLeaf $ForLeaf `
+                        -Level ($Level + 1)
+                }
             }
-        }
 
-        default {
-            & $ForLeaf `
-                -InputObject $InputObject `
-                -Level $Level
+            default {
+                & $ForLeaf `
+                    -InputObject $InputObject `
+                    -Level $Level
+            }
         }
     }
 }
 
 function Write-TreeDebugInfo {
     Param(
+        [Parameter(ValueFromPipeline = $true)]
         $InputObject
     )
 
-    Debug-Tree -InputObject $InputObject | foreach {
-        if ($_ -match "^[^:]+: ") {
-            Write-Host $_ -ForegroundColor Green
-        }
-        else {
-            Write-Host $_
+    Process {
+        Debug-Tree -InputObject $InputObject | foreach {
+            if ($_ -match "^[^:]+: ") {
+                Write-Host $_ -ForegroundColor Green
+            }
+            else {
+                Write-Host $_
+            }
         }
     }
 }
