@@ -1,6 +1,142 @@
 # I wish
 
-- [x] 
+- [ ] ``when`` objects had a robust structure
+  - example
+
+  ```text
+  - type: event, recur
+  - when
+    - date
+      - from
+      - to
+    - time
+      - from
+      - to
+  ```
+
+  ```text
+  - type: event
+  - when
+    - 1
+      - date
+        - from
+        - to
+    - 2
+      - date
+        - from
+        - to
+  ```
+
+  ```text
+  - type: event
+  - when
+    - time
+      - from
+      - to
+    - 1
+      - date
+        - from
+        - to
+    - 2
+      - date
+        - from
+        - to
+  ```
+
+  ```text
+  - type: event
+  - when
+    - time
+      - from
+      - to
+    - date
+      - 1
+        - from
+        - to
+      - 2
+        - from
+        - to
+  ```
+
+- [ ] ``Get-MarkdownTable`` could extricate style information, such as *italic* _text_ or **bold** __text__
+
+- [ ] the node delimiter ``:`` would have an escape sequence
+
+- [ ] ``Get-MarkdownTable``
+  
+  - actual
+    
+    ```powershell
+    > (cat example.md | Get-MarkdownTable).list.list_subitem
+    
+    when       what
+    ----       ----
+    2023_01_05 sus
+    2023_01_06 ihr
+    2023_01_07 oth
+    ```
+  
+  - expected
+    
+    ```powershell
+    > cat example.md | Get-MarkdownTable
+    
+    when       what
+    ----       ----
+    2023_01_05 sus
+    2023_01_06 ihr
+    2023_01_07 oth
+    ```
+
+- [ ] I could identify expired action items
+  
+  - and have the option
+    - to remove them
+    - or to move them to an archive or ignored folder
+
+- [ ] I could see expired action items from earlier today
+
+- [ ] I could see high-priority deadlines within a week or month's notice but low-priority deadlines within a day's notice
+
+- [ ] 2022_11_09_175458
+  
+  - I could write action items in list form under a single ``sched`` heading, using the ``what`` field as the title
+    
+    - example
+      
+      - typical form
+        
+        ```
+        # sched
+        - what: read
+        - when: mon-1800
+        - every: week
+        - type: routine
+        
+        # sched
+        - what: write
+        - when: tue-1800
+        - every: week
+        - type: routine
+        ```
+      
+      - new form
+        
+        ```
+        # sched
+        - read
+          - when: mon-1800
+          - every: week
+          - type: routine
+        - write
+          - when: tue-1800
+          - every: week
+          - type: routine
+        ```
+
+## resolved
+
+- [x] 2023_11_07_225443
   - howto
     - in powershell
       ```powershell
@@ -117,84 +253,6 @@
 - [x] ``MySchedule`` functions had ``-WhatIf`` flag
   - cancelled
     - needless, since neither function in ``MySchedule`` makes any file system changes
-
-- [ ] ``Get-MarkdownTable`` could extricate style information, such as *italic* _text_ or **bold** __text__
-
-- [ ] the node delimiter ``:`` would have an escape sequence
-
-- [ ] ``Get-MarkdownTable``
-  
-  - actual
-    
-    ```powershell
-    > (cat example.md | Get-MarkdownTable).list.list_subitem
-    
-    when       what
-    ----       ----
-    2023_01_05 sus
-    2023_01_06 ihr
-    2023_01_07 oth
-    ```
-  
-  - expected
-    
-    ```powershell
-    > cat example.md | Get-MarkdownTable
-    
-    when       what
-    ----       ----
-    2023_01_05 sus
-    2023_01_06 ihr
-    2023_01_07 oth
-    ```
-
-- [ ] I could identify expired action items
-  
-  - and have the option
-    - to remove them
-    - or to move them to an archive or ignored folder
-
-- [ ] I could see expired action items from earlier today
-
-- [ ] I could see high-priority deadlines within a week or month's notice but low-priority deadlines within a day's notice
-
-- [ ] 2022_11_09_175458
-  
-  - I could write action items in list form under a single ``sched`` heading, using the ``what`` field as the title
-    
-    - example
-      
-      - typical form
-        
-        ```
-        # sched
-        - what: read
-        - when: mon-1800
-        - every: week
-        - type: routine
-        
-        # sched
-        - what: write
-        - when: tue-1800
-        - every: week
-        - type: routine
-        ```
-      
-      - new form
-        
-        ```
-        # sched
-        - read
-          - when: mon-1800
-          - every: week
-          - type: routine
-        - write
-          - when: tue-1800
-          - every: week
-          - type: routine
-        ```
-
-## resolved
 
 - [x] ``MySchedule`` functions had parameter inference
   - [x] ``Get-MySchedule``
