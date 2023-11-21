@@ -320,5 +320,4 @@
 - [x] I could see today's work schedule
 
 ---
-
-[Back to Readme](../readme.md)
+[← Go Back](../readme.md)

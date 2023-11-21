@@ -789,5 +789,5 @@
         ``- what:daily todo``
 
 ---
-[Back to Readme](../readme.md)
+[← Go Back](../readme.md)
 
