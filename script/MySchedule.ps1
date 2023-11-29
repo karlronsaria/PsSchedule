@@ -5,19 +5,27 @@ function Find-MyTree {
     Param(
         [Parameter(ParameterSetName = 'Named')]
         [ArgumentCompleter({
-            # A fixed list of parameters is passed to an argument-completer script block.
+            # A fixed list of parameters is passed to an argument-completer
+            # script block.
             # Here, only two are of interest:
-            #  * $wordToComplete: 
-            #      The part of the value that the user has typed so far, if any.
-            #  * $preBoundParameters (called $fakeBoundParameters 
+            #  * $wordToComplete:
+            #      The part of the value that the user has typed so far,
+            #      if any.
+            #  * $preBoundParameters (called $fakeBoundParameters
             #    in the docs):
-            #      A hashtable of those (future) parameter values specified so 
-            #      far that are side effect-free (see above).
+            #      A hashtable of those (future) parameter values specified
+            #      so far that are side effect-free (see above).
             # ---
             # link
-            # - url: https://stackoverflow.com/questions/65892518/tab-complete-a-parameter-value-based-on-another-parameters-already-specified-va
+            # - url: <https://stackoverflow.com/questions/65892518/tab-complete-a-parameter-value-based-on-another-parameters-already-specified-va>
             # - retrieved: 2023_10_10
-            Param($cmdName, $paramName, $wordToComplete, $cmdAst, $preBoundParameters)
+            Param(
+                $cmdName,
+                $paramName,
+                $wordToComplete,
+                $cmdAst,
+                $preBoundParameter
+            )
 
             $setting =
                 cat "$PsScriptRoot\..\res\setting.json" `
@@ -183,7 +191,8 @@ function Find-MyTree {
                 }
 
                 default {
-                    return "Cannot run command indiscriminately on all files"
+                    return
+                    "Cannot run command indiscriminately on all files"
                 }
             }
         }
@@ -288,13 +297,19 @@ function Get-MySchedule {
     Param(
         [Parameter(ParameterSetName = 'Named')]
         [ArgumentCompleter({
-            Param($cmdName, $paramName, $wordToComplete, $cmdAst, $preBoundParameters)
+            Param(
+                $cmdName,
+                $paramName,
+                $wordToComplete,
+                $cmdAst,
+                $preBoundParameters
+            )
 
             $setting =
                 cat "$PsScriptRoot\..\res\setting.json" `
                 | ConvertFrom-Json
 
-            $dirs = (dir $setting.SearchDirectory -Directory).Name
+            $dirs = (dir $setting.ScheduleDirectory -Directory).Name
 
             $suggestions = if ($wordToComplete) {
                 $dirs | where { $_ -like "$wordToComplete*" }
@@ -325,7 +340,13 @@ function Get-MySchedule {
         [Parameter(ParameterSetName = 'Named')]
         [Alias('Date')]
         [ArgumentCompleter({
-            Param($cmdName, $paramName, $wordToComplete, $cmdAst, $preBoundParameters)
+            Param(
+                $cmdName,
+                $paramName,
+                $wordToComplete,
+                $cmdAst,
+                $preBoundParameters
+            )
 
             $date = Get-Date
 
@@ -717,14 +738,14 @@ function Get-MySchedule {
                     # # OLD (karlr (2023_01_26_140650)
                     # # ------------------------------
                     # # link
-                    # # - url: https://stackoverflow.com/questions/24446680/is-it-possible-to-check-if-verbose-argument-was-given-in-powershell
+                    # # - url: <https://stackoverflow.com/questions/24446680/is-it-possible-to-check-if-verbose-argument-was-given-in-powershell>
                     # # - retrieved: 2023_01_26
                     #
                     # $hasVerbose =
                     #     $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
 
                     # link
-                    # - url: https://www.briantist.com/how-to/test-for-verbose-in-powershell/
+                    # - url: <https://www.briantist.com/how-to/test-for-verbose-in-powershell/>
                     # - retrieved: 2023_01_26
                     $hasVerbose =
                         $VerbosePreference `
