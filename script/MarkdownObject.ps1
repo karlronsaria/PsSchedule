@@ -437,10 +437,17 @@ function Get-MarkdownTree {
                 }
 
                 if ('Header' -notin $type `
-                    -and $content.Success `
-                    -and ($content.Value | Test-MdTable) `
+                    -and $content.Success
                 ) {
-                    $type += @('TableRow')
+                    if (($content.Value | Test-MdTable)) {
+                        $type += @('TableRow')
+                    }
+                    elseif (($content.Value | Test-MdCodeBlock)) {
+                        $type += @('CodeBlock')
+                    }
+                    else {
+                        $type += @('UngraftedRow')
+                    }
                 }
 
                 if ($type.Count -eq 0) {
@@ -466,7 +473,7 @@ function Get-MarkdownTree {
                 return [PsCustomObject]@{
                     Level = $level
                     Type = $type
-                    Content = $capture.Groups['content'].Value
+                    Content = $content.Value
                 }
             }
         }
@@ -478,7 +485,7 @@ function Get-MarkdownTree {
         function Get-Parse {
             Param(
                 [Parameter(ValueFromPipeline = $true)]
-                [PsCustomObject]
+                [PsCustomObject[]]
                 $TableRow,
 
                 [Int]
@@ -497,6 +504,7 @@ function Get-MarkdownTree {
                 $prevLevel = 0
                 $prevName = ""
                 $tableStart = $null
+                $snippet = $null
 
                 function Get-NoteProperty {
                     Param(
@@ -536,7 +544,10 @@ function Get-MarkdownTree {
                             -Name "$($prop.Name): $($prop.Value)" `
                             -Value $Stack[$Level]
 
-                        $Stack[$Level - 1].PsObject.Properties.Remove($prop.Name)
+                        $Stack[$Level - 1].
+                            PsObject.
+                            Properties.
+                            Remove($prop.Name)
                     }
 
                     $Stack[$Level] = [PsCustomObject]@{}
@@ -586,7 +597,6 @@ function Get-MarkdownTree {
                         }
                     }
                 }
-
             }
 
             Process {
@@ -633,6 +643,39 @@ function Get-MarkdownTree {
                     $tableBuild = $null
                 }
 
+                if ('CodeBlock' -in $TableRow.Type) {
+                    if ($null -eq $snippet) {
+                        $blockCapture = Select-MdCodeBlock `
+                            -InputObject $content
+
+                        $snippet = [PsCustomObject]@{
+                            Lines = @()
+                            Language = $blockCapture.Language.Value
+                            Indent = $blockCapture.Indent.Value
+                        }
+                    }
+                    else {
+                        Add-Property `
+                            -InputObject $stack[$prevLevel - 1] `
+                            -Name $prevName `
+                            -Value $([PsCustomObject]@{
+                                Lines = $snippet.Lines
+                                Language = $snippet.Language
+                            })
+
+                        $snippet = $null
+                    }
+
+                    return
+                }
+                elseif ($null -ne $snippet) {
+                    Add-MdCodeBlockRow `
+                        -CodeBlock $snippet `
+                        -Row $content
+
+                    return
+                }
+
                 $checkGroup = $capture.Groups['check']
 
                 if ($checkGroup.Success) {
@@ -674,8 +717,9 @@ function Get-MarkdownTree {
                     $content = 'list_subitem'
                 }
 
-                # # Reprocess key-value expression as a single property name.
-                # # This only happens when a string is left behind on the stack.
+                # # Reprocess key-value expression as a single property
+                # # name. This only happens when a string is left behind on
+                # # the stack.
                 # $stack = Convert-StackLeafToFoldedBranch `
                 #     -Stack $stack `
                 #     -Level ($level - 1) `

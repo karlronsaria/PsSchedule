@@ -142,7 +142,7 @@ function Remove-MdStylers {
     )
 
     # link
-    # - url: https://www.markdownguide.org/cheat-sheet
+    # - url: <https://www.markdownguide.org/cheat-sheet>
     # - retrieved: 2023_09_13
     $stylers = @('``', '\*\*', '\*', '__', '_', '-', '~~', '==')
 
