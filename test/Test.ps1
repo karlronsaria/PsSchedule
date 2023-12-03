@@ -8,6 +8,15 @@ function Test-GetMarkdownTable {
     )
 
     Begin {
+        function Test-EmptyObject {
+            Param(
+                [PsCustomObject]
+                $InputObject
+            )
+
+            return 0 -eq @($InputObject.PsObject.Properties).Count
+        }
+
         $content = @()
     }
 
@@ -29,7 +38,7 @@ function Test-GetMarkdownTable {
             ""
         )
 
-        $what.Table | % {
+        $what.Table | foreach {
             Write-Output $_
         }
 
@@ -45,7 +54,7 @@ function Test-GetMarkdownTable {
             ""
         )
 
-        $table | % {
+        $table | foreach {
             Write-Output $_
         }
 

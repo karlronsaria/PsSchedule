@@ -320,6 +320,15 @@ function Get-MarkdownTree {
     )
 
     Begin {
+        function Test-EmptyObject {
+            Param(
+                [PsCustomObject]
+                $InputObject
+            )
+
+            return 0 -eq @($InputObject.PsObject.Properties).Count
+        }
+
         function Add-Property {
             Param(
                 $InputObject,
@@ -505,17 +514,6 @@ function Get-MarkdownTree {
                 $prevName = ""
                 $tableStart = $null
                 $snippet = $null
-
-                function Get-NoteProperty {
-                    Param(
-                        [PsCustomObject]
-                        $InputObject
-                    )
-
-                    return $InputObject.PsObject.Properties | where {
-                        $_.MemberType -eq 'NoteProperty'
-                    }
-                }
 
                 function Convert-StackLeafToFoldedBranch {
                     Param(
@@ -793,24 +791,14 @@ function Get-MarkdownTree {
 
 <#
 .SYNOPSIS
-f: P(key, value) -> bool
-#>
-function Test-EmptyObject {
-    Param(
-        [PsCustomObject]
-        $InputObject
-    )
-
-    return 0 -eq @($InputObject.PsObject.Properties).Count
-}
-
-<#
-.SYNOPSIS
 f: P(key, value) -> key -> value
 #>
 function Get-NoteProperty {
     Param(
-        [Parameter(ValueFromPipeline = $true)]
+        [Parameter(
+            ValueFromPipeline = $true,
+            Position = 0
+        )]
         [PsCustomObject]
         $InputObject,
 
@@ -869,7 +857,7 @@ function Get-NoteProperty {
     }
 }
 
-function Write-MdTreeToHtml {
+function Convert-MdTreeToHtml {
     Param(
         [Parameter(ValueFromPipeline = $true)]
         [PsCustomObject]
@@ -893,7 +881,7 @@ function Write-MdTreeToHtml {
             "<li>$($prop.Name)"
         })
 
-        Write-MdTreeToHtml $value
+        Convert-MdTreeToHtml $value
         Write-Output "</li>"
     }
 
