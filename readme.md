@@ -1,5 +1,8 @@
 # Schedule Object
 
+## Requires
+- MarkdownTree
+
 ## Type
 - todayonly, today-only, today only
 - event
