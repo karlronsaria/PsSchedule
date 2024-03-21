@@ -197,15 +197,15 @@ function Find-MyTree {
             }
         }
 
-        $sls = @()
+        $grep = @()
 
         foreach ($subtag in $Tag) {
-            $sls = @(
+            $grep += @(
                 $dir `
                     | Select-String "- tag\:.*$subtag"
             )
 
-            $sls += @(
+            $grep += @(
                 $dir `
                     | Select-String "- tag\:\s*$" -Context 0, 99 `
                     | where {
@@ -215,13 +215,13 @@ function Find-MyTree {
             )
         }
 
-        if ($sls.Count -eq 0) {
+        if ($grep.Count -eq 0) {
             return "No files found"
         }
 
         switch ($Mode) {
             'Cat' {
-                return dir $sls.Path | cat
+                return dir $grep.Path | cat
             }
 
             'Edit' {
@@ -231,16 +231,16 @@ function Find-MyTree {
 
                 $EditCommand = $setting.EditCommand
 
-                foreach ($item in $sls) {
+                foreach ($item in $grep) {
                     Invoke-Expression `
                         "$EditCommand $($item.Path) +$($item.LineNumber)"
                 }
 
-                return $sls
+                return $grep
             }
 
             'Start' {
-                foreach ($item in $sls) {
+                foreach ($item in $grep) {
                     Invoke-Expression `
                         "Start-Process $($item.Path)"
                 }
@@ -259,7 +259,13 @@ function Find-MyTree {
             | Find-Subtree `
                 -PropertyName tag `
             | where {
-                $subtreeTags = $_.tag.ToLower().Split(',').Trim()
+                $subtreeTags = $_.
+                    tag.
+                    ToLower().
+                    Split(',').
+                    Split(' ').
+                    Trim() |
+                    where { $_ }
 
                 Find-Tag `
                     -Haystack $Tag.ToLower() `
@@ -276,7 +282,8 @@ function Find-MyTree {
         }
 
         'Print' {
-            $tree | Write-MarkdownTree
+            $tree | Write-MarkdownTree `
+                -NoTables
         }
     }
 
@@ -629,9 +636,9 @@ function Get-MySchedule {
             Write-Output "No content in $($dir.FullName) could be found matching the pattern '$Pattern'"
         }
         elseif ($Mode -eq 'Edit') {
-            foreach ($sls in (@($files) + @($jsonFiles))) {
+            foreach ($grep in (@($files) + @($jsonFiles))) {
                 Invoke-Expression `
-                    "$EditCommand $($sls.Path) +$($sls.LineNumber)"
+                    "$EditCommand $($grep.Path) +$($grep.LineNumber)"
             }
 
             Write-Output $files
@@ -640,9 +647,9 @@ function Get-MySchedule {
             $jsonFiles = $null
         }
         elseif ($Mode -eq 'Start') {
-            foreach ($sls in (@($files) + @($jsonFiles))) {
+            foreach ($grep in (@($files) + @($jsonFiles))) {
                 Invoke-Expression `
-                    "Start-Process $($sls.Path)"
+                    "Start-Process $($grep.Path)"
             }
 
             Write-Output $files
@@ -759,7 +766,8 @@ function Get-MySchedule {
                     $schedule `
                         | Get-SubtreeRotation `
                             -RotateProperty $RotateProperties `
-                        | Write-MarkdownTree
+                        | Write-MarkdownTree `
+                            -NoTables
                 }
             }
         }

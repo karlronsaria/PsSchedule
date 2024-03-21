@@ -151,7 +151,9 @@ function Get-Schedule_FromTable {
                 $result.DateTime = $null
             }
 
-            $pattern = switch -Regex ($DateString.Trim()) {
+            $DateString = $DateString.Trim()
+
+            $pattern = switch -Regex ($DateString) {
                 '^\d{4}_\d{2}_\d{2}_\d{6}$' { 'yyyy_MM_dd_HHmmss'; break }
                 '^\d{4}_\d{2}_\d{2}_\d{4}$' { 'yyyy_MM_dd_HHmm'; break }
                 '^\d{4}_\d{2}_\d{2}_\d{2}$' { 'yyyy_MM_dd_HH'; break }
