@@ -44,7 +44,7 @@ function Write-Schedule {
             switch ($ActionItem.type) {
                 'todo' {
                     $what = "todo: $what"
-                    $icon = "[ ]"
+                    $icon = '[ ]'
                     $foreground = 'Yellow'
                 }
 
@@ -63,11 +63,11 @@ function Write-Schedule {
                         | Get-NoteProperty `
                             -PropertyName 'complete').Success `
                     ) {
-                        $icon = "[$((if ($ActionItem.complete) {
-                            'x'
+                        $icon = if ($ActionItem.complete) {
+                            '[ ]'
                         } else {
-                            ' '
-                        }))]"
+                            '[ ]'
+                        }
 
                         $what = "todo: $what"
                         $foreground = 'Yellow'
@@ -82,7 +82,7 @@ function Write-Schedule {
             $displayItem = [PsCustomObject]@{
                 When = "$(Get-Date $ActionItem.when -f HH:mm)"
                 Type = $icon
-                What = $what
+                What = "⟐ $what"
             }
 
             $displayItems = @($displayItem)

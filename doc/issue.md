@@ -1,28 +1,5 @@
 # issue
 
-- [ ] 2023_10_02_020437
-  - howto
-    - in powershell
-      ```powershell
-      cat myFile.md | Get-MarkdownTree
-      ```
-    - in markdown
-      ```
-      - [ ] sep: hir
-      ```
-  - actual
-    ```
-    sep
-    ---
-    hir
-    ```
-  - expected
-    ```
-    complete sep
-    -------- ---
-    False    hir
-    ```
-
 - [ ] 2023_01_10_230005
 
   - howto
@@ -167,6 +144,29 @@
     - output is an array of strings
   - expected
     - output is a PsCustomObject
+
+- [x] 2023_10_02_020437
+  - howto
+    - in powershell
+      ```powershell
+      cat myFile.md | Get-MarkdownTree
+      ```
+    - in markdown
+      ```
+      - [ ] sep: hir
+      ```
+  - actual
+    ```
+    sep
+    ---
+    hir
+    ```
+  - expected
+    ```
+    complete sep
+    -------- ---
+    False    hir
+    ```
 
 - [x] 2023_08_22_202828
   - actual
