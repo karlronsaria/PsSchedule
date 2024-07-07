@@ -1,5 +1,47 @@
 # issue
 
+- [ ] 2024_07_07_140732
+
+  - howto
+    - in markdown
+
+      ```text
+      # sched
+      - tag: @counsel @ChangeAndGrowthPlan
+      - what: meet with Roi
+      - when:
+      - type: event
+      - note
+        - when: 2023_01_26_1030
+        - when: 2023_01_12_1030
+      ```
+
+  - actual
+    - in powershell
+
+      ```text
+      C:\note [master ≡]> Get-MySchedule
+
+      Sunday (2024_07_07)
+      -------------------
+      10:00      ⟐ daily todo
+      11:00      ⟐ event: Sunday service
+      14:08      ⟐ event: meet with Roi
+
+      Monday (2024_07_08)
+      -------------------
+      16:00  [!] ⟐ general offering
+
+      Tuesday (2024_07_09)
+      --------------------
+      18:30      ⟐ event: bible study men's
+
+      Saturday (2024_07_13)
+      ---------------------
+      13:30      ⟐ event: meet with Jesse Luna
+      14:30      ---
+      ```
+
 - [ ] 2023_01_10_230005
 
   - howto
