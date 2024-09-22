@@ -546,6 +546,12 @@ function Get-MySchedule {
                 -Week:$Week `
                 -Default:$Default
 
+        # todo
+        Set-Variable `
+            -Name MyTestObject `
+            -Value $schedule `
+            -Scope Global
+
         if ($null -ne $JsonFile -and (Test-Path $JsonFile)) {
             $subtables =
                 Get-ChildItem `

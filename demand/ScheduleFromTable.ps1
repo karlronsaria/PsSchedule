@@ -354,6 +354,12 @@ function Get-Schedule_FromTable {
             }
         }
 
+        # (karlr 2024_09_22): fix issue of deadline items not showing
+        $Default.every = switch ($schedType) {
+            'deadline' { 'none' }
+            default { $Default.every }
+        }
+
         $schedEvery = (Add-NoteProperty `
             -InputObject $InputObject `
             -PropertyName 'every' `
