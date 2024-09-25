@@ -1,5 +1,5 @@
 {
-    "EditCommand": "start nvim",
+    "EditCommand": "sudo nvim",
     "ScheduleDirectory": "/note/sched/notebook",
     "ScheduleExtension": "*.md",
     "ScheduleDefaultSubdirectory": "general",
