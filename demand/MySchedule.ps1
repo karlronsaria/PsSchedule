@@ -55,7 +55,7 @@ function Find-MyTree {
         $Tag,
 
         [Parameter(ParameterSetName = 'Named')]
-        [ValidateSet('Print', 'Tree', 'Cat', 'Edit', 'Start')]
+        [ValidateSet('Print', 'Tree', 'Cat', 'Link', 'Edit', 'Start')]
         [String]
         $Mode,
 
@@ -115,7 +115,7 @@ function Find-MyTree {
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $path = $setting.SearchDirectory
         $subdirectories = (dir $path -Directory).Name
-        $validModes = @('Print', 'Tree', 'Cat', 'Edit')
+        $validModes = @('Print', 'Tree', 'Cat', 'Link', 'Edit', 'Start')
 
         foreach ($arg in $Arguments) {
             if (-not $DepthLimit `
@@ -178,7 +178,7 @@ function Find-MyTree {
             $_.FullName -notlike "*$IgnoreSubdirectory*"
         }
 
-    if ($Mode -in @('Cat', 'Edit', 'Start')) {
+    if ($Mode -in @('Cat', 'Link', 'Edit', 'Start')) {
         if ($Command) {
             Write-Output $Command
             Write-Output ""
@@ -186,13 +186,16 @@ function Find-MyTree {
 
         if ($null -eq $Tag) {
             switch ($Mode) {
+                'Link' {
+                    return $dir
+                }
+
                 'Cat' {
                     return $dir | cat
                 }
 
                 default {
-                    return
-                    "Cannot run command indiscriminately on all files"
+                    return "Cannot run command indiscriminately on all files"
                 }
             }
         }
@@ -220,6 +223,10 @@ function Find-MyTree {
         }
 
         switch ($Mode) {
+            'Link' {
+                return dir $grep.Path
+            }
+
             'Cat' {
                 return dir $grep.Path | cat
             }
@@ -336,7 +343,7 @@ function Get-MySchedule {
         $Subdirectory,
 
         [Parameter(ParameterSetName = 'Named')]
-        [ValidateSet('Schedule', 'Edit', 'Start', 'Cat', 'Tree')]
+        [ValidateSet('Schedule', 'Link', 'Edit', 'Start', 'Cat', 'Tree')]
         [String]
         $Mode,
 
@@ -420,7 +427,7 @@ function Get-MySchedule {
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $path = $setting.ScheduleDirectory
         $subdirectories = (dir $path -Directory).Name
-        $validModes = @('Schedule', 'Edit', 'Start', 'Cat', 'Tree')
+        $validModes = @('Schedule', 'Link', 'Edit', 'Start', 'Cat', 'Tree')
         $startDate_subitem = $null
 
         foreach ($arg in $Arguments) {
@@ -584,6 +591,7 @@ function Get-MySchedule {
 
     $DefaultSubdirectory = switch ($Mode) {
         'Cat' { '' }
+        'Link' { '' }
         'Edit' { '' }
         'Start' { '' }
         'Tree' { '' }
@@ -640,6 +648,12 @@ function Get-MySchedule {
             # Make the output look pretty
             $dir = $path | Get-Item
             Write-Output "No content in $($dir.FullName) could be found matching the pattern '$Pattern'"
+        }
+        elseif ($Mode -eq 'Link') {
+            Write-Output $files.Path
+            Write-Output $jsonFiles.Path
+            $files = $null
+            $jsonFiles = $null
         }
         elseif ($Mode -eq 'Edit') {
             foreach ($grep in (@($files) + @($jsonFiles))) {
@@ -721,6 +735,15 @@ function Get-MySchedule {
             foreach ($item in (dir $dir)) {
                 Invoke-Expression "$command $item"
             }
+        }
+    }
+    elseif ($Mode -eq 'Link') {
+        if ($null -ne $files) {
+            $files | dir
+        }
+
+        if ($null -ne $jsonFiles) {
+            $jsonFiles | dir
         }
     }
     elseif ($Mode -eq 'Cat') {
