@@ -379,6 +379,25 @@ function Get-Schedule {
                         $_ -ne 'Error'
                     } | foreach {
                         $_.sched
+                    } | foreach {
+                        $temp = $_
+                        $properties = $temp.PsObject.Properties.Name
+
+                        if ($properties -contains 'what') {
+                            $temp
+                        }
+                        else {
+                            foreach ($name in $properties) {
+                                $newObject = $temp.$name
+
+                                $newObject | Add-Member `
+                                    -Name 'what' `
+                                    -Value $name `
+                                    -MemberType 'NoteProperty'
+
+                                $newObject
+                            }
+                        }
                     } | Get-Schedule_FromTable `
                         -StartDate $date `
                         -EndDate:$endDate `

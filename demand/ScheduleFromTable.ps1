@@ -20,6 +20,10 @@ function Get-Schedule_FromTable {
     )
 
     Begin {
+        $setting = dir "$PsScriptRoot/../res/setting.json" |
+            cat |
+            ConvertFrom-Json
+
         if ($null -eq $Default) {
             $Default = ([PsCustomObject]@{
                 when = (Get-Date -f HHmm)
@@ -295,10 +299,17 @@ function Get-Schedule_FromTable {
             return $list
         }
 
+        if ($InputObject.PsObject.Properties.Name -notcontains 'when') {
+            return $list
+        }
+
         $schedWhen = Add-NoteProperty `
             -InputObject $InputObject `
-            -PropertyName 'when' `
-            -Default $Default
+            -PropertyName 'when'
+
+        if ($null -eq $schedWhen) {
+            $schedWhen = ""
+        }
 
         if (-not ($schedWhen -is [String])) {
             foreach ($property in (Get-NoteProperty $schedWhen)) {
@@ -477,7 +488,7 @@ function Get-Schedule_FromTable {
 
         $time = $StartDate
 
-        if ([String]::IsNullOrWhiteSpace($schedWhen)) {
+        if ($schedWhen.ToLower() -in $setting.NoteReschedule) {
             $InputObject.type = 'todo'
             $InputObject.what = "reappoint: $($InputObject.what)"
 

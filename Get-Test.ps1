@@ -13,7 +13,7 @@ Retrieved: 2022_10_09
 
 $scripts = dir @(
     "$PsScriptRoot\test\*.ps1"
-    "$PsScriptRoot\script\Debug\*.ps1"
+    "$PsScriptRoot\demand\Debug\*.ps1"
 )
 
 return $scripts

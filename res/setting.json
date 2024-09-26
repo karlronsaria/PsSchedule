@@ -9,5 +9,12 @@
     "RotateSubtreeOnProperties": [],
     "MuteProperties": [
         "log"
+    ],
+    "NoteReschedule": [
+        "", "reschedule", "resched", "reappoint"
+    ],
+    "NoteNotActive": [
+        "not active", "deactive", "deactivate"
     ]
 }
+
