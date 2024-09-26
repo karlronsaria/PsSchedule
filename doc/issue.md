@@ -1,5 +1,18 @@
 # issue
 
+- [ ] 2024_09_26_043319
+
+  - howto
+
+    ```powershell
+    Get-MySchedule -Subdirectory request -StartDate 2024_09_25
+    ```
+
+  - actual
+
+    ```text
+    ```
+
 - [ ] 2024_07_07_140732
 
   - howto

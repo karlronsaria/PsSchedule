@@ -299,13 +299,14 @@ function Get-Schedule_FromTable {
             return $list
         }
 
+        $schedWhen = Add-NoteProperty `
+            -InputObject $InputObject `
+            -PropertyName 'when' `
+            -Default $Default
+
         if ($InputObject.PsObject.Properties.Name -notcontains 'when') {
             return $list
         }
-
-        $schedWhen = Add-NoteProperty `
-            -InputObject $InputObject `
-            -PropertyName 'when'
 
         if ($null -eq $schedWhen) {
             $schedWhen = ""
