@@ -483,11 +483,15 @@ function Get-Schedule_FromTable {
             }
         }
 
+        $time = $StartDate
+
         if ($null -eq $date) {
             $date = $StartDate
         }
 
-        $time = $StartDate
+        if ($schedWhen.ToLower() -in $setting.NoteNotActive) {
+            return $list
+        }
 
         if ($schedWhen.ToLower() -in $setting.NoteReschedule) {
             $InputObject.type = 'todo'

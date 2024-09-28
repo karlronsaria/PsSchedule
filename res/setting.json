@@ -14,7 +14,7 @@
         "", "reschedule", "resched", "reappoint"
     ],
     "NoteNotActive": [
-        "not active", "deactive", "deactivate"
+        "not-active", "not active", "deactive", "deactivate"
     ]
 }
 
