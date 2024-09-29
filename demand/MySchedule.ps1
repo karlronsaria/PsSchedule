@@ -1,3 +1,22 @@
+class ScheduleStore {
+    [String[]] $File
+    [String[]] $Json
+    [PsCustomObject[]] $Default
+
+    ScheduleStore([String] $Path, [String] $Extension, [String] $DefaultsName) {
+        $this.File = Join-Path $Path $Extension
+        $defaultsPath = Join-Path $Path $DefaultsName
+
+        $this.Default = if ((Test-Path $defaultsPath)) {
+            cat $defaultsPath | ConvertFrom-Json
+        } else {
+            $null
+        }
+
+        $this.Json = Join-Path $path "*.json"
+    }
+}
+
 # # todo
 # - [ ] test
 function Find-MyTree {
@@ -204,14 +223,12 @@ function Find-MyTree {
 
         foreach ($subtag in $Tag) {
             $grep += @(
-                $dir `
-                    | Select-String "- tag\:.*$subtag"
-            )
-
-            $grep += @(
-                $dir `
-                    | Select-String "- tag\:\s*$" -Context 0, 99 `
-                    | where {
+                $dir |
+                    Select-String "- tag\:.*$subtag"
+            ) + @(
+                $dir |
+                    Select-String "- tag\:\s*$" -Context 0, 99 |
+                    where {
                         $_.Context.PostContext `
                             -match "^\s*-\s*[^:]*$subtag[^:]*$"
                     }
@@ -323,7 +340,8 @@ function Get-MySchedule {
                 cat "$PsScriptRoot\..\res\setting.json" `
                 | ConvertFrom-Json
 
-            $dirs = (dir $setting.ScheduleDirectory -Directory).Name
+            $dirs = (dir $setting.ScheduleDirectory -Directory).Name `
+                + @('All')
 
             $suggestions = if ($wordToComplete) {
                 $dirs | where { $_ -like "$wordToComplete*" }
@@ -339,11 +357,11 @@ function Get-MySchedule {
                 $dirs
             })
         })]
-        [String]
+        [String[]]
         $Subdirectory,
 
         [Parameter(ParameterSetName = 'Named')]
-        [ValidateSet('Schedule', 'Link', 'Edit', 'Start', 'Cat', 'Tree')]
+        [ValidateSet('Schedule', 'Link', 'Edit', 'Start', 'Cat', 'Tree', 'Table')]
         [String]
         $Mode,
 
@@ -517,17 +535,12 @@ function Get-MySchedule {
 
     function Get-ScheduleObject {
         Param(
-            [Object[]]
-            $File,
-
-            [Object[]]
-            $JsonFile,
+            [Parameter(ValueFromPipeline = $true)]
+            [ScheduleStore]
+            $InputObject,
 
             [String]
             $StartDate,
-
-            [PsCustomObject]
-            $Default,
 
             [String]
             $DefaultsFileName,
@@ -536,49 +549,48 @@ function Get-MySchedule {
             $NoHints
         )
 
-        $IgnoreSubdirectory =
-            (cat "$PsScriptRoot\..\res\setting.json" `
-                | ConvertFrom-Json).IgnoreSubdirectory
-
-        $schedule =
-            Get-ChildItem `
-                -Path $File `
-                -Recurse `
-            | where {
-                $_.FullName -notlike "*$IgnoreSubdirectory*"
-            } `
-            | Get-Content `
-            | Get-Schedule `
-                -StartDate:$StartDate `
-                -Week:$Week `
-                -Default:$Default
-
-        # todo
-        Set-Variable `
-            -Name MyTestObject `
-            -Value $schedule `
-            -Scope Global
-
-        if ($null -ne $JsonFile -and (Test-Path $JsonFile)) {
-            $subtables =
-                Get-ChildItem `
-                    -Path $JsonFile `
-                    -Recurse `
-                | where {
-                    $_.FullName -notlike "*$IgnoreSubdirectory*" `
-                    -and `
-                    $DefaultsFileName -ne $_.Name.ToLower()
-                } | foreach {
-                    cat $_ | ConvertFrom-Json
-                }
-
-            $schedule = $schedule `
-                | Add-Schedule `
-                    -Table $subtables `
-                    -StartDate:$StartDate
+        Begin {
+            $IgnoreSubdirectory =
+                (cat "$PsScriptRoot\..\res\setting.json" |
+                    ConvertFrom-Json).IgnoreSubdirectory
         }
 
-        return $schedule
+        Process {
+            $schedule =
+                Get-ChildItem `
+                    -Path $InputObject.File `
+                    -Recurse |
+                where {
+                    $_.FullName -notlike "*$IgnoreSubdirectory*"
+                } |
+                Get-Content |
+                Get-Schedule `
+                    -StartDate:$StartDate `
+                    -Week:$Week `
+                    -Default:$InputObject.Default
+
+            if ($null -ne $InputObject.Json -and (Test-Path $InputObject.Json)) {
+                $subtables =
+                    Get-ChildItem `
+                        -Path $InputObject.Json `
+                        -Recurse |
+                    where {
+                        $_.FullName -notlike "*$IgnoreSubdirectory*" `
+                        -and `
+                        $DefaultsFileName -ne $_.Name.ToLower()
+                    } |
+                    foreach {
+                        cat $_ | ConvertFrom-Json
+                    }
+
+                $schedule = $schedule |
+                    Add-Schedule `
+                        -Table $subtables `
+                        -StartDate:$StartDate
+            }
+
+            return $schedule
+        }
     }
 
     . "$PsScriptRoot\ScheduleObject.ps1"
@@ -587,7 +599,6 @@ function Get-MySchedule {
     $EditCommand = $setting.EditCommand
     $RotateProperties = $setting.RotateSubtreeOnProperties
     $IgnoreSubdirectory = $setting.IgnoreSubdirectory
-    $DefaultSubdirectory = $setting.ScheduleDefaultSubdirectory
 
     $DefaultSubdirectory = switch ($Mode) {
         'Cat' { '' }
@@ -595,95 +606,112 @@ function Get-MySchedule {
         'Edit' { '' }
         'Start' { '' }
         'Tree' { '' }
-        'Schedule' { $DefaultSubdirectory }
+        'Schedule' { $setting.ScheduleDefaultSubdirectory }
     }
 
-    $path = Get-NewDirectoryPath `
-        -Directory $Directory `
-        -Subdirectory $Subdirectory `
-        -DefaultSubdirectory $DefaultSubdirectory
-
-    if (-not (Test-Path $path)) {
-        if (-not $NoHints) {
-            Write-Output "Path not found"
-            Write-Output "Hint: The Directory must be a schedule ""notebook"", with at least one subdirectory called ""$($setting.ScheduleDefaultSubdirectory)"""
-        }
-
-        return @()
+    if ($null -eq $Subdirectory -or @($Subdirectory).Count -eq 0) {
+        $Subdirectory = $DefaultSubdirectory
     }
 
-    $files = Join-Path $path $Extension
-    $defaultsPath = Join-Path $path $DefaultsFileName
-
-    $defaults = if ((Test-Path $defaultsPath)) {
-        cat $defaultsPath | ConvertFrom-Json
-    } else {
-        $null
+    if (($Subdirectory | where { $_ } | foreach { $_.ToLower() }) -contains 'all') {
+        $Subdirectory = (dir $Directory -Directory).Name
     }
 
-    $jsonFiles = Join-Path $path "*.json"
-
-    if ($null -ne $Pattern -and $Pattern.Count -gt 0) {
-        $files = $Pattern | foreach {
-            dir $files `
-                -Recurse `
-            | where {
-                $_.FullName -notlike "*$IgnoreSubdirectory*"
-            } `
-            | Select-String $_ `
-            | sort -Property Path -Unique
+    $path =
+        $Subdirectory |
+        select -Unique |
+        foreach {
+            Get-NewDirectoryPath `
+                -Directory $Directory `
+                -Subdirectory $_ `
+                -DefaultSubdirectory $DefaultSubdirectory
         }
 
-        $jsonFiles = $Pattern | foreach {
-            dir $jsonFiles `
-                -Recurse `
-            | where {
-                $_.FullName -notlike "*$IgnoreSubdirectory*"
-            } `
-            | Select-String $_ `
-            | sort -Property Path -Unique
-        }
-
-        if ($null -eq $files -and $null -eq $jsonFiles) {
-            # Make the output look pretty
-            $dir = $path | Get-Item
-            Write-Output "No content in $($dir.FullName) could be found matching the pattern '$Pattern'"
-        }
-        elseif ($Mode -eq 'Link') {
-            Write-Output $files.Path
-            Write-Output $jsonFiles.Path
-            $files = $null
-            $jsonFiles = $null
-        }
-        elseif ($Mode -eq 'Edit') {
-            foreach ($grep in (@($files) + @($jsonFiles))) {
-                Invoke-Expression `
-                    "$EditCommand $($grep.Path) +$($grep.LineNumber)"
+    $stores =
+        $path |
+        foreach {
+            if (-not (Test-Path $_)) {
+                if (-not $NoHints) {
+                    Write-Output "Path not found"
+                    Write-Output "Hint: The Directory must be a schedule ""notebook"", with at least one subdirectory called ""$($setting.ScheduleDefaultSubdirectory)"""
+                }
             }
-
-            Write-Output $files
-            Write-Output $jsonFiles
-            $files = $null
-            $jsonFiles = $null
-        }
-        elseif ($Mode -eq 'Start') {
-            foreach ($grep in (@($files) + @($jsonFiles))) {
-                Invoke-Expression `
-                    "Start-Process $($grep.Path)"
+            else {
+                [ScheduleStore]::new($_, $Extension, $DefaultsFileName)
             }
-
-            Write-Output $files
-            Write-Output $jsonFiles
-            $files = $null
-            $jsonFiles = $null
         }
-        else {
-            if ($null -ne $files) {
-                $files = $files.Path
-            }
 
-            if ($null -ne $jsonFiles) {
-                $jsonFiles = $jsonFiles.Path
+    foreach ($store in $stores) {
+        if ($null -ne $Pattern -and $Pattern.Count -gt 0) {
+            $fileGrep = $Pattern |
+                foreach {
+                    dir $store.File `
+                        -Recurse |
+                    where {
+                        $_.FullName -notlike "*$IgnoreSubdirectory*"
+                    } |
+                    sls $_ |
+                    sort `
+                        -Property Path `
+                        -Unique
+                }
+
+            $jsonGrep = $Pattern |
+                foreach {
+                    dir $store.Json `
+                        -Recurse |
+                    where {
+                        $_.FullName -notlike "*$IgnoreSubdirectory*"
+                    } |
+                    sls $_ |
+                    sort `
+                        -Property Path `
+                        -Unique
+                }
+
+            if ($null -eq $fileGrep -and $null -eq $jsonGrep) {
+                # Make the output look pretty
+                $dir = $path | Get-Item
+                Write-Output "No content in $($dir.FullName) could be found matching the pattern '$Pattern'"
+                $store.File = $null
+                $store.Json = $null
+            }
+            elseif ($Mode -eq 'Link') {
+                Write-Output $fileGrep.Path
+                Write-Output $jsonGrep.Path
+                $store.File = $null
+                $store.Json = $null
+            }
+            elseif ($Mode -eq 'Edit') {
+                foreach ($grep in (@($fileGrep) + @($jsonGrep))) {
+                    Invoke-Expression `
+                        "$EditCommand $($grep.Path) +$($grep.LineNumber)"
+                }
+
+                Write-Output $fileGrep
+                Write-Output $jsonGrep
+                $store.File = $null
+                $store.Json = $null
+            }
+            elseif ($Mode -eq 'Start') {
+                foreach ($grep in (@($fileGrep) + @($jsonGrep))) {
+                    Invoke-Expression `
+                        "Start-Process $($grep.Path)"
+                }
+
+                Write-Output $fileGrep
+                Write-Output $jsonGrep
+                $store.File = $null
+                $store.Json = $null
+            }
+            else {
+                if ($null -ne $fileGrep) {
+                    $store.File = $fileGrep.Path
+                }
+
+                if ($null -ne $jsonGrep) {
+                    $store.Json = $jsonGrep.Path
+                }
             }
         }
     }
@@ -707,17 +735,17 @@ function Get-MySchedule {
             }
         }
 
-        $allDirs = (@($files) + @($jsonFiles)) | where { $null -ne $_ }
+        $allDirs = (@($stores.File) + @($stores.Json)) | where { $null -ne $_ }
 
         if ($NoConfirm) {
             Write-Output "$nonConfirmMessage all files in"
-            Write-Output "  $files"
-            Write-Output "  $jsonFiles"
+            Write-Output "  $($stores.File)"
+            Write-Output "  $($stores.Json)"
         }
         elseif ($null -ne $allDirs -and @($allDirs).Count -gt 1) {
             Write-Output "This will $confirmMessage all files in"
-            Write-Output "  $files"
-            Write-Output "  $jsonFiles"
+            Write-Output "  $($stores.File)"
+            Write-Output "  $($stores.Json)"
             Write-Output ""
             $confirm = 'n'
 
@@ -738,21 +766,21 @@ function Get-MySchedule {
         }
     }
     elseif ($Mode -eq 'Link') {
-        if ($null -ne $files) {
-            $files | dir
+        if ($null -ne $stores.File) {
+            $stores.File | dir
         }
 
-        if ($null -ne $jsonFiles) {
-            $jsonFiles | dir
+        if ($null -ne $stores.Json) {
+            $stores.Json | dir
         }
     }
     elseif ($Mode -eq 'Cat') {
-        if ($null -ne $files) {
-            dir $files | cat
+        if ($null -ne $stores.File) {
+            dir $stores.File | cat
         }
 
-        if ($null -ne $jsonFiles) {
-            dir $jsonFiles | cat
+        if ($null -ne $stores.Json) {
+            dir $stores.Json | cat
         }
     }
     else {
@@ -760,45 +788,126 @@ function Get-MySchedule {
             $StartDate = Get-Date -f 'yyyy_MM_dd'
         }
 
-        foreach ($startDate_subitem in $StartDate) {
-            $schedule = Get-ScheduleObject `
-                -File:$files `
-                -JsonFile:$jsonFiles `
+        $schedule = foreach ($startDate_subitem in $StartDate) {
+            $stores |
+            Get-ScheduleObject `
                 -StartDate:$startDate_subitem `
-                -Default:$defaults `
                 -DefaultsFileName:$DefaultsFileName `
-                -NoHints:$NoHints
+                -NoHints:$NoHints |
+            sort -Property 'when'
+        }
 
-            switch ($Mode) {
-                'Schedule' {
-                    # # OLD (karlr (2023_01_26_140650)
-                    # # ------------------------------
-                    # # link
-                    # # - url: <https://stackoverflow.com/questions/24446680/is-it-possible-to-check-if-verbose-argument-was-given-in-powershell>
-                    # # - retrieved: 2023_01_26
-                    #
-                    # $hasVerbose =
-                    #     $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
-
-                    # link
-                    # - url: <https://www.briantist.com/how-to/test-for-verbose-in-powershell/>
-                    # - retrieved: 2023_01_26
-                    $hasVerbose =
-                        $VerbosePreference `
-                        -ne [System.Management.Automation.ActionPreference]::SilentlyContinue
-
-                    $schedule | Write-Schedule `
-                        -Verbose:$hasVerbose
-                }
-
-                'Tree' {
-                    $schedule `
-                        | Get-SubtreeRotation `
-                            -RotateProperty $RotateProperties `
-                        | Write-MarkdownTree `
-                            -NoTables
-                }
+        switch ($Mode) {
+            'Table' {
+                $schedule
             }
+
+            'Schedule' {
+                # # OLD (karlr 2023_01_26_140650)
+                # # ------------------------------
+                # # link
+                # # - url: <https://stackoverflow.com/questions/24446680/is-it-possible-to-check-if-verbose-argument-was-given-in-powershell>
+                # # - retrieved: 2023_01_26
+                #
+                # $hasVerbose =
+                #     $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
+
+                # link
+                # - url: <https://www.briantist.com/how-to/test-for-verbose-in-powershell/>
+                # - retrieved: 2023_01_26
+                $hasVerbose =
+                    $VerbosePreference `
+                    -ne [System.Management.Automation.ActionPreference]::SilentlyContinue
+
+                $schedule | Write-Schedule `
+                    -Verbose:$hasVerbose
+            }
+
+            'Tree' {
+                $schedule `
+                    | Get-SubtreeRotation `
+                        -RotateProperty $RotateProperties `
+                    | Write-MarkdownTree `
+                        -NoTables
+            }
+        }
+    }
+}
+
+<#
+.EXAMPLE
+Get-MySchedule -Subdirectory All -Mode Table | Get-AvailableSchedule | Write-Schedule
+#>
+function Get-AvailableSchedule {
+    [CmdletBinding()]
+    Param(
+        [Parameter(ValueFromPipeline = $true)]
+        $InputObject
+    )
+
+    Begin {
+        $row = $null
+        $prevTo = $null
+        $type = 'routine'
+        $what = 'available'
+    }
+
+    Process {
+        if ($InputObject.PsObject.Properties.Name -notcontains 'to') {
+            return
+        }
+
+        if ($null -eq $row) {
+            $row = [PsCustomObject]@{
+                when = (Get-Date $InputObject.when).Date
+                to = $null
+                type = $type
+                what = $what
+            }
+        }
+        else {
+            $row = [PsCustomObject]@{
+                when = $prevTo
+                to = $null
+                type = $type
+                what = $what
+            }
+        }
+
+        $row.to = $InputObject.when
+
+        if ($row.to -gt $row.when) {
+            $row
+        }
+
+        $result = Get-DateParseVaryingLength -DateString $InputObject.to
+
+        $when = if ($result.DateTime) {
+            $result.DateTime
+        }
+        elseif ($result.Time) {
+            $temp = [DateTime]::ParseExact($result.Time, "HHmm", $null)
+            $temp
+        }
+
+        $prevTo = Get-Date `
+            -Year $InputObject.when.Year `
+            -Month $InputObject.when.Month `
+            -Day $InputObject.when.Day `
+            -Hour $when.Hour `
+            -Minute $when.Minute
+    }
+
+    End {
+        if ($null -eq $prevTo) {
+            return
+        }
+
+        [PsCustomObject]@{
+            when = $prevTo
+            to = (Get-Date $prevTo).Date.AddDays(1)
+            type = $type
+            what = $what
         }
     }
 }

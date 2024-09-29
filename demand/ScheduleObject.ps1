@@ -41,40 +41,47 @@ function Write-Schedule {
             # # frivolous
             # $emoji = $([System.Char]::ConvertFromUtf32([System.Convert]::ToInt32("1F600", 16))]
 
-            switch ($ActionItem.type) {
-                'todo' {
-                    $what = "todo: $what"
-                    $icon = '[ ]'
-                    $foreground = 'Yellow'
+            $icon = '   '
+            $foreground = $hostForeground
+
+            if (($ActionItem `
+                | Get-NoteProperty `
+                    -PropertyName 'complete').Success `
+            ) {
+                $icon = if ($ActionItem.complete) {
+                    '[x]'
+                } else {
+                    '[ ]'
                 }
 
-                'deadline' {
-                    $icon = '[!]'
-                    $foreground = 'Red'
-                }
+                $what = "todo: $what"
+                $foreground = 'Yellow'
+            }
 
-                'event' {
-                    $what = "event: $what"
-                    $foreground = 'Green'
-                }
-
-                default {
-                    if (($ActionItem `
-                        | Get-NoteProperty `
-                            -PropertyName 'complete').Success `
-                    ) {
-                        $icon = if ($ActionItem.complete) {
-                            '[ ]'
-                        } else {
-                            '[ ]'
-                        }
-
+            # rule
+            # - types 'todo', 'deadline', and 'event' must be mutually exclusive
+            # - type 'overlap' must follow these types when used
+            foreach ($type in $ActionItem.type.Split(',').Trim()) {
+                switch ($type) {
+                    'todo' {
                         $what = "todo: $what"
+                        $icon = '[ ]'
                         $foreground = 'Yellow'
                     }
-                    else {
-                        $icon = '   '
-                        $foreground = $hostForeground
+
+                    'deadline' {
+                        $icon = '[!]'
+                        $foreground = 'Red'
+                    }
+
+                    'event' {
+                        $what = "event: $what"
+                        $foreground = 'Green'
+                    }
+
+                    'overlap' {
+                        $what = "overlap: $what"
+                        $foreground = 'Magenta'
                     }
                 }
             }
@@ -88,9 +95,21 @@ function Write-Schedule {
             $displayItems = @($displayItem)
 
             if ($ActionItem.PsObject.Properties.Name -contains 'to') {
+                $hour = $null
+                $minute = $null
                 $to = $ActionItem.to
-                $hour = $to.Substring(0, 2)
-                $minute = $to.Substring(2)
+
+                switch ($to) {
+                    { $to -is [String] } {
+                        $hour = $to.Substring(0, 2)
+                        $minute = $to.Substring(2)
+                    }
+
+                    { $to -is [DateTime] } {
+                        $hour = $to.Hour
+                        $minute = $to.Minute
+                    }
+                }
 
                 $displayItems +=
                     @([PsCustomObject]@{
@@ -402,8 +421,6 @@ function Get-Schedule {
                         -StartDate $date `
                         -EndDate:$endDate `
                         -Default:$Default `
-                    | sort `
-                        -Property when `
                     | where {
                         $date -le $_.when
                     }

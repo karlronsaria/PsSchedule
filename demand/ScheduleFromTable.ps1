@@ -1,5 +1,52 @@
 . "$PsScriptRoot\ScheduleObject.ps1"
 
+function Get-DateParseVaryingLength {
+    Param(
+        [String]
+        $DateString
+    )
+
+    $capture = [Regex]::Match( `
+        $DateString, `
+        "^((?<day>\w{3})-)?(?<time>\d{4})?$" `
+    )
+
+    $result = [PsCustomObject]@{
+        Day = ''
+        Time = ''
+        DateTime = $null
+    }
+
+    if ($capture.Success) {
+        $result.Day = $capture.Groups['day'].Value
+        $result.Time = $capture.Groups['time'].Value
+        $result.DateTime = $null
+    }
+
+    $DateString = $DateString.Trim()
+
+    $pattern = switch -Regex ($DateString) {
+        '^\d{4}_\d{2}_\d{2}_\d{6}$' { 'yyyy_MM_dd_HHmmss'; break }
+        '^\d{4}_\d{2}_\d{2}_\d{4}$' { 'yyyy_MM_dd_HHmm'; break }
+        '^\d{4}_\d{2}_\d{2}_\d{2}$' { 'yyyy_MM_dd_HH'; break }
+        '^\d{4}_\d{2}_\d{2}$' { 'yyyy_MM_dd'; break }
+        '^\d{4}$' { 'HHmm'; break }
+        default { ''; break }
+    }
+
+    if ([String]::IsNullOrEmpty($pattern)) {
+        return $result
+    }
+
+    $result.DateTime = [DateTime]::ParseExact( `
+        $DateString, `
+        $pattern, `
+        $null `
+    )
+
+    return $result
+}
+
 <#
 .SYNOPSIS
 f: (...) -> (...)
@@ -130,53 +177,6 @@ function Get-Schedule_FromTable {
 
             return @('todayonly', 'today-only', 'today only') `
                     -contains $ActionItem.type.ToLower()
-        }
-
-        function Get-DateParseVaryingLength {
-            Param(
-                [String]
-                $DateString
-            )
-
-            $capture = [Regex]::Match( `
-                $DateString, `
-                "^((?<day>\w{3})-)?(?<time>\d{4})?$" `
-            )
-
-            $result = [PsCustomObject]@{
-                Day = ''
-                Time = ''
-                DateTime = $null
-            }
-
-            if ($capture.Success) {
-                $result.Day = $capture.Groups['day'].Value
-                $result.Time = $capture.Groups['time'].Value
-                $result.DateTime = $null
-            }
-
-            $DateString = $DateString.Trim()
-
-            $pattern = switch -Regex ($DateString) {
-                '^\d{4}_\d{2}_\d{2}_\d{6}$' { 'yyyy_MM_dd_HHmmss'; break }
-                '^\d{4}_\d{2}_\d{2}_\d{4}$' { 'yyyy_MM_dd_HHmm'; break }
-                '^\d{4}_\d{2}_\d{2}_\d{2}$' { 'yyyy_MM_dd_HH'; break }
-                '^\d{4}_\d{2}_\d{2}$' { 'yyyy_MM_dd'; break }
-                '^\d{4}$' { 'HHmm'; break }
-                default { ''; break }
-            }
-
-            if ([String]::IsNullOrEmpty($pattern)) {
-                return $result
-            }
-
-            $result.DateTime = [DateTime]::ParseExact( `
-                $DateString, `
-                $pattern, `
-                $null `
-            )
-
-            return $result
         }
 
         function Add-NoteProperty {
@@ -367,7 +367,9 @@ function Get-Schedule_FromTable {
         }
 
         # (karlr 2024_09_22): fix issue of deadline items not showing
-        if ('deadline' -eq $schedType) {
+        if ('deadline' -eq $schedType `
+            -and $Default.PsObject.Properties.Name -contains 'every' `
+        ) {
             $Default.every = 'none'
         }
 
