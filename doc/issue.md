@@ -1,5 +1,154 @@
 # issue
 
+- [ ] 2024_10_02_002616
+
+  - note
+    - possible reason
+      - ``event`` is marked as an exclusive item type
+      - ``event`` probably doesn't have any code that processes it as part of a list
+  - howto
+    - in markdown
+
+      ```markdown
+      # sched: move: ...
+
+      - when: 2024_10_02_1330
+      - to: 1550
+      - type: event, overlap, move
+      ```
+
+    - in powershell
+
+      ```powershell
+      Get-MySchedule -Subdirectory employer
+      ```
+
+  - actual
+
+    ```text
+    Wednesday (2024_10_02)
+    ----------------------
+    00:00      ⟐ overlap: event: move: ...
+    ```
+
+  - expected
+
+    ```text
+    Wednesday (2024_10_02)
+    ----------------------
+    13:30      ⟐ overlap: event: move: ...
+    ```
+
+- [ ] 2024_10_02_002001
+
+  - howto
+
+    ```powershell
+    (Get-MySchedule -Subdirectory employer -Pattern meet -Mode Link).Count
+    ```
+
+  - actual: ``2``
+    - one item is null or an empty string
+  - expected: ``1``
+
+- [ ] 2024_10_02_001708
+
+  - howto
+
+    ```powershell
+    Get-MySchedule -Subdirectory employer -Pattern sassafrass
+    ```
+
+  - actual
+
+    ```text
+    No content in C:\note\sched\notebook\employer could be found matching the pattern 'sassafrass'
+    Get-Content:
+    Line |
+     566 |                  Get-Content |
+         |                  ~~~~~~~~~~~
+         | Unable to get content because it is a directory: 'C:\note\__COMPLETE'. Please use 'Get-ChildItem' instead.
+    Get-Content:
+    Line |
+     566 |                  Get-Content |
+         |                  ~~~~~~~~~~~
+         | Unable to get content because it is a directory: 'C:\note\__POOL'. Please use 'Get-ChildItem' instead.
+    Get-Content:
+    Line |
+     566 |                  Get-Content |
+         |                  ~~~~~~~~~~~
+         | Unable to get content because it is a directory: 'C:\note\banter'. Please use 'Get-ChildItem' instead.
+    Get-Content:
+    Line |
+     566 |                  Get-Content |
+         |                  ~~~~~~~~~~~
+         | Unable to get content because it is a directory: 'C:\note\budget'. Please use 'Get-ChildItem' instead.
+    Get-Content:
+    Line |
+     566 |                  Get-Content |
+         |                  ~~~~~~~~~~~
+         | Unable to get content because it is a directory: 'C:\note\contact'. Please use 'Get-ChildItem' instead.
+    Get-Content:
+    Line |
+     566 |                  Get-Content |
+         |                  ~~~~~~~~~~~
+         | Unable to get content because it is a directory: 'C:\note\dev'. Please use 'Get-ChildItem' instead.
+    ```
+
+- [ ] 2024_10_02_000827
+
+  - consider
+    - this is by design
+
+  - howto
+    - in markdown
+
+      ```markdown
+      # sched:
+      ```
+
+    - in powershell
+
+      ```powershell
+      Get-MySchedule -Subdirectory employer -Pattern campus
+      ```
+
+  - actual
+
+    ```text
+    InvalidArgument: C:\Users\karlr\OneDrive\Documents\WindowsPowerShell\Scripts\MarkdownTree\script\Object.ps1:703
+    Line |
+     703 |                                          $stack[$level]
+         |                                          ~~~~~~~~~~~~~~
+         | Cannot convert value "System.Collections.Specialized.OrderedDictionary" to type
+         | "System.Management.Automation.LanguagePrimitives+InternalPSCustomObject". Error:
+         | "Cannot process argument because the value of argument "name" is not valid. Change
+         | the value of the "name" argument and run the operation again."
+    ```
+
+    - other
+      - howto
+        - in markdown
+
+          ```markdown
+          # sched
+          ```
+
+      - actual
+
+        ```text
+        Wednesday (2024_10_02)
+        ----------------------
+        00:10      ⟐ Length
+        00:10      ⟐ LongLength
+        00:10      ⟐ Rank
+        00:10      ⟐ SyncRoot
+        00:10      ⟐ IsReadOnly
+        00:10      ⟐ IsFixedSize
+        00:10      ⟐ IsSynchronized
+        00:10      ⟐ Count
+        ```
+
 - [ ] 2024_09_26_043319
 
   - howto
