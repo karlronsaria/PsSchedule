@@ -103,8 +103,6 @@ function Get-PplRoutineSchedule {
         -DateString $startSched.when |
         foreach { $_.DateTime }
 
-    $time = $startWhen.ToString($setting.TimeFormat)
-
     $today = if ($StartDate) {
         Get-DateParseVaryingLength `
             -DateString $StartDate |
@@ -134,7 +132,14 @@ function Get-PplRoutineSchedule {
 
     $sequence[$difference.Days .. ($difference.Days + $forecast)] |
     foreach -Begin {
-        $day = $today
+        $day = [DateTime]::new(
+            $today.Year,
+            $today.Month,
+            $today.Day,
+            $startWhen.Hour,
+            $startWhen.Minute,
+            $startWhen.Second
+        )
     } -Process {
         [PsCustomObject]@{
             what = "$($_.Name)$(if ($_.Groups.Count -gt 0) {
