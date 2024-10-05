@@ -1,0 +1,38 @@
+{
+  "DateTimeFormat": "yyyy_MM_dd_HHmm",
+  "DateFormat": "yyyy_MM_dd",
+  "TimeFormat": "HHmm",
+  "StartSchedule": {
+    "when": "2024_09_30_1000",
+    "every": "none",
+    "type": "routine"
+  },
+  "DefaultForecast": 7,
+  "Routines": [
+    {
+      "Name": "Push A",
+      "Groups": [ "chest", "shoulder", "triceps" ]
+    },
+    {
+      "Name": "Pull A",
+      "Groups": [ "back", "biceps" ]
+    },
+    {
+      "Name": "Leg A",
+      "Groups": [ "leg" ]
+    },
+    {
+      "Name": "Push B",
+      "Groups": [ "chest", "shoulder", "triceps" ]
+    },
+    {
+      "Name": "Pull B",
+      "Groups": [ "back", "biceps" ]
+    },
+    {
+      "Name": "Leg B",
+      "Groups": [ "leg" ]
+    }
+  ]
+}
+
