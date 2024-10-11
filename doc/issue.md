@@ -1,5 +1,16 @@
 # issue
 
+- [ ] 2024_10_10_213557
+
+  - actual
+
+    ```text
+    Sunday (2024_10_27)
+    -------------------
+    00:00  [ ] ⟐ todo: event: Code Ninjas: Birthday Party
+    15:00  [ ] ---
+    ```
+
 - [ ] 2024_10_02_002616
 
   - note
