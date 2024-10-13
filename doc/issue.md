@@ -1,5 +1,16 @@
 # issue
 
+- [ ] 2024_10_13_150719
+
+  - howto
+
+    ```powershell
+    Find-MyTree -Subdirectory request -Tag Partners
+    ```
+
+  - actual
+    - five duplicates of the expected output
+
 - [ ] 2024_10_10_213557
 
   - actual
@@ -31,6 +42,7 @@
     - in powershell
 
       ```powershell
+
       Get-MySchedule -Subdirectory employer
       ```
 
