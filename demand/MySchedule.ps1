@@ -651,7 +651,7 @@ function Get-MySchedule {
                         $_.FullName -notlike "*$IgnoreSubdirectory*"
                     } |
                     sls $_ |
-                    sort `
+                    Sort-Object `
                         -Property Path `
                         -Unique
                 }
@@ -664,7 +664,7 @@ function Get-MySchedule {
                         $_.FullName -notlike "*$IgnoreSubdirectory*"
                     } |
                     sls $_ |
-                    sort `
+                    Sort-Object `
                         -Property Path `
                         -Unique
                 }
@@ -794,7 +794,7 @@ function Get-MySchedule {
                 -StartDate:$startDate_subitem `
                 -DefaultsFileName:$DefaultsFileName `
                 -NoHints:$NoHints |
-            sort -Property 'when'
+            Sort-Object -Property 'when'
         }
 
         switch ($Mode) {
