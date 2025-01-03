@@ -420,6 +420,9 @@ function Get-MySchedule {
         [Switch]
         $NoHints,
 
+        [Switch]
+        $Sudo,
+
         [Parameter(
             ParameterSetName = 'Inferred',
             Position = 0
@@ -723,13 +726,25 @@ function Get-MySchedule {
 
         switch ($Mode) {
             'Edit' {
-                $command = $EditCommand
+                $command = if ($Sudo) {
+                    "sudo $EditCommand"
+                }
+                else {
+                    $EditCommand
+                }
+
                 $nonConfirmMessage = "Opening to editor"
                 $confirmMessage = "open to editor"
             }
 
             'Start' {
-                $command = "Start-Process"
+                $command = if ($Sudo) {
+                    "Start-Process"
+                }
+                else {
+                    "sudo"
+                }
+
                 $nonConfirmMessage = "Starting"
                 $confirmMessage = "start"
             }
