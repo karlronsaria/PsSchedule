@@ -1,9 +1,13 @@
 class ScheduleStore {
+    [String] $Path
+    [String] $Extension
     [String[]] $File
     [String[]] $Json
     [PsCustomObject[]] $Default
 
     ScheduleStore([String] $Path, [String] $Extension, [String] $DefaultsName) {
+        $this.Path = $Path
+        $this.Extension = $Extension
         $this.File = Join-Path $Path $Extension
         $defaultsPath = Join-Path $Path $DefaultsName
 
@@ -596,6 +600,99 @@ function Get-MySchedule {
         }
     }
 
+    function Add-ScheduleAddendum {
+        Param(
+            [Parameter(ValueFromPipeline = $true)]
+            [PsCustomObject[]]
+            $TableRow,
+
+            [String]
+            $NotebookPath,
+
+            [String]
+            $AddendumType,
+
+            [String]
+            $AddendumFilePattern
+        )
+
+        Begin {
+            function Get-FlatObject {
+                Param(
+                    [Parameter(Position = 0)]
+                    $InputObject
+                )
+
+                if ($InputObject -is [pscustomobject]) {
+                    return $_.foreach.PsObject.Properties |
+                        where { $_.MemberType -eq 'NoteProperty' }
+                }
+
+                return $InputObject
+            }
+
+            $addenda = $(if ($NotebookPath) {
+                Join-Path $NotebookPath $AddendumFilePattern |
+                    where { $_ } |
+                    Get-ChildItem |
+                    Get-Content |
+                    Get-MarkdownTree |
+                    Find-Subtree -PropertyName $AddendumType |
+                    foreach { $_.$($AddendumType) } |
+                    Get-NextTree
+            }
+            else {
+                @()
+            }) |
+            foreach {
+                [PsCustomObject]@{
+                    Object = $_
+                    Filter =
+                        Get-FlatObject $_.foreach |
+                            foreach { $_.Name -replace "``", "" }
+                    CaptionTemplate =
+                        Get-FlatObject $_.what
+                }
+            }
+        }
+
+        Process {
+            foreach ($addendum in $addenda) {
+                $TableRow |
+                    foreach -PipelineVariable row { $_ } |
+                    where -PipelineVariable row {
+                        $toAdd = $true
+
+                        $addendum.Filter |
+                        where -PipelineVariable subfilter { $_ } |
+                        foreach {
+                            $toAdd = $toAdd -and $($row | foreach { iex $subfilter })
+                        }
+
+                        $toAdd
+                    } |
+                    foreach {
+                        $template = $addendum.CaptionTemplate
+                        $captures = [regex]::Matches($template, "````(?<code>[^``]+)````")
+
+                        foreach ($capture in $captures) {
+                            $replace = $row | foreach { iex $capture.Groups['code'].Value }
+                            $template = $template.Replace($capture, $replace)
+                        }
+
+                        $row |
+                        where { $_ } |
+                        Add-Member `
+                            -MemberType NoteProperty `
+                            -Name Addendum `
+                            -Value $template
+                    }
+            }
+
+            $TableRow
+        }
+    }
+
     . "$PsScriptRoot\ScheduleObject.ps1"
 
     $DefaultsFileName = $setting.ScheduleDefaultsFile
@@ -603,6 +700,9 @@ function Get-MySchedule {
     $RotateProperties = $setting.RotateSubtreeOnProperties
     $IgnoreSubdirectory = $setting.IgnoreSubdirectory
 
+    # (karlr 2025_01_12): For every mode except 'Schedule', you need to provide a subdirectory.
+    # This is because 'Schedule' is indended for ease of use, whereas the other modes are
+    # intended as tools.
     $DefaultSubdirectory = switch ($Mode) {
         'Cat' { '' }
         'Link' { '' }
@@ -804,12 +904,18 @@ function Get-MySchedule {
         }
 
         $schedule = foreach ($startDate_subitem in $StartDate) {
-            $stores |
-            Get-ScheduleObject `
-                -StartDate:$startDate_subitem `
-                -DefaultsFileName:$DefaultsFileName `
-                -NoHints:$NoHints |
-            Sort-Object -Property 'when'
+            foreach ($store in $stores) {
+                $store |
+                Get-ScheduleObject `
+                    -StartDate:$startDate_subitem `
+                    -DefaultsFileName:$DefaultsFileName `
+                    -NoHints:$NoHints |
+                Add-ScheduleAddendum `
+                    -NotebookPath:$store.Path `
+                    -AddendumType:$setting.Addendum.Typename `
+                    -AddendumFilePattern:"$($setting.Addendum.FilePattern)$($store.Extension)" |
+                Sort-Object -Property 'when'
+            }
         }
 
         switch ($Mode) {

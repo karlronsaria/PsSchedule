@@ -44,10 +44,17 @@ function Write-Schedule {
             $icon = '   '
             $foreground = $hostForeground
 
-            if (($ActionItem `
-                | Get-NoteProperty `
-                    -PropertyName 'complete').Success `
-            ) {
+            $actionable = ($ActionItem | Get-NoteProperty `
+                -PropertyName 'complete').Success
+
+            $addendum = ($ActionItem | Get-NoteProperty `
+                -PropertyName 'Addendum').Success
+
+            if ($addendum) {
+                $what = "$($ActionItem.Addendum): $what"
+            }
+
+            if ($actionable) {
                 $icon = if ($ActionItem.complete) {
                     '[x]'
                 } else {
@@ -64,9 +71,11 @@ function Write-Schedule {
             foreach ($type in $ActionItem.type.Split(',').Trim()) {
                 switch ($type) {
                     'todo' {
-                        $what = "todo: $what"
-                        $icon = '[ ]'
-                        $foreground = 'Yellow'
+                        if (-not $actionable) {
+                            $what = "todo: $what"
+                            $icon = '[ ]'
+                            $foreground = 'Yellow'
+                        }
                     }
 
                     'deadline' {
