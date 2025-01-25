@@ -239,8 +239,8 @@ function Get-Schedule_FromTable {
                 $StartDate
             )
 
-            $recurringStart = $InputObject `
-                | Get-NoteProperty -PropertyName 'startdate'
+            $recurringStart = $InputObject |
+                Get-NoteProperty -PropertyName 'startdate'
 
             if ($recurringStart.Success) {
                 $startWhen = Get-DateParseVaryingLength `
@@ -251,14 +251,15 @@ function Get-Schedule_FromTable {
                 }
             }
 
-            $recurringEnd = $InputObject `
-                | Get-NoteProperty -PropertyName 'enddate'
+            $recurringEnd = $InputObject |
+                Get-NoteProperty -PropertyName 'enddate'
 
             if ($recurringEnd.Success) {
                 $endWhen = Get-DateParseVaryingLength `
                     -DateString $recurringEnd.Value
 
                 if ($endWhen.DateTime -lt $StartDate) {
+                    # expired
                     return $false
                 }
             }
@@ -348,6 +349,7 @@ function Get-Schedule_FromTable {
 
         if ('todo' -eq $schedType) {
             if ($InputObject.complete) {
+                # expired
                 return $list
             }
 
@@ -397,6 +399,7 @@ function Get-Schedule_FromTable {
                 $date = $dateTimeResult.DateTime
 
                 if ($todayOnlyEvent) {
+                    # expired if evaluates StartDate greater than Date
                     $isInRange = Test-DateIsInRange `
                         -Date $date `
                         -StartDate $StartDate `
@@ -553,6 +556,7 @@ function Get-Schedule_FromTable {
 
             $list += @($what)
         }
+        # else: expired and isInRange evaluated StartDate greater than Date
 
         return $list
     }
