@@ -159,20 +159,7 @@ function Write-Schedule {
                 $Foreground
             )
 
-            $hf = $host.Ui.RawUi.ForegroundColor
-
-            if ($null -ne $Foreground) {
-                $host.Ui.RawUi.ForegroundColor = $Foreground
-            }
-
-            if ($InputObject) {
-                Write-Output $InputObject
-            }
-            else {
-                Write-Output ''
-            }
-
-            $host.Ui.RawUi.ForegroundColor = $hf
+            Write-Output "$($PsStyle.Foreground.$Foreground)$InputObject$($PsStyle.Reset)"
         }
 
         $prevDate = Get-Date -Year $const.EPOCH_YEAR -Month 1 -Day 1
