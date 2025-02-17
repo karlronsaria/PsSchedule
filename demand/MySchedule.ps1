@@ -387,7 +387,7 @@ function Get-MySchedule {
             $date = Get-Date
 
             $dates = (@(0 .. 62) + @(-61 .. -1)) | foreach {
-                Get-Date ($date.AddDays($_)) -Format 'yyyy_MM_dd'
+                Get-Date ($date.AddDays($_)) -Format 'yyyy_MM_dd' # Uses DateTimeFormat
             }
 
             $suggestions = if ($wordToComplete) {
@@ -457,7 +457,7 @@ function Get-MySchedule {
 
         foreach ($arg in $Arguments) {
             if (-not $startDate_subitem `
-                -and $arg -match "^\d{4}(_\d{2}){2}(_\d+)?$")
+                -and $arg -match "^\d{4}(_\d{2}){2}(_\d+)?$") # Uses DateTimeFormat
             {
                 $startDate_subitem = $arg
             }
@@ -472,7 +472,7 @@ function Get-MySchedule {
                 $Subdirectory = $arg
             }
             elseif (-not $Extension `
-                -and $arg -match '\.\w(\w|\d)*')
+                -and $arg -match '\.[a-zA-Z]\w*')
             {
                 $Extension = $arg
             }
@@ -900,7 +900,7 @@ function Get-MySchedule {
     }
     else {
         if (-not $StartDate) {
-            $StartDate = Get-Date -f 'yyyy_MM_dd'
+            $StartDate = Get-Date -f 'yyyy_MM_dd' # Uses DateTimeFormat
         }
 
         $schedule = foreach ($startDate_subitem in $StartDate) {

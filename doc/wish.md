@@ -1,5 +1,8 @@
 # I wish
 
+- [ ] 2025_02_15_163440
+  - I considered changing the name of this module to "PsScheduleGun" and adding a gun sound effect when "Get-MySchedule" is fired.
+
 - [ ] ``when`` objects had a robust structure
   - example
 

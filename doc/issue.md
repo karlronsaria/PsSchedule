@@ -1,5 +1,21 @@
 # issue
 
+- [ ] 2025_02_17_014805
+  - log
+
+    ```text
+    C:\note  master  ?3 ~7  $what = get-mySchedule -Subdirectory employer -Pattern 'day camp' -Mode Link
+    C:\note  master  ?3 ~7  $what
+    C:\note\sched\notebook\employer\sched_-_2023_11_07_CodeNinjasEvent.md
+    C:\note  master  ?3 ~7  $what | foreach { Split-Path -Path $_ -Parent }
+    C:\note\sched\notebook\employer
+    Split-Path: Cannot bind argument to parameter 'Path' because it is null.
+    C:\note  master  ?3 ~7  $what.Count
+    2
+    C:\note  master  ?3 ~7  $what[-1]
+    C:\note  master  ?3 ~7 
+    ```
+
 - [ ] 2024_10_13_150719
 
   - howto

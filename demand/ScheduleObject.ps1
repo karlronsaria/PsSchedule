@@ -195,7 +195,7 @@ function Write-Schedule {
             $day = $when.Day
             $month = $when.Month
             $year = $when.Year
-            $heading = "$($when.DayOfWeek) ($(Get-Date $when -f yyyy_MM_dd))"
+            $heading = "$($when.DayOfWeek) ($(Get-Date $when -f yyyy_MM_dd))" # Uses DateTimeFormat
 
             Write-OutputColored
             Write-OutputColored $heading `
@@ -300,7 +300,7 @@ function Get-Schedule {
         $content = @()
 
         if (-not $StartDate) {
-            $StartDate = Get-Date -f 'yyyy_MM_dd'
+            $StartDate = Get-Date -f 'yyyy_MM_dd' # Uses DateTimeFormat
         }
     }
 
@@ -377,7 +377,7 @@ function Get-Schedule {
             'ByLine' {
                 $date = [DateTime]::ParseExact( `
                     $StartDate, `
-                    'yyyy_MM_dd', `
+                    'yyyy_MM_dd', ` # Uses DateTimeFormat
                     $null `
                 )
 
@@ -449,7 +449,7 @@ function Add-Schedule {
         $list = @()
 
         if (-not $StartDate) {
-            $StartDate = $(Get-Date -f 'yyyy_MM_dd')
+            $StartDate = $(Get-Date -f 'yyyy_MM_dd') # Uses DateTimeFormat
         }
     }
 
@@ -460,7 +460,7 @@ function Add-Schedule {
     End {
         $date = [DateTime]::ParseExact( `
             $StartDate, `
-            'yyyy_MM_dd', `
+            'yyyy_MM_dd', ` # Uses DateTimeFormat
             $null `
         )
 

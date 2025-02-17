@@ -26,10 +26,10 @@ function Get-DateParseVaryingLength {
     $DateString = $DateString.Trim()
 
     $pattern = switch -Regex ($DateString) {
-        '^\d{4}_\d{2}_\d{2}_\d{6}$' { 'yyyy_MM_dd_HHmmss'; break }
-        '^\d{4}_\d{2}_\d{2}_\d{4}$' { 'yyyy_MM_dd_HHmm'; break }
-        '^\d{4}_\d{2}_\d{2}_\d{2}$' { 'yyyy_MM_dd_HH'; break }
-        '^\d{4}_\d{2}_\d{2}$' { 'yyyy_MM_dd'; break }
+        '^\d{4}_\d{2}_\d{2}_\d{6}$' { 'yyyy_MM_dd_HHmmss'; break } # Uses DateTimeFormat
+        '^\d{4}_\d{2}_\d{2}_\d{4}$' { 'yyyy_MM_dd_HHmm'; break } # Uses DateTimeFormat
+        '^\d{4}_\d{2}_\d{2}_\d{2}$' { 'yyyy_MM_dd_HH'; break } # Uses DateTimeFormat
+        '^\d{4}_\d{2}_\d{2}$' { 'yyyy_MM_dd'; break } # Uses DateTimeFormat
         '^\d{4}$' { 'HHmm'; break }
         default { ''; break }
     }
@@ -166,7 +166,7 @@ function Get-Schedule_FromTable {
 
             return @('event', 'errand', 'deadline') `
                     -contains $type `
-                -and $when -match '\d{4}_\d{2}_\d{2}(_\{4})?'
+                -and $when -match '\d{4}_\d{2}_\d{2}(_\{4})?' # Uses DateTimeFormat
         }
 
         function Test-ActionItemIsTodayOnly {
