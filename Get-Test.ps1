@@ -8,7 +8,7 @@ $getScripts = "$pathTo\Get-Test.ps1"
 
 .LINK
 Url: https://stackoverflow.com/questions/65462679/why-powershell-exe-there-is-no-way-to-dot-source-a-script
-Retrieved: 2022_10_09
+Retrieved: 2022-10-09
 #>
 
 $scripts = dir @(

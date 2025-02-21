@@ -54,7 +54,7 @@ function Get-PplRoutineSchedule {
             $date = Get-Date
 
             $dates = (@(0 .. 62) + @(-61 .. -1)) | foreach {
-                Get-Date ($date.AddDays($_)) -Format 'yyyy_MM_dd' # Uses DateTimeFormat
+                Get-Date ($date.AddDays($_)) -Format 'yyyy-MM-dd' # Uses DateTimeFormat
             }
 
             $suggestions = if ($wordToComplete) {

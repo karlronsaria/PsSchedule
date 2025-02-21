@@ -1,12 +1,12 @@
 # issue
 
-- [ ] 2025_02_17_014805
+- [ ] 2025-02-17-014805
   - log
 
     ```text
     C:\note  master  ?3 ~7  $what = get-mySchedule -Subdirectory employer -Pattern 'day camp' -Mode Link
     C:\note  master  ?3 ~7  $what
-    C:\note\sched\notebook\employer\sched_-_2023_11_07_CodeNinjasEvent.md
+    C:\note\sched\notebook\employer\sched_-_2023-11-07_CodeNinjasEvent.md
     C:\note  master  ?3 ~7  $what | foreach { Split-Path -Path $_ -Parent }
     C:\note\sched\notebook\employer
     Split-Path: Cannot bind argument to parameter 'Path' because it is null.
@@ -16,7 +16,7 @@
     C:\note  master  ?3 ~7 
     ```
 
-- [ ] 2024_10_13_150719
+- [ ] 2024-10-13-150719
 
   - howto
 
@@ -27,18 +27,18 @@
   - actual
     - five duplicates of the expected output
 
-- [ ] 2024_10_10_213557
+- [ ] 2024-10-10-213557
 
   - actual
 
     ```text
-    Sunday (2024_10_27)
+    Sunday (2024-10-27)
     -------------------
     00:00  [ ] ⟐ todo: event: Code Ninjas: Birthday Party
     15:00  [ ] ---
     ```
 
-- [ ] 2024_10_02_002616
+- [ ] 2024-10-02-002616
 
   - note
     - possible reason
@@ -50,7 +50,7 @@
       ```markdown
       # sched: move: ...
 
-      - when: 2024_10_02_1330
+      - when: 2024-10-02-1330
       - to: 1550
       - type: event, overlap, move
       ```
@@ -65,7 +65,7 @@
   - actual
 
     ```text
-    Wednesday (2024_10_02)
+    Wednesday (2024-10-02)
     ----------------------
     00:00      ⟐ overlap: event: move: ...
     ```
@@ -73,12 +73,12 @@
   - expected
 
     ```text
-    Wednesday (2024_10_02)
+    Wednesday (2024-10-02)
     ----------------------
     13:30      ⟐ overlap: event: move: ...
     ```
 
-- [ ] 2024_10_02_002001
+- [ ] 2024-10-02-002001
 
   - howto
 
@@ -90,7 +90,7 @@
     - one item is null or an empty string
   - expected: ``1``
 
-- [ ] 2024_10_02_001708
+- [ ] 2024-10-02-001708
 
   - howto
 
@@ -134,7 +134,7 @@
          | Unable to get content because it is a directory: 'C:\note\dev'. Please use 'Get-ChildItem' instead.
     ```
 
-- [ ] 2024_10_02_000827
+- [ ] 2024-10-02-000827
 
   - consider
     - this is by design
@@ -176,7 +176,7 @@
       - actual
 
         ```text
-        Wednesday (2024_10_02)
+        Wednesday (2024-10-02)
         ----------------------
         00:10      ⟐ Length
         00:10      ⟐ LongLength
@@ -188,12 +188,12 @@
         00:10      ⟐ Count
         ```
 
-- [ ] 2024_09_26_043319
+- [ ] 2024-09-26-043319
 
   - howto
 
     ```powershell
-    Get-MySchedule -Subdirectory request -StartDate 2024_09_25
+    Get-MySchedule -Subdirectory request -StartDate 2024-09-25
     ```
 
   - actual
@@ -201,7 +201,7 @@
     ```text
     ```
 
-- [ ] 2024_07_07_140732
+- [ ] 2024-07-07-140732
 
   - howto
     - in markdown
@@ -213,8 +213,8 @@
       - when:
       - type: event
       - note
-        - when: 2023_01_26_1030
-        - when: 2023_01_12_1030
+        - when: 2023-01-26-1030
+        - when: 2023-01-12-1030
       ```
 
   - actual
@@ -223,36 +223,36 @@
       ```text
       C:\note [master ≡]> Get-MySchedule
 
-      Sunday (2024_07_07)
+      Sunday (2024-07-07)
       -------------------
       10:00      ⟐ daily todo
       11:00      ⟐ event: Sunday service
       14:08      ⟐ event: meet with Roi
 
-      Monday (2024_07_08)
+      Monday (2024-07-08)
       -------------------
       16:00  [!] ⟐ general offering
 
-      Tuesday (2024_07_09)
+      Tuesday (2024-07-09)
       --------------------
       18:30      ⟐ event: bible study men's
 
-      Saturday (2024_07_13)
+      Saturday (2024-07-13)
       ---------------------
       13:30      ⟐ event: meet with Jesse Luna
       14:30      ---
       ```
 
-- [ ] 2023_01_10_230005
+- [ ] 2023-01-10-230005
 
   - howto
     - in powershell
 
       ```powershell
-      $tree = cat .\todo_-_2022_12_16.md | Get-MarkdownTable
+      $tree = cat .\todo_-_2022-12-16.md | Get-MarkdownTable
       $tree.lookup | Write-MarkdownTree
       ```
-    - in ``todo_-_2022_12_16.md``
+    - in ``todo_-_2022-12-16.md``
 
       ```
       # lookup
@@ -264,7 +264,7 @@
               - How To Tie Your Shoes Insanely Fast!
               - SharpshooterJD
               - YouTube
-            - retrieved: 2023_01_10
+            - retrieved: 2023-01-10
       - howto: remove windshield glare
         - [ ] learn
         - [x] find
@@ -273,7 +273,7 @@
               - STOP Auto Glass GLARE & WATER SPOTS....FOREVER!!!!!
               - Sweet Project Cars
               - YouTube
-            - retrieved: 2023_01_10
+            - retrieved: 2023-01-10
       - [ ] learn: webassembly
         - [ ] link video in listen-later playlist
       - [ ] learn: Hindley-Milner type system
@@ -300,7 +300,7 @@
               - How To Tie Your Shoes Insanely Fast!
               - SharpshooterJD
               - YouTube
-            - retrieved: 2023_01_10
+            - retrieved: 2023-01-10
       - remove windshield glare
         - [ ] learn
         - [x] find
@@ -309,24 +309,24 @@
               - STOP Auto Glass GLARE & WATER SPOTS....FOREVER!!!!!
               - Sweet Project Cars
               - YouTube
-            - retrieved: 2023_01_10
+            - retrieved: 2023-01-10
     - learn
       - [ ] webassembly
         - [ ] link video in listen-later playlist
       - [ ] Hindley-Milner type system
     ```
 
-- [ ] 2022_10_27_180542
+- [ ] 2022-10-27-180542
 
   - actual
     - action items with header levels other than 3 are ignored
 
-- [ ] 2023_01_20_144131
+- [ ] 2023-01-20-144131
 
   - what
     - ``Get-MySchedule``: ``Extension`` parameter is never used due to all work files having the markdown ``*.md`` extension.
 
-- [ ] 2023_02_07_212709
+- [ ] 2023-02-07-212709
   - howto
     - in powershell
       ```powershell
@@ -339,24 +339,24 @@
       - what
         - phone interview
           - where: phone
-          - when: 2023_02_04_1300
+          - when: 2023-02-04-1300
           - type: event
           - every: none
         - personal interview
           - where
             - address: 25652 Crown Valley Pkwy Suite F-1, Ladera Ranch, CA 92694
-          - when: 2023_02_08_1300
+          - when: 2023-02-08-1300
           - type: event
           - every: none
       ```
   - actual
     ```
-    Tuesday (2023_02_07)
+    Tuesday (2023-02-07)
     --------------------
     21:28      @{phone interview=; personal interview=}
     ```
 
-- [ ] 2023_02_06_092921
+- [ ] 2023-02-06-092921
   - howto
     ```powershell
     Get-MySchedule request, partners, tree
@@ -388,7 +388,7 @@
   - expected
     - output is a PsCustomObject
 
-- [x] 2023_10_02_020437
+- [x] 2023-10-02-020437
   - howto
     - in powershell
       ```powershell
@@ -411,19 +411,19 @@
     False    hir
     ```
 
-- [x] 2023_08_22_202828
+- [x] 2023-08-22-202828
   - actual
     ```
     C:\Users\karlr> Get-MySchedule -Subdirectory general -Mode Edit -Pattern amazon
 
-    C:\note\sched\notebook\general\sched_-_2022_12_18_Delivery.md:8:  - url: https://www.amazon.com
+    C:\note\sched\notebook\general\sched_-_2022-12-18_Delivery.md:8:  - url: https://www.amazon.com
     This will open to editor all files in
-      C:\note\sched\notebook\general\sched_-_2022_12_18_Delivery.md:8:  - url: https://www.amazon.com
+      C:\note\sched\notebook\general\sched_-_2022-12-18_Delivery.md:8:  - url: https://www.amazon.com
 
     Continue? (y/n):
     ```
 
-- [x] 2023_09_11_125704
+- [x] 2023-09-11-125704
   - actual
     ```
     C:\Users\karlr> Get-MySchedule general, cat, offering
@@ -460,27 +460,27 @@
     Get-MySchedule -Subdirectory '' -Mode 'Schedule' -Extension '*.md'
 
 
-    Monday (2023_09_11)
+    Monday (2023-09-11)
     -------------------
     00:00  [ ] todo: reappoint: meet with Roi
     10:00      daily todo
     16:00  [!] general offering
 
-    Tuesday (2023_09_12)
+    Tuesday (2023-09-12)
     --------------------
     18:30      event: bible study men's
 
-    Saturday (2023_09_16)
+    Saturday (2023-09-16)
     ---------------------
     13:30      event: meet with Jesse Luna
     14:30      ---
 
-    Sunday (2023_09_17)
+    Sunday (2023-09-17)
     -------------------
     11:00      event: Sunday service
     ```
 
-- [x] 2023_02_04_140555
+- [x] 2023-02-04-140555
   - howto
     ```powershell
     Get-MySchedule -Pattern recite
@@ -494,7 +494,7 @@
     No content in C:\note\sched\notebook\general\ could be found matching the pattern 'recite'
     ```
 
-- [x] 2023_02_04_124905
+- [x] 2023-02-04-124905
   - howto
     - in sched.md
       ```
@@ -503,8 +503,8 @@
       - where
         - 25725 Jeronimo Rd, Mission Viejo, CA, 92691, United States
       - when
-        - [ ] 2023_01_20
-        - [ ] 2023_01_30
+        - [ ] 2023-01-20
+        - [ ] 2023-01-30
       ```
     - in powershell
       ```powershell
@@ -512,27 +512,27 @@
       ```
     - actual
       ```
-      Saturday (2023_02_04)
+      Saturday (2023-02-04)
       ---------------------
       00:00  [ ] todo: reappoint: meeting with Roi
       10:00      daily todo
       10:00      event: evangelism training
       13:00      event: phone interview
 
-      Sunday (2023_02_05)
+      Sunday (2023-02-05)
       -------------------
       11:00      event: Sunday service
 
-      Monday (2023_02_06)
+      Monday (2023-02-06)
       -------------------
       16:00  [!] general offering
 
-      Friday (2023_02_10)
+      Friday (2023-02-10)
       -------------------
       06:30      event: bible study men's
       ```
 
-- [x] 2023_02_01_152740
+- [x] 2023-02-01-152740
   - howto
     ```powershell
     Get-MySchedule EvagelismTraining
@@ -570,14 +570,14 @@
     ...
     ```
 
-- [x] 2023_02_01_121902
+- [x] 2023-02-01-121902
   - howto
     ```powershell
     Get-MySchedule
     ```
   - actual
     ```
-    Wednesday (2023_02_01)
+    Wednesday (2023-02-01)
     ----------------------
     00:00  [ ] todo: reappoint: meeting with Roi
     10:00      daily todo
@@ -585,19 +585,19 @@
     ```
   - expected
     ```
-    Wednesday (2023_02_01)
+    Wednesday (2023-02-01)
     ----------------------
     00:00  [ ] todo: reappoint: meeting with Roi
     10:00      daily todo
     ```
 
-- [x] 2023_01_11_173519
+- [x] 2023-01-11-173519
 
   - howto
     - in powershell
 
       ```powershell
-      Get-MySchedule -Subdirectory homework -StartDate 2023_01_09
+      Get-MySchedule -Subdirectory homework -StartDate 2023-01-09
       ```
     - in ``sched.md``
 
@@ -611,7 +611,7 @@
   - actual
 
     ```
-    Monday (2023_01_09)
+    Monday (2023-01-09)
     -------------------
     23:00      Change and Growth Plan
     23:00      @{recite Philippians=}
@@ -619,13 +619,13 @@
   - expected
 
     ```
-    Monday (2023_01_09)
+    Monday (2023-01-09)
     -------------------
     23:00      Change and Growth Plan
     23:00      recite Philippians
     ```
 
-- [x] 2023_01_11_170506
+- [x] 2023-01-11-170506
 
   - actual
     - ``todo.md`` in neovim
@@ -633,24 +633,24 @@
       ```
       - [ ] Domino's Pizza jacket
         - link
-          - retrieved: 2023_01_07
+          - retrieved: 2023-01-07
           - list
             - 
               - what: tracking
               - url: https://www.htgdominos.com/myaccount.asp
             - 
               - what: invoice
-              - url: \doc\My\invoice_-_2023_01_07_HtgDominos.pdf
+              - url: \doc\My\invoice_-_2023-01-07_HtgDominos.pdf
       ```
     - ``todo.md`` in MarkText
-      ![Capture_2023_01_11_163152](./res/Screenshot_2023-01-11_163152.png)
+      ![Capture_2023-01-11-163152](./res/Screenshot_2023-01-11_163152.png)
   - workaround
     - ``todo.md`` in neovim
 
       ```
       - [ ] Domino's Pizza jacket
         - link
-          - retrieved: 2023_01_07
+          - retrieved: 2023-01-07
           - list
 
             - 
@@ -658,12 +658,12 @@
               - url: https://www.htgdominos.com/myaccount.asp
             - 
               - what: invoice
-              - url: \doc\My\invoice_-_2023_01_07_HtgDominos.pdf
+              - url: \doc\My\invoice_-_2023-01-07_HtgDominos.pdf
       ```
 
 ## resolved
 
-- [x] 2023_01_20_144308
+- [x] 2023-01-20-144308
 
   - what
     - ``MySchedule.ps1``: All defaults and constants should be recorded in ``/res/default.json``.
@@ -671,12 +671,12 @@
     - what: canceled
     - why: Close enough.
 
-- [x] 2023_01_20_144402
+- [x] 2023-01-20-144402
 
   - what
     - File ``/res/default.json`` should be named ``setting.json``.
 
-- [x] 2023_01_13_010203
+- [x] 2023-01-13-010203
 
   - actual
 
@@ -696,7 +696,7 @@
         + CategoryInfo          : InvalidData: (:) [Test-Path], ParameterBindingValidationException
         + FullyQualifiedErrorId : ParameterArgumentValidationErrorNullNotAllowed,Microsoft.PowerShell.Commands.TestPathCommand
 
-    Friday (2023_01_13)
+    Friday (2023-01-13)
     -------------------
     11:00      evangelism
     11:00      ChangeAndGrowthPlan
@@ -743,7 +743,7 @@
         - todayonly
     ```
 
-- [x] 2023_01_02_224101
+- [x] 2023-01-02-224101
 
   - howto
 
@@ -779,7 +779,7 @@
         - susihroth
     ```
 
-- [x] 2022_11_10_003045
+- [x] 2022-11-10-003045
 
   - howto
 
@@ -851,10 +851,10 @@
   - cause
 
     - the latest refactor to accomodate the new tree form
-      - as in ``"I wish" 2022_11_09_175458``
+      - as in ``"I wish" 2022-11-09-175458``
       - messes up trees at Level 2 that don't have inline branches
 
-- [x] 2022_11_08_125240
+- [x] 2022-11-08-125240
 
   - solution: non-issue
 
@@ -866,7 +866,7 @@
       # sched
       - what: Amazon delivery
       - when
-        - [ ] 2022_11_02_1000
+        - [ ] 2022-11-02-1000
       - type: todo
       - every: none
       ```
@@ -880,7 +880,7 @@
   - actual
 
     ```
-    Tuesday (2022_11_08)
+    Tuesday (2022-11-08)
     --------------------
     00:01      Amazon delivery
     ```
@@ -888,12 +888,12 @@
   - expected
 
     ```
-    Tuesday (2022_11_08)
+    Tuesday (2022-11-08)
     --------------------
     10:00      Amazon delivery
     ```
 
-- [x] 2022_11_06_114157
+- [x] 2022-11-06-114157
 
   - howto
     ``Get-MarkdownTable``
@@ -914,21 +914,21 @@
     ...
     ```
 
-- [x] 2022_11_05_140003
+- [x] 2022-11-05-140003
 
   - actual
     - ``todo`` items are treated as one-day events
   - expected
     - ``todo`` items are treated as action items to be completed, starting at ``when``
 
-- [x] 2022_11_03_150245
+- [x] 2022-11-03-150245
 
   - actual
 
     ```
     C:\Users\karlr> sched.bat -subdir request
 
-    Thursday (2022_11_03)
+    Thursday (2022-11-03)
     ---------------------
     22:00      friend
     22:00      workplace
@@ -956,7 +956,7 @@
         '\w+(\s*,\s*\w+)*' {
     ```
 
-- [x] 2022_10_26_170128
+- [x] 2022-10-26-170128
 
   - howto
     ``C:\shortcut\bin\sched.bat``
@@ -971,7 +971,7 @@
     ject.ps1:458 char:23
     +             $parent | Add-Member `
     +                       ~~~~~~~~~~~~
-        + CategoryInfo          : InvalidOperation: (@{sched=System....ved=2022_10_09}
+        + CategoryInfo          : InvalidOperation: (@{sched=System....ved=2022-10-09}
        :PSObject) [Add-Member], InvalidOperationException
         + FullyQualifiedErrorId : MemberAlreadyExists,Microsoft.PowerShell.Commands.Ad
        dMemberCommand
@@ -991,7 +991,7 @@
     1. Line 454: failure to use proper binding: ``$content``
     2. Line 211: failure to account for failable return value from ``Get-MarkdownTable``
 
-- [x] 2022_10_21_121845
+- [x] 2022-10-21-121845
 
   - howto
     ``C:\shortcut\bin\sched.bat``

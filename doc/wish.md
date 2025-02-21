@@ -1,6 +1,6 @@
 # I wish
 
-- [ ] 2025_02_15_163440
+- [ ] 2025-02-15-163440
   - I considered changing the name of this module to "PsScheduleGun" and adding a gun sound effect when "Get-MySchedule" is fired.
 
 - [ ] ``when`` objects had a robust structure
@@ -74,9 +74,9 @@
     
     when       what
     ----       ----
-    2023_01_05 sus
-    2023_01_06 ihr
-    2023_01_07 oth
+    2023-01-05 sus
+    2023-01-06 ihr
+    2023-01-07 oth
     ```
   
   - expected
@@ -86,9 +86,9 @@
     
     when       what
     ----       ----
-    2023_01_05 sus
-    2023_01_06 ihr
-    2023_01_07 oth
+    2023-01-05 sus
+    2023-01-06 ihr
+    2023-01-07 oth
     ```
 
 - [ ] I could identify expired action items
@@ -101,7 +101,7 @@
 
 - [ ] I could see high-priority deadlines within a week or month's notice but low-priority deadlines within a day's notice
 
-- [ ] 2022_11_09_175458
+- [ ] 2022-11-09-175458
   
   - I could write action items in list form under a single ``sched`` heading, using the ``what`` field as the title
     
@@ -139,7 +139,7 @@
 
 ## resolved
 
-- [x] 2023_11_07_225443
+- [x] 2023-11-07-225443
   - howto
     - in powershell
       ```powershell
@@ -243,7 +243,7 @@
         - sleep for family
     ```
   - solution
-    - 2023_02_02_130327
+    - 2023-02-02-130327
       - remove values from ``res/setting.json#RotateOnProperties``
       - continue to use module until something doesn't look right
 

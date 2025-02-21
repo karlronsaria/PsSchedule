@@ -41,7 +41,7 @@ function Find-MyTree {
             # ---
             # link
             # - url: <https://stackoverflow.com/questions/65892518/tab-complete-a-parameter-value-based-on-another-parameters-already-specified-va>
-            # - retrieved: 2023_10_10
+            # - retrieved: 2023-10-10
             Param(
                 $cmdName,
                 $paramName,
@@ -387,7 +387,7 @@ function Get-MySchedule {
             $date = Get-Date
 
             $dates = (@(0 .. 62) + @(-61 .. -1)) | foreach {
-                Get-Date ($date.AddDays($_)) -Format 'yyyy_MM_dd' # Uses DateTimeFormat
+                Get-Date ($date.AddDays($_)) -Format 'yyyy-MM-dd' # Uses DateTimeFormat
             }
 
             $suggestions = if ($wordToComplete) {
@@ -457,7 +457,7 @@ function Get-MySchedule {
 
         foreach ($arg in $Arguments) {
             if (-not $startDate_subitem `
-                -and $arg -match "^\d{4}(_\d{2}){2}(_\d+)?$") # Uses DateTimeFormat
+                -and $arg -match "^\d{4}(-\d{2}){2}(-\d+)?$") # Uses DateTimeFormat
             {
                 $startDate_subitem = $arg
             }
@@ -700,7 +700,7 @@ function Get-MySchedule {
     $RotateProperties = $setting.RotateSubtreeOnProperties
     $IgnoreSubdirectory = $setting.IgnoreSubdirectory
 
-    # (karlr 2025_01_12): For every mode except 'Schedule', you need to provide a subdirectory.
+    # (karlr 2025-01-12): For every mode except 'Schedule', you need to provide a subdirectory.
     # This is because 'Schedule' is indended for ease of use, whereas the other modes are
     # intended as tools.
     $DefaultSubdirectory = switch ($Mode) {
@@ -900,7 +900,7 @@ function Get-MySchedule {
     }
     else {
         if (-not $StartDate) {
-            $StartDate = Get-Date -f 'yyyy_MM_dd' # Uses DateTimeFormat
+            $StartDate = Get-Date -f 'yyyy-MM-dd' # Uses DateTimeFormat
         }
 
         $schedule = foreach ($startDate_subitem in $StartDate) {
@@ -924,18 +924,18 @@ function Get-MySchedule {
             }
 
             'Schedule' {
-                # # OLD (karlr 2023_01_26_140650)
+                # # OLD (karlr 2023-01-26-140650)
                 # # ------------------------------
                 # # link
                 # # - url: <https://stackoverflow.com/questions/24446680/is-it-possible-to-check-if-verbose-argument-was-given-in-powershell>
-                # # - retrieved: 2023_01_26
+                # # - retrieved: 2023-01-26
                 #
                 # $hasVerbose =
                 #     $PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
 
                 # link
                 # - url: <https://www.briantist.com/how-to/test-for-verbose-in-powershell/>
-                # - retrieved: 2023_01_26
+                # - retrieved: 2023-01-26
                 $hasVerbose =
                     $VerbosePreference `
                     -ne [System.Management.Automation.ActionPreference]::SilentlyContinue
