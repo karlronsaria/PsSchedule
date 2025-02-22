@@ -780,8 +780,8 @@ function Get-MySchedule {
                 $store.Json = $null
             }
             elseif ($Mode -eq 'Link') {
-                Write-Output $fileGrep.Path
-                Write-Output $jsonGrep.Path
+                $fileGrep.Path | where { $_ }
+                $jsonGrep.Path | where { $_ }
                 $store.File = $null
                 $store.Json = $null
             }
@@ -791,8 +791,8 @@ function Get-MySchedule {
                         "$EditCommand $($grep.Path) +$($grep.LineNumber)"
                 }
 
-                Write-Output $fileGrep
-                Write-Output $jsonGrep
+                $fileGrep | where { $_ }
+                $jsonGrep | where { $_ }
                 $store.File = $null
                 $store.Json = $null
             }
@@ -802,8 +802,8 @@ function Get-MySchedule {
                         "Start-Process $($grep.Path)"
                 }
 
-                Write-Output $fileGrep
-                Write-Output $jsonGrep
+                $fileGrep | where { $_ }
+                $jsonGrep | where { $_ }
                 $store.File = $null
                 $store.Json = $null
             }
