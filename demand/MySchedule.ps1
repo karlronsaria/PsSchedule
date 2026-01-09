@@ -31,11 +31,11 @@ function Find-MyTree {
             # A fixed list of parameters is passed to an argument-completer
             # script block.
             # Here, only two are of interest:
-            #  * $wordToComplete:
+            #  * $wordToComplete
             #      The part of the value that the user has typed so far,
             #      if any.
             #  * $preBoundParameters (called $fakeBoundParameters
-            #    in the docs):
+            #    in the docs)
             #      A hashtable of those (future) parameter values specified
             #      so far that are side effect-free (see above).
             # ---
@@ -110,17 +110,13 @@ function Find-MyTree {
             $Needle
         )
 
-        $found = $false
-
         foreach ($subneedle in $Needle) {
-            $found = $found -or $subneedle -in $Haystack
-
-            if ($found) {
-                break
+            if ($subneedle -in $Haystack) {
+                return $true
             }
         }
 
-        $found
+        return $false
     }
 
     $setting =
@@ -147,13 +143,11 @@ function Find-MyTree {
             {
                 $DepthLimit = [Int]$arg
             }
-            elseif (-not $Mode `
-                -and $arg -in $validModes)
+            elseif (-not $Mode -and $arg -in $validModes)
             {
                 $Mode = $arg
             }
-            elseif (-not $Subdirectory `
-                -and $arg -in $subdirectories)
+            elseif (-not $Subdirectory -and $arg -in $subdirectories)
             {
                 $Subdirectory = $arg
             }
@@ -191,14 +185,17 @@ function Find-MyTree {
     }
 
     $RotateProperties = $setting.RotateSubtreeOnProperties
-    $IgnoreSubdirectory = $setting.IgnoreSubdirectory
+    $IgnoreSubdirectories = "\\($($setting.IgnoreSubdirectories -join '|'))\\"
     $path = Join-Path (Join-Path $Directory $Subdirectory) '*.md'
+
+    # (karlr 2025-11-29)
+    $Tag = @(@($Tag) | foreach { "$($setting.TagPrefix)$_" }) # Uses tag prefix
 
     $dir = $path `
         | Get-ChildItem `
             -Recurse `
         | where {
-            $_.FullName -notlike "*$IgnoreSubdirectory*"
+            $_.FullName -notmatch "$IgnoreSubdirectories"
         }
 
     if ($Mode -in @('Cat', 'Link', 'Edit', 'Start')) {
@@ -557,9 +554,12 @@ function Get-MySchedule {
         )
 
         Begin {
-            $IgnoreSubdirectory =
-                (cat "$PsScriptRoot\..\res\setting.json" |
-                    ConvertFrom-Json).IgnoreSubdirectory
+            $setting = "$PsScriptRoot\..\res\setting.json" |
+                Get-Item |
+                Get-Content |
+                ConvertFrom-Json
+            
+            $IgnoreSubdirectories = "\\($($setting.IgnoreSubdirectories -join '|'))\\"
         }
 
         Process {
@@ -568,7 +568,7 @@ function Get-MySchedule {
                     -Path $InputObject.File `
                     -Recurse |
                 where {
-                    $_.FullName -notlike "*$IgnoreSubdirectory*"
+                    $_.FullName -notmatch "$IgnoreSubdirectories"
                 } |
                 Get-Content |
                 Get-Schedule `
@@ -582,7 +582,7 @@ function Get-MySchedule {
                         -Path $InputObject.Json `
                         -Recurse |
                     where {
-                        $_.FullName -notlike "*$IgnoreSubdirectory*" `
+                        $_.FullName -notmatch "$IgnoreSubdirectories" `
                         -and `
                         $DefaultsFileName -ne $_.Name.ToLower()
                     } |
@@ -698,7 +698,7 @@ function Get-MySchedule {
     $DefaultsFileName = $setting.ScheduleDefaultsFile
     $EditCommand = $setting.EditCommand
     $RotateProperties = $setting.RotateSubtreeOnProperties
-    $IgnoreSubdirectory = $setting.IgnoreSubdirectory
+    $IgnoreSubdirectories = $setting.IgnoreSubdirectories
 
     # (karlr 2025-01-12): For every mode except 'Schedule', you need to provide a subdirectory.
     # This is because 'Schedule' is indended for ease of use, whereas the other modes are
@@ -751,7 +751,7 @@ function Get-MySchedule {
                     dir $store.File `
                         -Recurse |
                     where {
-                        $_.FullName -notlike "*$IgnoreSubdirectory*"
+                        $_.FullName -notmatch "$IgnoreSubdirectories"
                     } |
                     sls $_ |
                     Sort-Object `
@@ -764,7 +764,7 @@ function Get-MySchedule {
                     dir $store.Json `
                         -Recurse |
                     where {
-                        $_.FullName -notlike "*$IgnoreSubdirectory*"
+                        $_.FullName -notmatch "$IgnoreSubdirectories"
                     } |
                     sls $_ |
                     Sort-Object `
@@ -1007,8 +1007,7 @@ function Get-AvailableSchedule {
             $result.DateTime
         }
         elseif ($result.Time) {
-            $temp = [DateTime]::ParseExact($result.Time, "HHmm", $null)
-            $temp
+            [DateTime]::ParseExact($result.Time, "HHmm", $null)
         }
 
         $prevTo = Get-Date `

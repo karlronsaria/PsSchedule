@@ -1,5 +1,6 @@
 <#
-.HOWTO
+.DESCRIPTION
+# howto
 $getScripts = "$pathTo\Get-Scripts.ps1"
 & $getScripts | foreach { . $_ }
 

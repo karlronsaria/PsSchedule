@@ -5,7 +5,10 @@
     "ScheduleDefaultSubdirectory": "general",
     "ScheduleDefaultsFile": "default.json",
     "SearchDirectory": "/note",
-    "IgnoreSubdirectory": "__OLD",
+    "IgnoreSubdirectories": [
+        "__OLD",
+        "__SHELF"
+    ],
     "RotateSubtreeOnProperties": [],
     "MuteProperties": [
         "log"
@@ -19,6 +22,7 @@
     "Addendum": {
         "Typename": "sched addendum",
         "FilePattern": "rule"
-    }
+    },
+    "TagPrefix": "#"
 }
 

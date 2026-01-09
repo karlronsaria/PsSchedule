@@ -1,5 +1,12 @@
 . "$PsScriptRoot\ScheduleObject.ps1"
 
+<#
+.DESCRIPTION
+Formats
+- recurring: ddd-HHmm
+- date-time: yyyy-MM-dd-HHmm
+- week-date-time: ddd yyyy-MM-dd-HHmm
+#>
 function Get-DateParseVaryingLength {
     Param(
         [String]
@@ -8,7 +15,7 @@ function Get-DateParseVaryingLength {
 
     $capture = [Regex]::Match( `
         $DateString, `
-        "^((?<day>\w{3})-)?(?<time>\d{4})?$" `
+        "^((?<day>[A-Za-z]{3})-)?(?<time>\d{4})?$" `
     )
 
     $result = [PsCustomObject]@{
@@ -18,19 +25,20 @@ function Get-DateParseVaryingLength {
     }
 
     if ($capture.Success) {
-        $result.Day = $capture.Groups['day'].Value
+        $result.Day = $capture.Groups['day'].Value.ToLower()
         $result.Time = $capture.Groups['time'].Value
         $result.DateTime = $null
     }
 
     $DateString = $DateString.Trim()
+    $DateString = $DateString -replace "^[A-Za-z]{3}(-| )", ""
 
     $pattern = switch -Regex ($DateString) {
-        '^\d{4}-\d{2}-\d{2}-\d{6}$' { 'yyyy-MM-dd-HHmmss'; break } # Uses DateTimeFormat
-        '^\d{4}-\d{2}-\d{2}-\d{4}$' { 'yyyy-MM-dd-HHmm'; break } # Uses DateTimeFormat
-        '^\d{4}-\d{2}-\d{2}-\d{2}$' { 'yyyy-MM-dd-HH'; break } # Uses DateTimeFormat
-        '^\d{4}-\d{2}-\d{2}$' { 'yyyy-MM-dd'; break } # Uses DateTimeFormat
-        '^\d{4}$' { 'HHmm'; break }
+        "^\d{4}-\d{2}-\d{2}-\d{6}$" { 'yyyy-MM-dd-HHmmss'; break } # Uses DateTimeFormat
+        "^\d{4}-\d{2}-\d{2}-\d{4}$" { 'yyyy-MM-dd-HHmm'; break } # Uses DateTimeFormat
+        "^\d{4}-\d{2}-\d{2}-\d{2}$" { 'yyyy-MM-dd-HH'; break } # Uses DateTimeFormat
+        "^\d{4}-\d{2}-\d{2}$" { 'yyyy-MM-dd'; break } # Uses DateTimeFormat
+        "^\d{4}$" { 'HHmm'; break }
         default { ''; break }
     }
 
@@ -399,11 +407,18 @@ function Get-Schedule_FromTable {
                 $date = $dateTimeResult.DateTime
 
                 if ($todayOnlyEvent) {
+                    # todo: remove
+                    try {
                     # expired if evaluates StartDate greater than Date
                     $isInRange = Test-DateIsInRange `
                         -Date $date `
                         -StartDate $StartDate `
                         -EndDate:$EndDate
+                    }
+                    catch {
+                        Write-Host "[$schedWhen]"
+                        throw $_
+                    }
 
                     if ($isInRange) {
                         $what = Get-NewActionItem `
@@ -417,9 +432,16 @@ function Get-Schedule_FromTable {
                 }
 
                 if ($oneDayEvent) {
+                    # todo: remove
+                    try {
                     $what = Get-NewActionItem `
                         -ActionItem $InputObject `
                         -Date $date
+                    }
+                    catch {
+                        Write-Host "[$schedWhen]"
+                        throw $_
+                    }
 
                     $list += @($what)
                     return $list
@@ -459,7 +481,7 @@ function Get-Schedule_FromTable {
                 break
             }
 
-            '\w+(\s*,\s*\w+)*' {
+            '[A-Za-z]+(\s*,\s*[A-Za-z]+)*' {
                 $invalid =
                     [String]::IsNullOrWhiteSpace($schedTime)
 

@@ -1,21 +1,5 @@
 # issue
 
-- [x] 2025-02-17-014805
-  - log
-
-    ```text
-    C:\note  master  ?3 ~7  $what = get-mySchedule -Subdirectory employer -Pattern 'day camp' -Mode Link
-    C:\note  master  ?3 ~7  $what
-    C:\note\sched\notebook\employer\sched_-_2023-11-07_CodeNinjasEvent.md
-    C:\note  master  ?3 ~7  $what | foreach { Split-Path -Path $_ -Parent }
-    C:\note\sched\notebook\employer
-    Split-Path: Cannot bind argument to parameter 'Path' because it is null.
-    C:\note  master  ?3 ~7  $what.Count
-    2
-    C:\note  master  ?3 ~7  $what[-1]
-    C:\note  master  ?3 ~7 
-    ```
-
 - [ ] 2024-10-13-150719
 
   - howto
@@ -662,6 +646,22 @@
       ```
 
 ## resolved
+
+- [x] 2025-02-17-014805
+  - log
+
+    ```text
+    C:\note  master  ?3 ~7  $what = get-mySchedule -Subdirectory employer -Pattern 'day camp' -Mode Link
+    C:\note  master  ?3 ~7  $what
+    C:\note\sched\notebook\employer\sched_-_2023-11-07_CodeNinjasEvent.md
+    C:\note  master  ?3 ~7  $what | foreach { Split-Path -Path $_ -Parent }
+    C:\note\sched\notebook\employer
+    Split-Path: Cannot bind argument to parameter 'Path' because it is null.
+    C:\note  master  ?3 ~7  $what.Count
+    2
+    C:\note  master  ?3 ~7  $what[-1]
+    C:\note  master  ?3 ~7 
+    ```
 
 - [x] 2023-01-20-144308
 
