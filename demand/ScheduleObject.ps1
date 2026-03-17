@@ -311,20 +311,16 @@ function Get-Schedule {
     }
 
     End {
-        $setting = cat "$PsScriptRoot\..\res\setting.json" `
+        $setting = Get-Content "$PsScriptRoot\..\res\setting.json" `
             | ConvertFrom-Json
 
         switch ($PsCmdlet.ParameterSetName) {
             'ByDirectory' {
                 $DirectoryPath =
-                    if (-not [String]::IsNullOrWhiteSpace( `
-                        $Subdirectory `
-                    )) {
+                    if (-not $Subdirectory) {
                         Join-Path $DirectoryPath $Subdirectory
                     }
-                    elseif (-not [String]::IsNullOrWhiteSpace( `
-                        $DefaultSubdirectory `
-                    )) {
+                    elseif (-not $DefaultSubdirectory) {
                         Join-Path $DirectoryPath $DefaultSubdirectory
                     }
                     else {
@@ -447,10 +443,6 @@ function Add-Schedule {
 
     Begin {
         $list = @()
-
-        if (-not $StartDate) {
-            $StartDate = $(Get-Date -f 'yyyy-MM-dd') # Uses DateTimeFormat
-        }
     }
 
     Process {
@@ -458,11 +450,16 @@ function Add-Schedule {
     }
 
     End {
-        $date = [DateTime]::ParseExact( `
-            $StartDate, `
-            'yyyy-MM-dd', ` # Uses DateTimeFormat
-            $null `
-        )
+        $date = if ($StartDate) {
+            [DateTime]::ParseExact( `
+                $StartDate, `
+                'yyyy-MM-dd', ` # Uses DateTimeFormat
+                $null `
+            )
+        }
+        else {
+            Get-Date
+        }
 
         $endDate = if ($Week) {
             $date.AddDays(7)
@@ -470,7 +467,7 @@ function Add-Schedule {
             $null
         }
 
-        return $list `
+        return @($list) `
             + @($Table | Get-Schedule_FromTable `
                 -StartDate $date `
                 -EndDate:$endDate

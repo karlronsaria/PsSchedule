@@ -8,4 +8,6 @@ Url: <https://stackoverflow.com/questions/65462679/why-powershell-exe-there-is-n
 Retrieved: 2022-10-09
 #>
 
-return @(dir "$PsScriptRoot\demand\*.ps1" -EA Silent)
+return `
+    @(dir "$PsScriptRoot\lib\*.ps1" -EA Silent) +
+    @(dir "$PsScriptRoot\demand\*.ps1" -EA Silent)

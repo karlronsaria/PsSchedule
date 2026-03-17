@@ -1,25 +1,10 @@
-class ScheduleStore {
-    [String] $Path
-    [String] $Extension
-    [String[]] $File
-    [String[]] $Json
-    [PsCustomObject[]] $Default
+. "$PsScriptRoot/ScheduleDateTime.ps1"
+. "$PsScriptRoot/../lib/ScheduleStore.ps1"
 
-    ScheduleStore([String] $Path, [String] $Extension, [String] $DefaultsName) {
-        $this.Path = $Path
-        $this.Extension = $Extension
-        $this.File = Join-Path $Path $Extension
-        $defaultsPath = Join-Path $Path $DefaultsName
-
-        $this.Default = if ((Test-Path $defaultsPath)) {
-            cat $defaultsPath | ConvertFrom-Json
-        } else {
-            $null
-        }
-
-        $this.Json = Join-Path $path "*.json"
-    }
-}
+<#
+.DESCRIPTION
+Requires ScheduleStore.ps1
+#>
 
 # # todo
 # - [ ] test
@@ -30,7 +15,7 @@ function Find-MyTree {
         [ArgumentCompleter({
             # A fixed list of parameters is passed to an argument-completer
             # script block.
-            # Here, only two are of interest:
+            # Here, only two are of interest.
             #  * $wordToComplete
             #      The part of the value that the user has typed so far,
             #      if any.
@@ -45,19 +30,18 @@ function Find-MyTree {
             Param(
                 $cmdName,
                 $paramName,
-                $wordToComplete,
-                $cmdAst,
-                $preBoundParameter
+                $wordToComplete
             )
 
             $setting =
-                cat "$PsScriptRoot\..\res\setting.json" `
-                | ConvertFrom-Json
+                Get-Content "$PsScriptRoot\..\res\setting.json" |
+                ConvertFrom-Json
 
-            $dirs = (dir $setting.SearchDirectory -Directory).Name
+            $dirs = Get-ChildItem $setting.SearchDirectory -Directory |
+                ForEach-Object { $_.Name }
 
             $suggestions = if ($wordToComplete) {
-                $dirs | where { $_ -like "$wordToComplete*" }
+                $dirs | Where-Object { $_ -like "$wordToComplete*" }
             }
             else {
                 $dirs
@@ -120,8 +104,8 @@ function Find-MyTree {
     }
 
     $setting =
-        cat "$PsScriptRoot\..\res\setting.json" `
-        | ConvertFrom-Json
+        Get-Content "$PsScriptRoot\..\res\setting.json" |
+        ConvertFrom-Json
 
     Set-Variable `
         -Option Constant `
@@ -133,7 +117,7 @@ function Find-MyTree {
 
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $path = $setting.SearchDirectory
-        $subdirectories = (dir $path -Directory).Name
+        $subdirectories = Get-ChildItem $path -Directory | ForEach-Object { $_.Name }
         $validModes = @('Print', 'Tree', 'Cat', 'Link', 'Edit', 'Start')
 
         foreach ($arg in $Arguments) {
@@ -189,12 +173,11 @@ function Find-MyTree {
     $path = Join-Path (Join-Path $Directory $Subdirectory) '*.md'
 
     # (karlr 2025-11-29)
-    $Tag = @(@($Tag) | foreach { "$($setting.TagPrefix)$_" }) # Uses tag prefix
+    $Tag = @(@($Tag) | ForEach-Object { "$($setting.TagPrefix)$_" }) # Uses tag prefix
 
-    $dir = $path `
-        | Get-ChildItem `
-            -Recurse `
-        | where {
+    $dir = $path |
+        Get-ChildItem -Recurse |
+        Where-Object {
             $_.FullName -notmatch "$IgnoreSubdirectories"
         }
 
@@ -211,7 +194,7 @@ function Find-MyTree {
                 }
 
                 'Cat' {
-                    return $dir | cat
+                    return $dir | Get-Content
                 }
 
                 default {
@@ -229,7 +212,7 @@ function Find-MyTree {
             ) + @(
                 $dir |
                     Select-String "- tag\:\s*$" -Context 0, 99 |
-                    where {
+                    Where-Object {
                         $_.Context.PostContext `
                             -match "^\s*-\s*[^:]*$subtag[^:]*$"
                     }
@@ -242,17 +225,17 @@ function Find-MyTree {
 
         switch ($Mode) {
             'Link' {
-                return dir $grep.Path
+                return Get-ChildItem $grep.Path
             }
 
             'Cat' {
-                return dir $grep.Path | cat
+                return Get-ChildItem $grep.Path | Get-Content
             }
 
             'Edit' {
                 $setting =
-                    cat "$PsScriptRoot\..\res\setting.json" `
-                        | ConvertFrom-Json
+                    Get-Content "$PsScriptRoot\..\res\setting.json" |
+                    ConvertFrom-Json
 
                 $EditCommand = $setting.EditCommand
 
@@ -273,24 +256,24 @@ function Find-MyTree {
         }
     }
 
-    $tree = $dir `
-        | Get-Content `
-        | Get-MarkdownTree `
+    $tree = $dir |
+        Get-Content |
+        Get-MarkdownTree `
             -DepthLimit $DepthLimit `
             -MuteProperty:$setting.MuteProperties
 
     if ($null -ne $Tag -and $Tag.Count -gt 0) {
-        $tree = $tree `
-            | Find-Subtree `
-                -PropertyName tag `
-            | where {
+        $tree = $tree |
+            Find-Subtree `
+                -PropertyName tag |
+            Where-Object {
                 $subtreeTags = $_.
                     tag.
                     ToLower().
                     Split(',').
                     Split(' ').
                     Trim() |
-                    where { $_ }
+                    Where-Object { $_ }
 
                 Find-Tag `
                     -Haystack $Tag.ToLower() `
@@ -332,20 +315,19 @@ function Get-MySchedule {
             Param(
                 $cmdName,
                 $paramName,
-                $wordToComplete,
-                $cmdAst,
-                $preBoundParameters
+                $wordToComplete
             )
 
             $setting =
-                cat "$PsScriptRoot\..\res\setting.json" `
-                | ConvertFrom-Json
+                Get-Content "$PsScriptRoot\..\res\setting.json" |
+                ConvertFrom-Json
 
-            $dirs = (dir $setting.ScheduleDirectory -Directory).Name `
-                + @('All')
+            $dirs = @(Get-ChildItem $setting.ScheduleDirectory -Directory |
+                ForEach-Object { $_.Name }) +
+                @('All')
 
             $suggestions = if ($wordToComplete) {
-                $dirs | where { $_ -like "$wordToComplete*" }
+                $dirs | Where-Object { $_ -like "$wordToComplete*" }
             }
             else {
                 $dirs
@@ -383,15 +365,15 @@ function Get-MySchedule {
 
             $date = Get-Date
 
-            $dates = (@(0 .. 62) + @(-61 .. -1)) | foreach {
+            $dates = (@(0 .. 62) + @(-61 .. -1)) | ForEach-Object {
                 Get-Date ($date.AddDays($_)) -Format 'yyyy-MM-dd' # Uses DateTimeFormat
             }
 
             $suggestions = if ($wordToComplete) {
-                $dates | where { $_ -like "$wordToComplete*" }
+                $dates | Where-Object { $_ -like "$wordToComplete*" }
             }
             else {
-                $dirs
+                $dates
             }
 
             return $(if ($suggestions) {
@@ -436,8 +418,8 @@ function Get-MySchedule {
     )
 
     $setting =
-        cat "$PsScriptRoot\..\res\setting.json" `
-        | ConvertFrom-Json
+        Get-Content "$PsScriptRoot\..\res\setting.json" |
+        ConvertFrom-Json
 
     Set-Variable `
         -Option Constant `
@@ -448,7 +430,7 @@ function Get-MySchedule {
 
     if ($PsCmdlet.ParameterSetName -eq 'Inferred') {
         $path = $setting.ScheduleDirectory
-        $subdirectories = (dir $path -Directory).Name
+        $subdirectories = Get-ChildItem $path -Directory | ForEach-Object { $_.Name }
         $validModes = @('Schedule', 'Link', 'Edit', 'Start', 'Cat', 'Tree')
         $startDate_subitem = $null
 
@@ -505,38 +487,6 @@ function Get-MySchedule {
         Write-Output ""
     }
 
-    function Get-NewDirectoryPath {
-        Param(
-            [String]
-            $Directory,
-
-            [String]
-            $Subdirectory,
-
-            [String]
-            $DefaultSubdirectory,
-
-            [String]
-            $Extension
-        )
-
-        $path = if ($Subdirectory) {
-            Join-Path $Directory $Subdirectory
-        }
-        elseif ($DefaultSubdirectory) {
-            Join-Path $Directory $DefaultSubdirectory
-        }
-        else {
-            $Directory
-        }
-
-        if ($Extension) {
-            $path = Join-Path $path $Extension
-        }
-
-        return $path
-    }
-
     function Get-ScheduleObject {
         Param(
             [Parameter(ValueFromPipeline = $true)]
@@ -546,55 +496,25 @@ function Get-MySchedule {
             [String]
             $StartDate,
 
-            [String]
-            $DefaultsFileName,
-
             [Switch]
-            $NoHints
+            $Week
         )
-
-        Begin {
-            $setting = "$PsScriptRoot\..\res\setting.json" |
-                Get-Item |
-                Get-Content |
-                ConvertFrom-Json
-            
-            $IgnoreSubdirectories = "\\($($setting.IgnoreSubdirectories -join '|'))\\"
-        }
 
         Process {
             $schedule =
-                Get-ChildItem `
-                    -Path $InputObject.File `
-                    -Recurse |
-                where {
-                    $_.FullName -notmatch "$IgnoreSubdirectories"
-                } |
+                $InputObject.FileEnumerate() |
                 Get-Content |
                 Get-Schedule `
                     -StartDate:$StartDate `
                     -Week:$Week `
                     -Default:$InputObject.Default
 
-            if ($null -ne $InputObject.Json -and (Test-Path $InputObject.Json)) {
-                $subtables =
-                    Get-ChildItem `
-                        -Path $InputObject.Json `
-                        -Recurse |
-                    where {
-                        $_.FullName -notmatch "$IgnoreSubdirectories" `
-                        -and `
-                        $DefaultsFileName -ne $_.Name.ToLower()
-                    } |
-                    foreach {
-                        cat $_ | ConvertFrom-Json
-                    }
+            $subtables = $InputObject.FromJson()
 
-                $schedule = $schedule |
-                    Add-Schedule `
-                        -Table $subtables `
-                        -StartDate:$StartDate
-            }
+            $schedule = $schedule |
+                Add-Schedule `
+                    -Table $subtables `
+                    -StartDate:$StartDate
 
             return $schedule
         }
@@ -625,7 +545,7 @@ function Get-MySchedule {
 
                 if ($InputObject -is [pscustomobject]) {
                     return $_.foreach.PsObject.Properties |
-                        where { $_.MemberType -eq 'NoteProperty' }
+                        Where-Object { $_.MemberType -eq 'NoteProperty' }
                 }
 
                 return $InputObject
@@ -633,23 +553,23 @@ function Get-MySchedule {
 
             $addenda = $(if ($NotebookPath) {
                 Join-Path $NotebookPath $AddendumFilePattern |
-                    where { $_ } |
+                    Where-Object { $_ } |
                     Get-ChildItem |
                     Get-Content |
                     Get-MarkdownTree |
                     Find-Subtree -PropertyName $AddendumType |
-                    foreach { $_.$($AddendumType) } |
+                    ForEach-Object { $_.$($AddendumType) } |
                     Get-NextTree
             }
             else {
                 @()
             }) |
-            foreach {
+            ForEach-Object {
                 [PsCustomObject]@{
                     Object = $_
                     Filter =
                         Get-FlatObject $_.foreach |
-                            foreach { $_.Name -replace "``", "" }
+                            ForEach-Object { $_.Name -replace "``", "" }
                     CaptionTemplate =
                         Get-FlatObject $_.what
                 }
@@ -659,29 +579,33 @@ function Get-MySchedule {
         Process {
             foreach ($addendum in $addenda) {
                 $TableRow |
-                    foreach -PipelineVariable row { $_ } |
-                    where -PipelineVariable row {
+                    ForEach-Object -PipelineVariable row { $_ } |
+                    Where-Object -PipelineVariable row {
                         $toAdd = $true
 
                         $addendum.Filter |
-                        where -PipelineVariable subfilter { $_ } |
-                        foreach {
-                            $toAdd = $toAdd -and $($row | foreach { iex $subfilter })
-                        }
+                            Where-Object -PipelineVariable subfilter { $_ } |
+                            ForEach-Object {
+                                $toAdd = $toAdd -and $($row |
+                                    ForEach-Object { Invoke-Expression $subfilter })
+                            }
 
                         $toAdd
                     } |
-                    foreach {
+                    ForEach-Object {
                         $template = $addendum.CaptionTemplate
                         $captures = [regex]::Matches($template, "````(?<code>[^``]+)````")
 
                         foreach ($capture in $captures) {
-                            $replace = $row | foreach { iex $capture.Groups['code'].Value }
+                            $replace = $row |
+                                ForEach-Object {
+                                    Invoke-Expression $capture.Groups['code'].Value
+                                }
                             $template = $template.Replace($capture, $replace)
                         }
 
                         $row |
-                        where { $_ } |
+                        Where-Object { $_ } |
                         Add-Member `
                             -MemberType NoteProperty `
                             -Name Addendum `
@@ -716,61 +640,43 @@ function Get-MySchedule {
         $Subdirectory = $DefaultSubdirectory
     }
 
-    if (($Subdirectory | where { $_ } | foreach { $_.ToLower() }) -contains 'all') {
-        $Subdirectory = (dir $Directory -Directory).Name
+    if (($Subdirectory | Where-Object { $_ } | ForEach-Object { $_.ToLower() }) -contains 'all') {
+        $Subdirectory = Get-ChildItem $Directory -Directory | ForEach-Object { $_.Name }
     }
 
     $path =
         $Subdirectory |
-        select -Unique |
-        foreach {
-            Get-NewDirectoryPath `
-                -Directory $Directory `
-                -Subdirectory $_ `
-                -DefaultSubdirectory $DefaultSubdirectory
-        }
-
-    $stores =
-        $path |
-        foreach {
-            if (-not (Test-Path $_)) {
-                if (-not $NoHints) {
-                    Write-Output "Path not found"
-                    Write-Output "Hint: The Directory must be a schedule ""notebook"", with at least one subdirectory called ""$($setting.ScheduleDefaultSubdirectory)"""
-                }
+        Select-Object -Unique |
+        ForEach-Object {
+            $subdir = if ($_) {
+                $_
             }
             else {
-                [ScheduleStore]::new($_, $Extension, $DefaultsFileName)
+                $DefaultSubdirectory
+            }
+
+            Join-Path $Directory $subdir
+        }
+
+    $stores = @()
+
+    $path |
+    ForEach-Object {
+        if (-not (Test-Path $_)) {
+            if (-not $NoHints) {
+                Write-Output "Path not found"
+                Write-Output "Hint: The Directory must be a schedule ""notebook"", with at least one subdirectory called ""$($setting.ScheduleDefaultSubdirectory)"""
             }
         }
+        else {
+            $stores += @([ScheduleStore]::new($_, $Extension, $DefaultsFileName, $IgnoreSubdirectories))
+        }
+    }
 
     foreach ($store in $stores) {
         if ($null -ne $Pattern -and $Pattern.Count -gt 0) {
-            $fileGrep = $Pattern |
-                foreach {
-                    dir $store.File `
-                        -Recurse |
-                    where {
-                        $_.FullName -notmatch "$IgnoreSubdirectories"
-                    } |
-                    sls $_ |
-                    Sort-Object `
-                        -Property Path `
-                        -Unique
-                }
-
-            $jsonGrep = $Pattern |
-                foreach {
-                    dir $store.Json `
-                        -Recurse |
-                    where {
-                        $_.FullName -notmatch "$IgnoreSubdirectories"
-                    } |
-                    sls $_ |
-                    Sort-Object `
-                        -Property Path `
-                        -Unique
-                }
+            $fileGrep = $store.FileGrep($Pattern)
+            $jsonGrep = $store.JsonGrep($Pattern)
 
             if ($null -eq $fileGrep -and $null -eq $jsonGrep) {
                 # Make the output look pretty
@@ -780,8 +686,8 @@ function Get-MySchedule {
                 $store.Json = $null
             }
             elseif ($Mode -eq 'Link') {
-                $fileGrep.Path | where { $_ }
-                $jsonGrep.Path | where { $_ }
+                $fileGrep.Path | Where-Object { $_ }
+                $jsonGrep.Path | Where-Object { $_ }
                 $store.File = $null
                 $store.Json = $null
             }
@@ -791,8 +697,8 @@ function Get-MySchedule {
                         "$EditCommand $($grep.Path) +$($grep.LineNumber)"
                 }
 
-                $fileGrep | where { $_ }
-                $jsonGrep | where { $_ }
+                $fileGrep | Where-Object { $_ }
+                $jsonGrep | Where-Object { $_ }
                 $store.File = $null
                 $store.Json = $null
             }
@@ -802,8 +708,8 @@ function Get-MySchedule {
                         "Start-Process $($grep.Path)"
                 }
 
-                $fileGrep | where { $_ }
-                $jsonGrep | where { $_ }
+                $fileGrep | Where-Object { $_ }
+                $jsonGrep | Where-Object { $_ }
                 $store.File = $null
                 $store.Json = $null
             }
@@ -850,7 +756,7 @@ function Get-MySchedule {
             }
         }
 
-        $allDirs = (@($stores.File) + @($stores.Json)) | where { $null -ne $_ }
+        $allDirs = (@($stores.File) + @($stores.Json)) | Where-Object { $_ }
 
         if ($NoConfirm) {
             Write-Output "$nonConfirmMessage all files in"
@@ -882,20 +788,20 @@ function Get-MySchedule {
     }
     elseif ($Mode -eq 'Link') {
         if ($null -ne $stores.File) {
-            $stores.File | dir
+            $stores.File | Get-ChildItem
         }
 
         if ($null -ne $stores.Json) {
-            $stores.Json | dir
+            $stores.Json | Get-ChildItem
         }
     }
     elseif ($Mode -eq 'Cat') {
         if ($null -ne $stores.File) {
-            dir $stores.File | cat
+            Get-ChildItem $stores.File | Get-Content
         }
 
         if ($null -ne $stores.Json) {
-            dir $stores.Json | cat
+            Get-ChildItem $stores.Json | Get-Content
         }
     }
     else {
@@ -908,8 +814,7 @@ function Get-MySchedule {
                 $store |
                 Get-ScheduleObject `
                     -StartDate:$startDate_subitem `
-                    -DefaultsFileName:$DefaultsFileName `
-                    -NoHints:$NoHints |
+                    -Week:$Week |
                 Add-ScheduleAddendum `
                     -NotebookPath:$store.Path `
                     -AddendumType:$setting.Addendum.Typename `
@@ -945,10 +850,10 @@ function Get-MySchedule {
             }
 
             'Tree' {
-                $schedule `
-                    | Get-SubtreeRotation `
-                        -RotateProperty $RotateProperties `
-                    | Write-MarkdownTree `
+                $schedule |
+                    Get-SubtreeRotation `
+                        -RotateProperty $RotateProperties |
+                    Write-MarkdownTree `
                         -NoTables
             }
         }
@@ -1001,7 +906,7 @@ function Get-AvailableSchedule {
             $row
         }
 
-        $result = Get-DateParseVaryingLength -DateString $InputObject.to
+        $result = [ScheduleWhen]::new($InputObject.to)
 
         $when = if ($result.DateTime) {
             $result.DateTime

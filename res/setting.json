@@ -23,6 +23,11 @@
         "Typename": "sched addendum",
         "FilePattern": "rule"
     },
-    "TagPrefix": "#"
+    "TagPrefix": "#",
+    "MoveItem": {
+        "IgnoreSubdirectories": [
+            "__OLD"
+        ]
+    }
 }
 

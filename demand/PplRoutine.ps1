@@ -2,6 +2,7 @@
 Tags: kines, kinesiology, ppl, routine, fitness, workout
 #>
 
+. "$PsScriptRoot/ScheduleDateTime.ps1"
 . "$PsScriptRoot/MySchedule.ps1"
 . "$PsScriptRoot/ScheduleFromTable.ps1"
 . "$PsScriptRoot/ScheduleObject.ps1"
@@ -98,15 +99,10 @@ function Get-PplRoutineSchedule {
     }
 
     $startSched = $setting.StartSchedule
-
-    $startWhen = Get-DateParseVaryingLength `
-        -DateString $startSched.when |
-        foreach { $_.DateTime }
+    $startWhen = [ScheduleWhen]::new($startSched.when).DateTime
 
     $today = if ($StartDate) {
-        Get-DateParseVaryingLength `
-            -DateString $StartDate |
-            foreach { $_.DateTime }
+        [ScheduleWhen]::new($StartDate).DateTime
     }
     else {
         [DateTime]::Now
