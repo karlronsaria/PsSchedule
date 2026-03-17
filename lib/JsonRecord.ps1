@@ -44,7 +44,7 @@ class JsonRecord : ICloneable {
         return $temp
     }
 
-    [JsonRecord]
+    [JsonRecord[]]
     ForEach([scriptblock] $Query) {
         $nextHaystack = if (-not $this.Needle_) {
             $this.Haystack_
@@ -56,15 +56,15 @@ class JsonRecord : ICloneable {
         $needle = $nextHaystack.ForEach($Query)
 
         if ($null -eq $needle) {
-            return $null
+            return @()
         }
 
         $temp = $this.Clone()
         $temp.Needle_ = $needle
-        return $temp
+        return @($temp)
     }
 
-    [JsonRecord]
+    [JsonRecord[]]
     Where([scriptblock] $Query) {
         $nextHaystack = if (-not $this.Needle_) {
             $this.Haystack_
@@ -76,15 +76,15 @@ class JsonRecord : ICloneable {
         $needle = $nextHaystack.Where($Query)
 
         if ($null -eq $needle) {
-            return $null
+            return @()
         }
 
         $temp = $this.Clone()
         $temp.Needle_ = $needle
-        return $temp
+        return @($temp)
     }
 
-    [JsonRecord]
+    [JsonRecord[]]
     SetValue([string] $Name, [object] $Value) {
         $nextHaystack = if (-not $this.Needle_) {
             $this.Haystack_
@@ -96,15 +96,15 @@ class JsonRecord : ICloneable {
         $needle = $nextHaystack.SetValue($Name, $Value)
 
         if ($null -eq $needle) {
-            return $null
+            return @()
         }
 
         $temp = $this.Clone()
         $temp.Needle_ = $needle
-        return $temp
+        return @($temp)
     }
 
-    [JsonRecord]
+    [JsonRecord[]]
     AddValue([string] $Name, [object] $Value) {
         $nextHaystack = if (-not $this.Needle_) {
             $this.Haystack_
@@ -116,12 +116,12 @@ class JsonRecord : ICloneable {
         $needle = $nextHaystack.AddValue($Name, $Value)
 
         if ($null -eq $needle) {
-            return $null
+            return @()
         }
 
         $temp = $this.Clone()
         $temp.Needle_ = $needle
-        return $temp
+        return @($temp)
     }
 
     [object]

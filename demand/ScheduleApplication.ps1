@@ -134,67 +134,59 @@ function Move-ScheduleItem {
         $Time
     )
 
-    begin {
-        $setting =
-            Get-Content "$PsScriptRoot/../res/setting.json" |
-            ConvertFrom-Json
+    $setting =
+        Get-Content "$PsScriptRoot/../res/setting.json" |
+        ConvertFrom-Json
 
-        $stores = Get-ScheduleStore `
-            -Subdirectory:$Subdirectory `
-            -Extension '*move-schedule' `
-            -IgnoreSubdirectories $setting.MoveItem.IgnoreSubdirectories `
-            -JsonOnly
-            
-        if ($PSCmdlet.ParameterSetName -eq 'GetPath') {
-            return $stores.JsonEnumerate()
-        }
+    $stores = Get-ScheduleStore `
+        -Subdirectory:$Subdirectory `
+        -Extension '*move-schedule' `
+        -IgnoreSubdirectories $setting.MoveItem.IgnoreSubdirectories `
+        -JsonOnly
+        
+    if ($PSCmdlet.ParameterSetName -eq 'GetPath') {
+        return $stores.JsonEnumerate() |
+        Where-Object { $_ }
+    }
 
-        if ($PsCmdlet.ParameterSetName -eq 'ByDayCode') {
-            $Date = Get-NextDay -Day $Day
-        }
+    if ($PsCmdlet.ParameterSetName -eq 'ByDayCode') {
+        $Date = Get-NextDay -Day $Day
+    }
 
-        $when = Get-Date `
-            -Date $Date `
-            -Format "ddd yyyy-MM-dd" # Uses DateTimeFormat
- 
-        if ($Time) {
-            $when = "${when}-${Time}" # Uses DateTimeFormat
-        }
+    $when = Get-Date `
+        -Date $Date `
+        -Format "ddd yyyy-MM-dd" # Uses DateTimeFormat
 
-        @($stores) | ForEach-Object {
-            $_.JsonEnumerate()
-        } | ForEach-Object {
-            [JsonRecord]::new().SetFile($_)
-        } | Where-Object {
-            $_
-        } | ForEach-Object {
-            $_.ForEach({ $_.sched }).Where({ $_.what -like "*$What*" })
-        } | Where-Object {
-            $_
-        } | ForEach-Object {
-            $whenTree = $_.ForEach({ $_.when })
-            
-            if ($null -ne $when) {
-                $_.AddValue('log', $whenTree.Needle.Clone()) |
-                    Out-Null
-                    
-                $whenTree.Needle.Value = $when
-            }
-            else {
-                $_.AddValue('when', $when) |
-                    Out-Null
-            }
-            
-            $_.ToJson()
-            $_.ForceWriteBack()
+    if ($Time) {
+        $when = "${when}-${Time}" # Uses DateTimeFormat
+    }
+
+    @($stores) | ForEach-Object {
+        $_.JsonEnumerate()
+    } | ForEach-Object {
+        [JsonRecord]::new().SetFile($_)
+    } | Where-Object {
+        $_
+    } | ForEach-Object {
+        $_.ForEach({ $_.sched }).Where({ $_.what -like "*$What*" })
+    } | Where-Object {
+        $_
+    } | ForEach-Object {
+        $whenTree = $_.ForEach({ $_.when })
+        
+        if ($null -ne $when) {
+            $_.AddValue('log', $whenTree.Needle.Clone()) |
+                Out-Null
+                
+            $whenTree.Needle.Value = $when
         }
+        else {
+            $_.AddValue('when', $when) |
+                Out-Null
+        }
+        
+        $_.ToJson()
+        $_.ForceWriteBack()
     }
 }
-
-
-
-
-
-
-
 

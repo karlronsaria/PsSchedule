@@ -25,8 +25,12 @@ class ScheduleStore : System.ICloneable {
             ConvertFrom-Json -Depth 100
     }
 
-    static [ScheduleStore]
+    static [ScheduleStore[]]
     JsonOnly([string] $Path, [string] $Extension, [string] $DefaultsName, [string[]] $Ignores) {
+        if (-not $Path) {
+            return @()
+        }
+
         $temp = [ScheduleStore]::new()
         $temp.Path = $Path
         $temp.Json = Join-Path $Path "$Extension*.json"
