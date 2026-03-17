@@ -19,7 +19,7 @@ Requires JsonRecord.ps1, ScheduleStore.ps1
 # }
 
 function Move-ScheduleItem {
-    [CmdletBinding(DefaultParameterSetName = 'ByDayCode')]
+    [CmdletBinding(DefaultParameterSetName = 'GetPath')]
     Param(
         [ArgumentCompleter({
             param(
@@ -103,13 +103,15 @@ function Move-ScheduleItem {
             )
 
             $setting =
-                cat "$PsScriptRoot\..\res\setting.json" |
+                Get-Item "$PsScriptRoot/../res/setting.json" |
+                Get-Content |
                 ConvertFrom-Json
 
-            $dirs = (dir $setting.ScheduleDirectory -Directory).Name + @('All')
+            $dirs = (Get-ChildItem $setting.ScheduleDirectory -Directory).Name + @('All')
 
             $suggestions = if ($wordToComplete) {
-                $dirs | where { $_ -like "$wordToComplete*" }
+                $dirs |
+                    Where-Object { $_ -like "$wordToComplete*" }
             }
             else {
                 $dirs
@@ -129,16 +131,12 @@ function Move-ScheduleItem {
         [Parameter(ParameterSetName = 'ByDate')]
         [ValidateScript({ $_ -match "\d{4}" })]
         [string]
-        $Time,
-
-        [Parameter(ParameterSetName = 'GetPath')]
-        [switch]
-        $GetPath
+        $Time
     )
 
     begin {
         $setting =
-            Get-Content "$PsScriptRoot\..\res\setting.json" |
+            Get-Content "$PsScriptRoot/../res/setting.json" |
             ConvertFrom-Json
 
         $stores = Get-ScheduleStore `
@@ -147,7 +145,7 @@ function Move-ScheduleItem {
             -IgnoreSubdirectories $setting.MoveItem.IgnoreSubdirectories `
             -JsonOnly
             
-        if ($GetPath) {
+        if ($PSCmdlet.ParameterSetName -eq 'GetPath') {
             return $stores.JsonEnumerate()
         }
 
@@ -158,22 +156,22 @@ function Move-ScheduleItem {
         $when = Get-Date `
             -Date $Date `
             -Format "ddd yyyy-MM-dd" # Uses DateTimeFormat
-            
+ 
         if ($Time) {
             $when = "${when}-${Time}" # Uses DateTimeFormat
         }
 
-        @($stores) | foreach {
+        @($stores) | ForEach-Object {
             $_.JsonEnumerate()
-        } | foreach {
+        } | ForEach-Object {
             [JsonRecord]::new().SetFile($_)
-        } | where {
+        } | Where-Object {
             $_
-        } | foreach {
+        } | ForEach-Object {
             $_.ForEach({ $_.sched }).Where({ $_.what -like "*$What*" })
-        } | where {
+        } | Where-Object {
             $_
-        } | foreach {
+        } | ForEach-Object {
             $whenTree = $_.ForEach({ $_.when })
             
             if ($null -ne $when) {
