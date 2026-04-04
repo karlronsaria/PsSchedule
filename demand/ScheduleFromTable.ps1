@@ -22,15 +22,6 @@ function Get-Schedule_FromTable {
     )
 
     Begin {
-        function Get-WeekDayCode {
-            Param(
-                [DateTime]
-                $Date
-            )
-
-            return $Date.DayOfWeek.ToString().Substring(0, 3).ToLower()
-        }
-
         function Get-NewActionItem {
             [CmdletBinding(DefaultParameterSetName = 'ByProperty')]
             Param(
@@ -94,7 +85,7 @@ function Get-Schedule_FromTable {
                 $Default
             )
 
-            $list = 'when', 'type' |
+            $when, $type = 'when', 'type' |
                 foreach {
                     $ActionItem.$_
                 } |
@@ -105,9 +96,6 @@ function Get-Schedule_FromTable {
                         $_.ToLower()
                     }
                 }
-
-            $when = $list[0]
-            $type = $list[1]
 
             return @('event', 'errand', 'deadline') -contains $type `
                 -and $when -match '\d{4}-\d{2}-\d{2}(-\{4})?' # Uses DateTimeFormat
@@ -120,7 +108,7 @@ function Get-Schedule_FromTable {
             )
 
             return @('todayonly', 'today-only', 'today only') `
-                    -contains $ActionItem.type.ToLower()
+                -contains $ActionItem.type.ToLower()
         }
 
         function Add-NoteProperty {
@@ -160,19 +148,19 @@ function Get-Schedule_FromTable {
                 [Nullable[DateTime]]
                 $EndDate
             )
-            
-            $inRange = $StartDate.Year -eq $Date.Year `
-                -and $StartDate.Month -eq $Date.Month `
-                -and $StartDate.Day -eq $Date.Day
-                
+
+            $inRange = $StartDate.Year -eq $Date.Year -and
+                $StartDate.Month -eq $Date.Month -and
+                $StartDate.Day -eq $Date.Day
+
             if ($null -eq $EndDate) {
                 return $inRange
             }
 
-            return $inRange
-                -and $EndDate.Year -ge $Date.Year `
-                -and $EndDate.Month -ge $Date.Month `
-                -and $EndDate.Day -ge $Date.Day
+            return $inRange -and
+                $EndDate.Year -ge $Date.Year -and
+                $EndDate.Month -ge $Date.Month -and
+                $EndDate.Day -ge $Date.Day
         }
 
         function Test-TimeFrameIncludesNow {
@@ -188,7 +176,7 @@ function Get-Schedule_FromTable {
                 Get-NoteProperty -PropertyName 'startdate'
 
             if ($recurringStart.Success) {
-                $startWhen = [ScheduleWhen]::new($recurringStart.Value)
+                $startWhen = [TimeItem]::new($recurringStart.Value)
 
                 if ($startWhen.DateTime -gt $StartDate) {
                     return $false
@@ -199,7 +187,7 @@ function Get-Schedule_FromTable {
                 Get-NoteProperty -PropertyName 'enddate'
 
             if ($recurringEnd.Success) {
-                $endWhen = [ScheduleWhen]::new($recurringEnd.Value)
+                $endWhen = [TimeItem]::new($recurringEnd.Value)
 
                 if ($endWhen.DateTime -lt $StartDate) {
                     # expired
@@ -210,7 +198,7 @@ function Get-Schedule_FromTable {
             return $true
         }
 
-        $setting = 
+        $setting =
             "$PsScriptRoot/../res/setting.json" |
             Get-Item |
             Get-Content |
@@ -350,14 +338,12 @@ function Get-Schedule_FromTable {
             -ActionItem $InputObject `
             -Default $Default
 
-        $dateTimeResult = [ScheduleWhen]::new($schedWhen)
-        $schedDay = $dateTimeResult.Day
-        $schedTime = $dateTimeResult.Time
+        $timeItem = [TimeItem]::new($schedWhen)
         $date = $StartDate
 
         switch -Regex ($schedEvery) {
             'none' {
-                $date = $dateTimeResult.DateTime
+                $date = $timeItem.DateTime
 
                 if ($todayOnlyEvent) {
                     # todo: remove
@@ -410,8 +396,7 @@ function Get-Schedule_FromTable {
             # every day
             'day' {
                 # must have a time of day
-                $invalid =
-                    [String]::IsNullOrWhiteSpace($schedTime)
+                $invalid = -not $timeItem.TimeString
 
                 if ($invalid) {
                     return
@@ -423,29 +408,62 @@ function Get-Schedule_FromTable {
             'week' {
                 # must have a day code and time of day
                 $invalid =
-                        [String]::IsNullOrWhiteSpace($schedDay) `
-                    -or [String]::IsNullOrWhiteSpace($schedTime)
+                    -not $timeItem.DayOfWeek -or
+                    -not $timeItem.TimeString
 
                 if ($invalid) {
                     return
                 }
 
-                $date = $StartDate
-                $code = $schedDay.ToLower()
-
-                # advance to the upcoming given day of the week
-                while ($code -ne (Get-WeekDayCode -Date $date)) {
-                    $date = $date.AddDays(1)
-                }
+                $date = [TimeItem]::NextDate(
+                    $StartDate,
+                    $timeItem.DayOfWeek
+                )
 
                 break
+            }
+
+            'month' {
+                # must have an identifiable date-time
+                if ($null -eq $timeItem.DateTime) {
+                    return
+                }
+
+                # todo: Constructing a date-time object elides the time item's intent
+                $dtItem = $timeItem.TryDifferentItem(
+                    $StartDate.Year,
+                    $StartDate.Month,
+                    $null,
+                    $null,
+                    $null,
+                    $null
+                )
+
+                # generate a new row for each day code
+                foreach ($dayItem in @($dtItem.TryAddMonths(-1), $($dtItem.TryAddMonths(1)))) {
+                    # An every-day-code is shorthand for every-week-when-day-code.
+                    $obj = $InputObject.PsObject.Copy()
+                    $obj.every = 'none'
+                    
+                    # todo (karlr 2026-04-02): Using a date-time object fails
+                    $obj.when = $dayItem.ToString()
+
+                    $what = Get-Schedule_FromTable `
+                        -InputObject $obj `
+                        -StartDate:$StartDate `
+                        -EndDate:$EndDate `
+                        -Default:$Default
+
+                    $list += @($what)
+                }
+
+                return $list
             }
 
             # comma-separated day codes
             '[A-Za-z]+(\s*,\s*[A-Za-z]+)*' {
                 # must have a time of day
-                $invalid =
-                    [String]::IsNullOrWhiteSpace($schedTime)
+                $invalid = -not $timeItem.TimeString
 
                 $days = $schedEvery -Split '\s*,\s*'
 
@@ -460,7 +478,7 @@ function Get-Schedule_FromTable {
                     # An every-day-code is shorthand for every-week-when-day-code.
                     $obj = $InputObject.PsObject.Copy()
                     $obj.every = 'week'
-                    $obj.when = "$day-$schedTime"
+                    $obj.when = "$day-$($timeItem.TimeString)"
 
                     $what = Get-Schedule_FromTable `
                         -InputObject $obj `
@@ -498,10 +516,11 @@ function Get-Schedule_FromTable {
             $date = $date.AddDays(-1)
         }
 
-        $time = $StartDate
-
-        if (-not [String]::IsNullOrWhiteSpace($schedTime)) {
-            $time = [DateTime]::ParseExact($schedTime, 'HHmm', $null)
+        $time = if ($timeItem.TimeString) {
+            $timeItem.GetTimeFromString()
+        }
+        else {
+            $StartDate
         }
 
         $dateTime = Get-Date `

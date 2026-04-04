@@ -810,6 +810,8 @@ function Get-MySchedule {
         }
 
         $schedule = foreach ($startDate_subitem in $StartDate) {
+            Write-Host "Store path: $($store.Path)"
+
             foreach ($store in $stores) {
                 $store |
                 Get-ScheduleObject `
