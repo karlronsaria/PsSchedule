@@ -435,12 +435,14 @@ function Get-Schedule_FromTable {
                     $null
                 )
 
+                # todo: subtracting here errs on epoch days
+
                 # generate a new row for each day code
                 foreach ($dayItem in @($dtItem.TryAddMonths(-1), $($dtItem.TryAddMonths(1)))) {
                     # An every-day-code is shorthand for every-week-when-day-code.
                     $obj = $InputObject.PsObject.Copy()
                     $obj.every = 'none'
-                    
+
                     # todo (karlr 2026-04-02): Using a date-time object fails
                     $obj.when = $dayItem.ToString()
 
@@ -513,6 +515,7 @@ function Get-Schedule_FromTable {
                     complete = $false
                 })
 
+            # todo: subtracting here errs on epoch days
             $date = $date.AddDays(-1)
         }
 

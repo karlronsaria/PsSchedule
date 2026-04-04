@@ -18,6 +18,7 @@ function Get-NextDay {
         $StartDate = $(Get-Date)
     )
 
+    # todo: subtracting here errs on epoch days
     $date = switch ($Week) {
         0 { $StartDate.AddDays(1) }
         -1 { $StartDate.AddDays(-1) }

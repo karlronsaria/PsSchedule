@@ -699,9 +699,18 @@ function Get-MySchedule {
                 $store.Json = $null
             }
             elseif ($Mode -eq 'Edit') {
-                foreach ($grep in (@($fileGrep) + @($jsonGrep))) {
+                $command = if ($Sudo) {
+                    "sudo $EditCommand"
+                }
+                else {
+                    $EditCommand
+                }
+
+                @(@($fileGrep) + @($jsonGrep)) |
+                Where-Object { $_ } |
+                ForEach-Object {
                     Invoke-Expression `
-                        "$EditCommand $($grep.Path) +$($grep.LineNumber)"
+                        "$command $($_.Path) +$($_.LineNumber)"
                 }
 
                 $fileGrep | Where-Object { $_ }
@@ -710,9 +719,16 @@ function Get-MySchedule {
                 $store.Json = $null
             }
             elseif ($Mode -eq 'Start') {
+                $command = if ($Sudo) {
+                    "Start-Process"
+                }
+                else {
+                    "sudo"
+                }
+
                 foreach ($grep in (@($fileGrep) + @($jsonGrep))) {
                     Invoke-Expression `
-                        "Start-Process $($grep.Path)"
+                        "$command $($grep.Path)"
                 }
 
                 $fileGrep | Where-Object { $_ }
@@ -789,7 +805,8 @@ function Get-MySchedule {
 
         foreach ($dir in $allDirs) {
             foreach ($item in (dir $dir)) {
-                Invoke-Expression "$command $item"
+                # # todo
+                # Invoke-Expression "$command $item"
             }
         }
     }
@@ -817,8 +834,6 @@ function Get-MySchedule {
         }
 
         $schedule = foreach ($startDate_subitem in $StartDate) {
-            Write-Host "Store path: $($store.Path)"
-
             foreach ($store in $stores) {
                 $store |
                 Get-ScheduleObject `

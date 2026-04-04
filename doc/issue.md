@@ -372,6 +372,18 @@
   - expected
     - output is a PsCustomObject
 
+- [x] 2026-04-04-042657
+  - howto
+
+    ```powershell
+    Get-MySchedule -Subdirectory site -Pattern kaiden -Mode Edit
+    ```
+
+  - actual
+    - editor opens file, then opens blank when closed
+  - expected
+    - editor opens file, then does nothing when closed
+
 - [x] 2023-10-02-020437
   - howto
     - in powershell
