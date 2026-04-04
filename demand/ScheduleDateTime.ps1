@@ -220,9 +220,6 @@ class TimeItem : System.ICloneable {
         $temp.TimeString = $this.TimeString
         $temp.DateTime = $this.DateTime
         $temp.Parts_ = $this.Parts_
-        
-        Write-Host "PATTERN!!!: [$($this.Pattern_)]"
-        
         $temp.Pattern_ = $this.Pattern_
         return $temp
     }

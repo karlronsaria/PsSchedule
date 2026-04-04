@@ -246,6 +246,15 @@ function Get-Schedule_FromTable {
             return $list
         }
 
+        # nil
+        # | forest
+        #   : each tree
+        #     : time item: tree
+        # | notice to reppoint
+        # | notice to ignore
+        # | time item
+        #   : (ddd(-| ))?HHmm
+        #     | (ddd(-| ))?yyyy-MM-dd(-HH(mm(ss)?)?)?
         $schedWhen = Add-NoteProperty `
             -InputObject $InputObject `
             -PropertyName 'when' `
@@ -263,13 +272,13 @@ function Get-Schedule_FromTable {
         # The sched's 'when' property is a list of date-times with other info
         # nested under each. Each one represents a separate entry in the time
         # table.
-        if ($schedWhen -isnot [String]) {
+        if ($schedWhen -isnot [string]) {
             foreach ($property in (Get-NoteProperty $schedWhen)) {
                 $obj = $InputObject.PsObject.Copy()
                 $obj.when = "$($property.Name)"
                 $whenValue = $property.Value
 
-                if ($whenValue -is [PsCustomObject]) {
+                if ($whenValue -is [pscustomobject]) {
                     foreach ($subproperty in (Get-NoteProperty $whenValue)) {
                         $obj | Add-Member `
                             -MemberType 'NoteProperty' `
@@ -343,21 +352,16 @@ function Get-Schedule_FromTable {
 
         switch -Regex ($schedEvery) {
             'none' {
-                $date = $timeItem.DateTime
+                if ($timeItem.Type -eq [TimeItemType]::ExactDateTimeKnown) {
+                    $date = $timeItem.DateTime
+                }
 
                 if ($todayOnlyEvent) {
-                    # todo: remove
-                    try {
-                        # expired if evaluates StartDate greater than Date
-                        $isInRange = Test-DateIsInRange `
-                            -Date $date `
-                            -StartDate $StartDate `
-                            -EndDate:$EndDate
-                    }
-                    catch {
-                        Write-Host "[$schedWhen]"
-                        throw $_
-                    }
+                    # expired if evaluates StartDate greater than Date
+                    $isInRange = Test-DateIsInRange `
+                        -Date $date `
+                        -StartDate $StartDate `
+                        -EndDate:$EndDate
 
                     if ($isInRange) {
                         # Discard 'when' and 'every' and use a standard date-time
@@ -373,18 +377,11 @@ function Get-Schedule_FromTable {
                 }
 
                 if ($oneDayEvent) {
-                    # todo: remove
-                    try {
-                        # Discard 'when' and 'every' and use a standard date-time
-                        # as the new 'when'.
-                        $what = Get-NewActionItem `
-                            -ActionItem $InputObject `
-                            -Date $date
-                    }
-                    catch {
-                        Write-Host "[$schedWhen]"
-                        throw $_
-                    }
+                    # Discard 'when' and 'every' and use a standard date-time
+                    # as the new 'when'.
+                    $what = Get-NewActionItem `
+                        -ActionItem $InputObject `
+                        -Date $date
 
                     $list += @($what)
                     return $list
@@ -399,7 +396,7 @@ function Get-Schedule_FromTable {
                 $invalid = -not $timeItem.TimeString
 
                 if ($invalid) {
-                    return
+                    return $list
                 }
 
                 break
@@ -412,7 +409,7 @@ function Get-Schedule_FromTable {
                     -not $timeItem.TimeString
 
                 if ($invalid) {
-                    return
+                    return $list
                 }
 
                 $date = [TimeItem]::NextDate(
@@ -426,10 +423,9 @@ function Get-Schedule_FromTable {
             'month' {
                 # must have an identifiable date-time
                 if ($null -eq $timeItem.DateTime) {
-                    return
+                    return $list
                 }
 
-                # todo: Constructing a date-time object elides the time item's intent
                 $dtItem = $timeItem.TryDifferentItem(
                     $StartDate.Year,
                     $StartDate.Month,
@@ -464,6 +460,10 @@ function Get-Schedule_FromTable {
             '[A-Za-z]+(\s*,\s*[A-Za-z]+)*' {
                 # must have a time of day
                 $invalid = -not $timeItem.TimeString
+                
+                if ($invalid) {
+                    return $list
+                }
 
                 $days = $schedEvery -Split '\s*,\s*'
 

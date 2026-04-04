@@ -51,7 +51,8 @@ function Write-Schedule {
                 -PropertyName 'Addendum').Success
 
             if ($addendum) {
-                $what = "$($ActionItem.Addendum): $what"
+                @($ActionItem.Addendum) |
+                    ForEach-Object { $what = "$($_): $what" }
             }
 
             if ($actionable) {

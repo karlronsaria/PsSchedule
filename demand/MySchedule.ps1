@@ -606,10 +606,17 @@ function Get-MySchedule {
 
                         $row |
                         Where-Object { $_ } |
-                        Add-Member `
-                            -MemberType NoteProperty `
-                            -Name Addendum `
-                            -Value $template
+                        ForEach-Object {
+                            if ($_.PsObject.Properties.Name -contains 'Addendum') {
+                                $_.Addendum = @($_.Addendum) + @($template)
+                            }
+                            else {
+                                $_ | Add-Member `
+                                    -MemberType NoteProperty `
+                                    -Name Addendum `
+                                    -Value $template
+                            }
+                        }
                     }
             }
 
