@@ -1,5 +1,5 @@
-. "$PsScriptRoot/ScheduleDateTime.ps1"
 . "$PsScriptRoot/../lib/ScheduleStore.ps1"
+. "$PsScriptRoot/ScheduleDateTime.ps1"
 
 <#
 .DESCRIPTION
@@ -551,19 +551,21 @@ function Get-MySchedule {
                 return $InputObject
             }
 
-            $addenda = $(if ($NotebookPath) {
-                Join-Path $NotebookPath $AddendumFilePattern |
-                    Where-Object { $_ } |
-                    Get-ChildItem |
-                    Get-Content |
-                    Get-MarkdownTree |
-                    Find-Subtree -PropertyName $AddendumType |
-                    ForEach-Object { $_.$($AddendumType) } |
-                    Get-NextTree
-            }
-            else {
-                @()
-            }) |
+            $addenda = $(
+                if ($NotebookPath) {
+                    Join-Path $NotebookPath $AddendumFilePattern |
+                        Where-Object { $_ } |
+                        Get-ChildItem |
+                        Get-Content |
+                        Get-MarkdownTree |
+                        Find-Subtree -PropertyName $AddendumType |
+                        ForEach-Object { $_.$($AddendumType) } |
+                        Get-NextTree
+                }
+                else {
+                    @()
+                }
+            ) |
             ForEach-Object {
                 [PsCustomObject]@{
                     Object = $_
@@ -930,7 +932,7 @@ function Get-AvailableSchedule {
             $row
         }
 
-        $result = [ScheduleWhen]::new($InputObject.to)
+        $result = [TimeItem]::new($InputObject.to)
 
         $when = if ($result.DateTime) {
             $result.DateTime

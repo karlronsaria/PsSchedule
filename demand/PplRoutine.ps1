@@ -3,9 +3,9 @@ Tags: kines, kinesiology, ppl, routine, fitness, workout
 #>
 
 . "$PsScriptRoot/ScheduleDateTime.ps1"
-. "$PsScriptRoot/MySchedule.ps1"
 . "$PsScriptRoot/ScheduleFromTable.ps1"
 . "$PsScriptRoot/ScheduleObject.ps1"
+. "$PsScriptRoot/MySchedule.ps1"
 
 function Get-PplRoutineSequence {
     Param(
@@ -99,10 +99,10 @@ function Get-PplRoutineSchedule {
     }
 
     $startSched = $setting.StartSchedule
-    $startWhen = [ScheduleWhen]::new($startSched.when).DateTime
+    $startWhen = [TimeItem]::new($startSched.when).DateTime
 
     $today = if ($StartDate) {
-        [ScheduleWhen]::new($StartDate).DateTime
+        [TimeItem]::new($StartDate).DateTime
     }
     else {
         [DateTime]::Now
