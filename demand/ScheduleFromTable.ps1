@@ -86,10 +86,10 @@ function Get-Schedule_FromTable {
             )
 
             $when, $type = 'when', 'type' |
-                foreach {
+                ForEach-Object {
                     $ActionItem.$_
                 } |
-                foreach {
+                ForEach-Object {
                     if ($null -eq $_) {
                         $null
                     } else {
@@ -97,7 +97,8 @@ function Get-Schedule_FromTable {
                     }
                 }
 
-            return @('event', 'errand', 'deadline') -contains $type `
+            return (@($type) |
+                Where-Object { @('event', 'errand', 'deadline') -contains $_ }) `
                 -and $when -match '\d{4}-\d{2}-\d{2}(-\{4})?' # Uses DateTimeFormat
         }
 
@@ -355,7 +356,7 @@ function Get-Schedule_FromTable {
                 if ($timeItem.Type -eq [TimeItemType]::ExactDateTimeKnown) {
                     $date = $timeItem.DateTime
                 }
-
+                
                 if ($todayOnlyEvent) {
                     # expired if evaluates StartDate greater than Date
                     $isInRange = Test-DateIsInRange `

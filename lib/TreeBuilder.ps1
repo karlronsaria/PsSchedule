@@ -42,6 +42,26 @@ class TreeBuilder : ICloneable {
         return $this
     }
 
+    static [scriptblock]
+    NewClosure(
+        [scriptblock] $ScriptBlock
+    ) {
+        return & {
+            return $ScriptBlock.GetNewClosure()
+        }
+    }
+    
+    static [scriptblock]
+    NewClosure(
+        [scriptblock] $ScriptBlock,
+        $Parameters
+    ) {
+        return & {
+            Param($Parameters)
+            return $ScriptBlock.GetNewClosure()
+        } $Parameters
+    }
+    
     static [object] ToPsCustomObject([object] $InputObject) {
         if ($InputObject -is [array]) {
             return @($InputObject) |

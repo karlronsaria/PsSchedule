@@ -168,7 +168,7 @@ function Move-ScheduleItem {
     } | Where-Object {
         $_
     } | ForEach-Object {
-        $_.ForEach({ $_.sched }).Where({ $_.what -like "*$What*" })
+        $_.ForEach({ $_.sched }).Where([JsonRecord]::NewClosure({ $_.what -like "*$What*" }))
     } | Where-Object {
         $_
     } | ForEach-Object {

@@ -58,7 +58,7 @@ class JsonRecord : ICloneable {
         if ($null -eq $needle) {
             return @()
         }
-
+        
         $temp = $this.Clone()
         $temp.Needle_ = $needle
         return @($temp)
@@ -66,6 +66,7 @@ class JsonRecord : ICloneable {
 
     [JsonRecord[]]
     Where([scriptblock] $Query) {
+        Write-Host "I HAVE ENTERED THE WHERE CLAUSE SOMEHOW! I DON'T KNOW WHAT'S KICKING ME OUT!"
         $nextHaystack = if (-not $this.Needle_) {
             $this.Haystack_
         }
@@ -151,6 +152,26 @@ class JsonRecord : ICloneable {
             Out-File -FilePath $this.File_ -Force
     }
 
+    static [scriptblock]
+    NewClosure(
+        [scriptblock] $ScriptBlock
+    ) {
+        return & {
+            return $ScriptBlock.GetNewClosure()
+        }
+    }
+    
+    static [scriptblock]
+    NewClosure(
+        [scriptblock] $ScriptBlock,
+        $Parameters
+    ) {
+        return & {
+            Param($Parameters)
+            return $ScriptBlock.GetNewClosure()
+        } $Parameters
+    }
+    
     static [JsonRecord[]]
     Scan($InputObject) {
         return $InputObject |

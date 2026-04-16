@@ -503,6 +503,8 @@ function Get-MySchedule {
         Process {
             $schedule =
                 $InputObject.FileEnumerate() |
+                # (karlr 2026-04-16): I really shouldn't have to do this.
+                Where-Object { $_ } |
                 Get-Content |
                 Get-Schedule `
                     -StartDate:$StartDate `
