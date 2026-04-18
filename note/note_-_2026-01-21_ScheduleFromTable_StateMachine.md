@@ -10,6 +10,9 @@ when
 type
 every
 complete
+
+to (karlr 2026-04-18)
+duration (karlr 2026-04-18)
 ```
 
 ## state machine

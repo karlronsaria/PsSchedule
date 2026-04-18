@@ -265,6 +265,11 @@ function Get-Schedule_FromTable {
             # discard
             return $list
         }
+        
+        if ('never' -eq $schedWhen) {
+            # discard
+            return $list
+        }
 
         if ($null -eq $schedWhen) {
             $schedWhen = ""

@@ -104,27 +104,86 @@ function Write-Schedule {
 
             $displayItems = @($displayItem)
 
-            if ($ActionItem.PsObject.Properties.Name -contains 'to') {
-                $hour = $null
-                $minute = $null
+            $success, $time = if ($ActionItem.PsObject.Properties.Name -contains 'to') {
                 $to = $ActionItem.to
 
                 switch ($to) {
-                    { $to -is [String] } {
-                        $hour = $to.Substring(0, 2)
-                        $minute = $to.Substring(2)
+                    { $to -is [string] } {
+                        $true
+
+                        try {
+                            # Uses DateTimeFormat
+                            [datetime]::ParseExact($to, 'HHmm', $null)
+                        }
+                        catch {
+                            Write-Warning "A 'to' property was not formatted properly"
+                            $false
+                            $null
+                        }
+
+                        break
                     }
 
-                    { $to -is [DateTime] } {
-                        $hour = $to.Hour
-                        $minute = $to.Minute
+                    { $to -is [datetime] } {
+                        $true
+                        $to
+                        break
+                    }
+
+                    default {
+                        $false
+                        $null
+                        break
                     }
                 }
+            }
+            elseif ($ActionItem.PsObject.Properties.Name -contains 'duration') {
+                $duration = $ActionItem.duration
 
+                switch ($duration) {
+                    { $duration -is [string] } {
+                        try {
+                            # Uses DateTimeFormat
+                            $time = [datetime]::ParseExact($duration, 'HHmm', $null).TimeOfDay
+                            $time = $ActionItem.when.Add($time)
+                            $true
+                            $time
+                        }
+                        catch {
+                            Write-Warning "A 'duration' property was not formatted properly"
+                            $false
+                            $null
+                        }
+
+                        break
+                    }
+
+                    { $duration -is [datetime] } {
+                        try {
+                            $time = $duration.TimeOfDay
+                            $time = $ActionItem.when.Add($time)
+                            $true
+                            $time
+                        }
+                        catch {
+                            Write-Warning "A 'duration' property was not formatted properly"
+                            $false
+                            $null
+                        }
+                    }
+
+                    default {
+                        $false
+                        $null
+                        break
+                    }
+                }
+            }
+
+            if ($success) {
                 $displayItems +=
                     @([PsCustomObject]@{
-                        When =
-                            "$(Get-Date -Hour $hour -Minute $minute -f HH:mm)"
+                        When = "$(Get-Date -Date $time -f HH:mm)"
                         Type = $icon
                         What = $const.ITEM_CONTINUATION_SYMBOL
                     })
